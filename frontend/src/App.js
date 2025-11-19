@@ -68,11 +68,15 @@ function App() {
   const checkAuth = async () => {
     try {
       const response = await axios.get(`${API}/auth/me`, {
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          'Accept': 'application/json',
+        }
       });
       setUser(response.data);
     } catch (error) {
-      // Not authenticated
+      console.log('Not authenticated:', error.response?.status);
+      // Not authenticated - this is fine
     } finally {
       setLoading(false);
     }
