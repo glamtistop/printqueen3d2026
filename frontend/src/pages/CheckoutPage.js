@@ -15,7 +15,18 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const [processing, setProcessing] = useState(false);
 
+  // Redirect if no user
+  React.useEffect(() => {
+    if (!user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
 
   const handleCheckout = async () => {
     setProcessing(true);
