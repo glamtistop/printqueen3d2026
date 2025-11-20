@@ -205,27 +205,14 @@ const ProductDetailPage = () => {
 
             <p className="text-gray-600 text-lg" data-testid="product-description">{product.description}</p>
 
-            {/* Color Selector */}
-            {product.available_colors && product.available_colors.length > 0 && (
-              <div className="space-y-3">
-                <label className="text-lg font-semibold text-gray-900">Choose Color</label>
-                <div className="flex flex-wrap gap-3">
-                  {product.available_colors.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={`px-6 py-3 rounded-lg border-2 font-medium transition-all ${
-                        selectedColor === color
-                          ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
-                      }`}
-                      data-testid={`color-${color}`}
-                    >
-                      {color}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Color Picker */}
+            {showColorPicker && (
+              <ColorPicker 
+                label="Choose Color"
+                value={selectedColor}
+                onChange={setSelectedColor}
+                dataTestId="product-color-picker"
+              />
             )}
 
             {/* Variants */}
