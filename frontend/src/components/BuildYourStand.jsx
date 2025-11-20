@@ -466,6 +466,19 @@ const BuildYourStand = ({ product }) => {
                             newCustom[index] = '';
                             setCustomIcons(newCustom);
                           }
+                          
+                          // Check if all icons are selected
+                          const allIconsSelected = Object.keys(newIcons).length === maxLinks && 
+                                                   Object.values(newIcons).every(icon => icon && icon.trim() !== '');
+                          if (allIconsSelected && e.target.value !== 'Custom') {
+                            // Auto-collapse this section - all done!
+                            setTimeout(() => {
+                              setExpandedSections(prev => ({
+                                ...prev,
+                                icons: false
+                              }));
+                            }, 500);
+                          }
                         }}
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-300 outline-none"
                       >
