@@ -9,7 +9,23 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Configure Cloudinary - automatically reads CLOUDINARY_URL environment variable
-cloudinary.config()
+cloudinary_url = os.getenv('CLOUDINARY_URL')
+if cloudinary_url:
+    # Parse the URL manually and configure
+    import re
+    match = re.match(r'cloudinary://([^:]+):([^@]+)@(.+)', cloudinary_url)
+    if match:
+        api_key, api_secret, cloud_name = match.groups()
+        cloudinary.config(
+            cloud_name=cloud_name,
+            api_key=api_key,
+            api_secret=api_secret,
+            secure=True
+        )
+    else:
+        raise ValueError(f"Invalid CLOUDINARY_URL format: {cloudinary_url}")
+else:
+    raise ValueError("CLOUDINARY_URL environment variable not set")
 
 class CloudinaryService:
     @staticmethod
