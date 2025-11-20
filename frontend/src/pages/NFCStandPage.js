@@ -218,17 +218,17 @@ const NFCStandPage = () => {
       </nav>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 pb-12">
         {/* Header with Product Showcase */}
-        <div className="text-center mb-12 fade-in-up">
-          <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-full text-sm font-semibold mb-4">
+        <div className="text-center mb-8 sm:mb-12 fade-in-up">
+          <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-full text-sm font-semibold mb-3">
             ⭐ Fully Customizable
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
             Custom NFC Payment Stand
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Design your perfect NFC stand with personalized colors, your logo, and custom programming. Perfect for businesses accepting contactless payments.
+          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto mb-6">
+            Design your perfect NFC stand with personalized colors, your logo, and custom programming.
           </p>
         </div>
 
