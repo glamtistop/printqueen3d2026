@@ -669,14 +669,36 @@ async def create_collection(collection_data: CollectionCreate, user: User = Depe
 @api_router.put("/collections/{collection_id}", response_model=Collection)
 async def update_collection(collection_id: str, collection_data: CollectionCreate, user: User = Depends(require_admin)):
     """Update collection"""
-    existing = await db.collections.find_one({"id": collection_id})
+    existing = await db.product_collections.find_one({"id": collection_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Collection not found")
     
-    update_dict = collection_data.model_dump()
-    await db.collections.update_one({"id": collection_id}, {"$set": update_dict})
+    # Get old product_ids to determine what changed
+    old_product_ids = set(existing.get('product_ids', []))
+    new_product_ids = set(collection_data.product_ids)
     
-    updated = await db.collections.find_one({"id": collection_id}, {"_id": 0})
+    # Products to add to collection
+    added_products = new_product_ids - old_product_ids
+    # Products to remove from collection
+    removed_products = old_product_ids - new_product_ids
+    
+    # Update products' collection_ids
+    for product_id in added_products:
+        await db.products.update_one(
+            {"id": product_id},
+            {"$addToSet": {"collection_ids": collection_id}}
+        )
+    
+    for product_id in removed_products:
+        await db.products.update_one(
+            {"id": product_id},
+            {"$pull": {"collection_ids": collection_id}}
+        )
+    
+    update_dict = collection_data.model_dump()
+    await db.product_collections.update_one({"id": collection_id}, {"$set": update_dict})
+    
+    updated = await db.product_collections.find_one({"id": collection_id}, {"_id": 0})
     if isinstance(updated.get('created_at'), str):
         updated['created_at'] = datetime.fromisoformat(updated['created_at'])
     return updated
