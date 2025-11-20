@@ -170,73 +170,90 @@ const LandingPage = () => {
         />
       </section>
 
-      {/* Category Banners */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-3 gap-6">
-          <Link to="/nfc-stand" className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
-            <img
-              src="https://printqueen3d-storefront1.vercel.app/paymentstands.PNG"
-              alt="Payment Stands"
-              className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-              <div className="text-white">
-                <h3 className="text-2xl font-bold mb-1">Payment Stands</h3>
-                <p className="text-sm opacity-90">Custom NFC solutions</p>
-              </div>
-            </div>
-          </Link>
-
-          <Link to="/products" className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
-            <img
-              src="https://printqueen3d-storefront1.vercel.app/custom3dprints.PNG"
-              alt="Custom 3D Prints"
-              className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-              <div className="text-white">
-                <h3 className="text-2xl font-bold mb-1">Custom 3D Prints</h3>
-                <p className="text-sm opacity-90">Made to order designs</p>
-              </div>
-            </div>
-          </Link>
-
-          <Link to="/products" className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
-            <img
-              src="https://printqueen3d-storefront1.vercel.app/nfckeychain.png"
-              alt="NFC Keychains"
-              className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-              <div className="text-white">
-                <h3 className="text-2xl font-bold mb-1">Keychains</h3>
-                <p className="text-sm opacity-90">NFC enabled accessories</p>
-              </div>
-            </div>
-          </Link>
-        </div>
-      </section>
-
       {/* Shop Categories */}
-      <section className="py-16 bg-gradient-to-b from-white to-blue-50">
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { name: 'Payment Stands', link: '/nfc-stand' },
-              { name: 'Keychains', link: '/products' },
-              { name: 'Home Decor', link: '/products' },
-              { name: 'Incense Holders', link: '/products' },
-              { name: 'Toys & Fidgets', link: '/products' },
-              { name: 'Custom 3D Prints', link: '/products' }
+              { name: 'Payment Stands', link: '/nfc-stand', image: 'https://printqueen3d-storefront1.vercel.app/paymentstands.PNG' },
+              { name: 'Keychains', link: '/products', image: 'https://printqueen3d-storefront1.vercel.app/nfckeychain.png' },
+              { name: 'Home Decor', link: '/products', image: 'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=400' },
+              { name: 'Incense Holders', link: '/products', image: 'https://images.unsplash.com/photo-1602874801006-63bed4e37cb7?w=400' },
+              { name: 'Toys & Fidgets', link: '/products', image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=400' },
+              { name: 'Custom 3D Prints', link: '/products', image: 'https://printqueen3d-storefront1.vercel.app/custom3dprints.PNG' }
             ].map((category) => (
               <Link
                 key={category.name}
                 to={category.link}
-                className="product-card p-6 text-center hover:scale-105 transition-transform duration-300"
+                className="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-white"
               >
-                <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                <div className="aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-3 text-center border-t border-gray-100">
+                  <h3 className="font-semibold text-sm text-gray-900">{category.name}</h3>
+                </div>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Products */}
+      <section className="py-16 bg-gradient-to-b from-white to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-3">Featured Products</h2>
+            <p className="text-lg text-gray-600">Handpicked favorites from our collection</p>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[
+              { name: 'Custom NFC Stand', price: 45.00, image: 'https://printqueen3d-storefront1.vercel.app/paymentstands.PNG', badge: 'Customizable' },
+              { name: 'NFC Keychain Set', price: 24.99, image: 'https://printqueen3d-storefront1.vercel.app/nfckeychain.png', badge: 'Popular' },
+              { name: 'Geometric Planter', price: 34.99, image: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400', badge: 'New' },
+              { name: 'Desk Organizer', price: 29.99, image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400', badge: 'Trending' }
+            ].map((product, index) => (
+              <Link
+                key={index}
+                to={product.name === 'Custom NFC Stand' ? '/nfc-stand' : '/products'}
+                className="group product-card rounded-xl overflow-hidden hover:scale-105 transition-all duration-300"
+              >
+                <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  {product.badge && (
+                    <div className="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                      {product.badge}
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-gray-900 mb-2">{product.name}</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-green-600">${product.price.toFixed(2)}</span>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors">
+                      View
+                    </button>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-center mt-10">
+            <Link to="/products">
+              <button className="btn-primary text-lg px-8 py-4">
+                Shop All Products
+              </button>
+            </Link>
           </div>
         </div>
       </section>
