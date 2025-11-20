@@ -51,11 +51,27 @@ const ProductDetailPage = () => {
       if (productData.available_colors && productData.available_colors.length > 0) {
         setShowColorPicker(true);
       }
+
+      // Fetch related products from same category
+      fetchRelatedProducts(productData.category, productData.id);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast.error('Failed to load product');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRelatedProducts = async (category, currentProductId) => {
+    try {
+      const response = await axios.get(`${API}/products?category=${category}`);
+      // Filter out current product and limit to 4
+      const filtered = response.data
+        .filter(p => p.id !== currentProductId && p.published)
+        .slice(0, 4);
+      setRelatedProducts(filtered);
+    } catch (error) {
+      console.error('Error fetching related products:', error);
     }
   };
 
