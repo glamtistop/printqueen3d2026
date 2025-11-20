@@ -97,7 +97,7 @@ const ColorPicker = ({ label, value, onChange, dataTestId, onOpenChange }) => {
                   type="button"
                   onClick={() => {
                     onChange(color.hex);
-                    setIsOpen(false);
+                    handleClose();
                   }}
                   className={`flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 hover:bg-blue-50 ${
                     value === color.hex ? 'bg-blue-50 ring-2 ring-blue-500' : 'hover:scale-102'
