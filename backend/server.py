@@ -693,6 +693,56 @@ async def update_order_status(order_id: str, status: str, user: User = Depends(r
         raise HTTPException(status_code=404, detail="Order not found")
     return {"message": "Order status updated"}
 
+class OrderFulfillment(BaseModel):
+    tracking_number: Optional[str] = None
+    shipping_carrier: Optional[str] = None
+    notes: Optional[str] = None
+
+@api_router.put("/admin/orders/{order_id}/fulfill")
+async def fulfill_order(order_id: str, fulfillment: OrderFulfillment, user: User = Depends(require_admin)):
+    """Fulfill order with tracking info"""
+    update_data = {
+        "status": "shipped",
+        "fulfilled_at": datetime.now(timezone.utc).isoformat()
+    }
+    if fulfillment.tracking_number:
+        update_data["tracking_number"] = fulfillment.tracking_number
+    if fulfillment.shipping_carrier:
+        update_data["shipping_carrier"] = fulfillment.shipping_carrier
+    if fulfillment.notes:
+        update_data["notes"] = fulfillment.notes
+    
+    result = await db.orders.update_one(
+        {"id": order_id},
+        {"$set": update_data}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return {"message": "Order fulfilled successfully"}
+
+@api_router.get("/admin/customers")
+async def get_all_customers(user: User = Depends(require_admin)):
+    """Get all customers with order stats"""
+    users = await db.users.find({"is_admin": False}, {"_id": 0}).to_list(1000)
+    
+    customers = []
+    for usr in users:
+        # Get order count and total spent
+        orders = await db.orders.find({"user_id": usr["id"]}).to_list(1000)
+        total_orders = len(orders)
+        total_spent = sum(order.get("total", 0) for order in orders)
+        
+        customers.append({
+            "id": usr["id"],
+            "email": usr["email"],
+            "name": usr["name"],
+            "created_at": usr.get("created_at"),
+            "total_orders": total_orders,
+            "total_spent": total_spent
+        })
+    
+    return customers
+
 # ============ NFC STAND ROUTES ============
 
 from fastapi import File, UploadFile, Form
