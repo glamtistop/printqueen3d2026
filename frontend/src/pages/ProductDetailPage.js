@@ -328,6 +328,43 @@ const ProductDetailPage = () => {
             </Button>
           </div>
         </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16 pt-8 border-t border-gray-200">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">You May Also Like</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedProducts.map((relatedProduct) => (
+                <Link
+                  key={relatedProduct.id}
+                  to={
+                    relatedProduct.category === 'Payment Stands' ? '/nfc-stand' :
+                    relatedProduct.is_custom ? relatedProduct.custom_page_url : 
+                    `/products/${relatedProduct.id}`
+                  }
+                  className="group product-card rounded-xl overflow-hidden hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+                    <img
+                      src={relatedProduct.images && relatedProduct.images.length > 0 ? relatedProduct.images[0] : 'https://via.placeholder.com/400'}
+                      alt={relatedProduct.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    {relatedProduct.badge && (
+                      <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        {relatedProduct.badge}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{relatedProduct.name}</h3>
+                    <p className="text-lg font-bold text-green-600">${relatedProduct.price.toFixed(2)}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
