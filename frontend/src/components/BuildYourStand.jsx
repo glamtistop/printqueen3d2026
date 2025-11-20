@@ -389,7 +389,7 @@ const BuildYourStand = ({ product }) => {
                   )}
                 </label>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Step 4: NFC Links */}
