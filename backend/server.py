@@ -562,7 +562,7 @@ async def create_nfc_stand_order(
         """
         
         logger.info(f"NFC Stand Order Created: {order_data['id']}")
-        logger.info(f"Email notification would be sent to admin with order details")
+        logger.info("Email notification would be sent to admin with order details")
         
         # In production, integrate with SendGrid, AWS SES, or similar email service
         # Example with SendGrid:
