@@ -129,8 +129,12 @@ class Order(BaseModel):
     user_id: str
     items: List[OrderItem]
     total: float
-    status: str = "pending"  # pending, processing, completed, cancelled
+    status: str = "pending"  # pending, processing, shipped, completed, cancelled
     payment_session_id: Optional[str] = None
+    tracking_number: Optional[str] = None
+    shipping_carrier: Optional[str] = None
+    fulfilled_at: Optional[datetime] = None
+    notes: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class OrderCreate(BaseModel):
