@@ -222,8 +222,8 @@ async def require_admin(request: Request, authorization: Optional[str] = Header(
 async def process_session(request: Request, x_session_id: str = Header(..., alias="X-Session-ID")):
     """Process Emergent Auth session ID and create user session"""
     try:
-        # Call Emergent Auth API to get session data
-        response = requests.post(
+        # Call Emergent Auth API to get session data (use GET not POST!)
+        response = requests.get(
             "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
             headers={"X-Session-ID": x_session_id}
         )
