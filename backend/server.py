@@ -78,6 +78,7 @@ class Product(BaseModel):
     collection_ids: List[str] = []
     badge: Optional[str] = None
     available_colors: List[str] = []
+    material_details: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
