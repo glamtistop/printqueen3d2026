@@ -153,6 +153,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
               <Route path="/nfc-stand" element={<NFCStandPage />} />
@@ -160,7 +161,7 @@ function App() {
               <Route path="/checkout" element={user ? <CheckoutPage /> : <Navigate to="/" />} />
               <Route path="/order-success" element={user ? <OrderSuccessPage /> : <Navigate to="/" />} />
               <Route path="/orders" element={user ? <OrdersPage /> : <Navigate to="/" />} />
-              <Route path="/admin" element={user?.is_admin ? <AdminDashboard /> : <Navigate to="/" />} />
+              <Route path="/admin" element={user?.is_admin ? <AdminDashboard /> : <Navigate to="/login" />} />
             </Routes>
           </BrowserRouter>
           <Toaster position="top-right" />
