@@ -46,9 +46,9 @@ const ProductDetailPage = () => {
       
       setProduct(productData);
       
-      // Set default color if available
+      // Show color picker if product has color options
       if (productData.available_colors && productData.available_colors.length > 0) {
-        setSelectedColor(productData.available_colors[0]);
+        setShowColorPicker(true);
       }
     } catch (error) {
       console.error('Error fetching product:', error);
