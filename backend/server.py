@@ -470,6 +470,40 @@ async def toggle_product_publish(product_id: str, published: bool, user: User = 
         raise HTTPException(status_code=404, detail="Product not found")
     return {"message": f"Product {'published' if published else 'unpublished'} successfully"}
 
+@api_router.post("/products/{product_id}/duplicate", response_model=Product)
+async def duplicate_product(product_id: str, user: User = Depends(require_admin)):
+    """Duplicate an existing product"""
+    # Get the original product
+    original = await db.products.find_one({"id": product_id}, {"_id": 0})
+    if not original:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Create a new product with copied data
+    new_product = Product(
+        id=str(uuid.uuid4()),
+        name=f"{original['name']} (Copy)",
+        description=original.get('description', ''),
+        price=original.get('price', 0),
+        category=original.get('category', ''),
+        images=original.get('images', []),
+        variants=original.get('variants', []),
+        stock=original.get('stock', 0),
+        is_custom=original.get('is_custom', False),
+        custom_page_url=original.get('custom_page_url'),
+        published=False,  # Start as draft
+        collection_ids=original.get('collection_ids', []),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc)
+    )
+    
+    # Save to database
+    product_dict = new_product.model_dump()
+    product_dict['created_at'] = product_dict['created_at'].isoformat()
+    product_dict['updated_at'] = product_dict['updated_at'].isoformat()
+    await db.products.insert_one(product_dict)
+    
+    return new_product
+
 @api_router.post("/products/bulk-delete")
 async def bulk_delete_products(product_ids: List[str], user: User = Depends(require_admin)):
     """Bulk delete products"""
