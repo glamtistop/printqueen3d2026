@@ -6,6 +6,7 @@ import { Package, ShoppingCart, ArrowLeft, User, LogOut } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import ColorPicker, { COLORS } from '../components/ColorPicker';
+import BuildYourStand from '../components/BuildYourStand';
 import {
   DropdownMenu,
   DropdownMenuContent,
