@@ -246,28 +246,16 @@ const NFCStandPage = () => {
       </nav>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-36 pb-12">
-        {/* Header with Product Showcase */}
-        <div className="text-center mb-8 sm:mb-12 fade-in-up">
-          <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-full text-sm font-semibold mb-3 mt-2">
-            ⭐ Fully Customizable
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Custom NFC Payment Stand
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto mb-6">
-            Design your perfect NFC stand with personalized colors, your logo, and custom programming.
-          </p>
-        </div>
-
-        {/* Product Showcase */}
-        <div className="max-w-5xl mx-auto mb-8 sm:mb-12">
-          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 items-center">
-            <div className="product-card rounded-2xl overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        {/* Product Header Section - Matching Product Detail Page Layout */}
+        <div className="grid md:grid-cols-2 gap-12 mb-12">
+          {/* Product Image - Left Side */}
+          <div className="space-y-4">
+            <div className="glass-card rounded-2xl overflow-hidden h-96 flex items-center justify-center bg-gradient-to-br from-blue-100 to-green-100">
               <img
                 src="https://printqueen3d-storefront1.vercel.app/paymentstands.PNG"
                 alt="Custom NFC Payment Stand"
-                className="w-full h-auto object-cover"
+                className="w-full h-full object-cover"
               />
             </div>
             <div className="space-y-6">
