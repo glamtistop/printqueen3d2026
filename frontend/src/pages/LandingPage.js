@@ -187,6 +187,7 @@ const LandingPage = () => {
             src={bannerImages[currentBannerIndex]}
             alt="Print Queen 3D Hero"
             className="w-full h-auto object-contain transition-opacity duration-1000"
+            style={{ maxHeight: '350px' }}
           />
           
           {/* Carousel Indicators */}
