@@ -77,6 +77,7 @@ class Product(BaseModel):
     published: bool = True
     collection_ids: List[str] = []
     badge: Optional[str] = None
+    available_colors: List[str] = []
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
