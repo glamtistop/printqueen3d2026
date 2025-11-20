@@ -65,7 +65,10 @@ class Product(BaseModel):
     stock: int
     is_custom: bool = False
     custom_page_url: Optional[str] = None
+    published: bool = True
+    collection_ids: List[str] = []
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ProductCreate(BaseModel):
     name: str
@@ -75,6 +78,43 @@ class ProductCreate(BaseModel):
     images: List[str]
     variants: List[ProductVariant] = []
     stock: int
+    published: bool = True
+    collection_ids: List[str] = []
+
+class Category(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+
+class CollectionRule(BaseModel):
+    field: str  # e.g., "category", "price"
+    operator: str  # e.g., "equals", "less_than", "greater_than", "contains"
+    value: str
+
+class Collection(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    type: str = "manual"  # manual or automated
+    product_ids: List[str] = []
+    rules: List[CollectionRule] = []
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CollectionCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    type: str = "manual"
+    product_ids: List[str] = []
+    rules: List[CollectionRule] = []
 
 class OrderItem(BaseModel):
     product_id: str
