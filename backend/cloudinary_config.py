@@ -8,18 +8,8 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Configure Cloudinary using CLOUDINARY_URL
-cloudinary_url = os.getenv('CLOUDINARY_URL')
-if cloudinary_url:
-    cloudinary.config(cloudinary_url=cloudinary_url, secure=True)
-else:
-    # Fallback to individual variables if CLOUDINARY_URL is not set
-    cloudinary.config(
-        cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
-        api_key=os.getenv('CLOUDINARY_API_KEY'),
-        api_secret=os.getenv('CLOUDINARY_API_SECRET'),
-        secure=True
-    )
+# Configure Cloudinary - automatically reads CLOUDINARY_URL environment variable
+cloudinary.config()
 
 class CloudinaryService:
     @staticmethod
