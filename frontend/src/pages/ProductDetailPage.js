@@ -70,7 +70,9 @@ const ProductDetailPage = () => {
       
       addToCart(product, quantity, Object.keys(customization).length > 0 ? customization : null);
       
-      const colorText = selectedColor ? ` (${selectedColor})` : '';
+      // Get color name from hex
+      const colorObj = COLORS.find(c => c.hex === selectedColor);
+      const colorText = colorObj ? ` (${colorObj.name})` : '';
       toast.success(`${quantity} x ${product.name}${colorText} added to cart!`);
     }
   };
