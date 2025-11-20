@@ -10,6 +10,7 @@ import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrdersPage from './pages/OrdersPage';
 import AdminDashboard from './pages/AdminDashboardNew';
 import NFCStandPage from './pages/NFCStandPage';
+import LoginPage from './pages/LoginPage';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
 
