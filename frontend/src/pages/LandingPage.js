@@ -13,17 +13,8 @@ import {
 const LandingPage = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleLogin = () => {
     const redirectUrl = `${window.location.origin}/products`;
