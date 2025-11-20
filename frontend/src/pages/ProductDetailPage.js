@@ -331,11 +331,7 @@ const ProductDetailPage = () => {
               {relatedProducts.map((relatedProduct) => (
                 <Link
                   key={relatedProduct.id}
-                  to={
-                    relatedProduct.category === 'Payment Stands' ? '/nfc-stand' :
-                    relatedProduct.is_custom ? relatedProduct.custom_page_url : 
-                    `/products/${relatedProduct.id}`
-                  }
+                  to={`/products/${relatedProduct.id}`}
                   className="group product-card rounded-xl overflow-hidden hover:scale-105 transition-all duration-300"
                 >
                   <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
