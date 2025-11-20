@@ -370,6 +370,7 @@ const NFCStandPage = () => {
                   </button>
                 ))}
               </div>
+              )}
             </div>
 
             {/* Step 2: Colors */}
