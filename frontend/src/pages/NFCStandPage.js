@@ -220,9 +220,9 @@ const NFCStandPage = () => {
           <p className="section-subtitle">Design your perfect NFC stand with personalized colors and branding</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left Side - Configuration */}
-          <div className="space-y-8">
+          <div className="space-y-6 lg:space-y-8">
             {/* Step 1: Base Selection */}
             <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500">
               <div className="flex items-center justify-between mb-4">
