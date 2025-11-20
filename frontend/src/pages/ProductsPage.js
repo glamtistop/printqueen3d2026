@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext, CartContext } from '../App';
 import { ShoppingCart, Package, Filter, User, LogOut } from 'lucide-react';
@@ -25,10 +25,19 @@ const API = `${BACKEND_URL}/api`;
 const ProductsPage = () => {
   const { user, logout } = useContext(AuthContext);
   const { addToCart, cart } = useContext(CartContext);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
+
+  // Read category from URL params on mount
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
+    }
+  }, []);
 
   useEffect(() => {
     fetchProducts();
