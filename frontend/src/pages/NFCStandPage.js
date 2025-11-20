@@ -233,8 +233,8 @@ const NFCStandPage = () => {
         </div>
 
         {/* Product Showcase */}
-        <div className="max-w-5xl mx-auto mb-16">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+        <div className="max-w-5xl mx-auto mb-8 sm:mb-12">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 items-center">
             <div className="product-card rounded-2xl overflow-hidden">
               <img
                 src="https://printqueen3d-storefront1.vercel.app/paymentstands.PNG"
