@@ -86,6 +86,21 @@ export const ProductManager = () => {
     setShowForm(true);
   };
 
+  const handleDuplicate = async (productId) => {
+    try {
+      await axios.post(
+        `${BACKEND_URL}/api/products/${productId}/duplicate`,
+        null,
+        { withCredentials: true }
+      );
+      fetchProducts();
+      alert('Product duplicated successfully! The duplicate is saved as a draft.');
+    } catch (error) {
+      console.error('Failed to duplicate product:', error);
+      alert('Failed to duplicate product');
+    }
+  };
+
   const handleFormSuccess = () => {
     setShowForm(false);
     setEditingProduct(null);
