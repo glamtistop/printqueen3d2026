@@ -31,6 +31,11 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Announcement Bar */}
+      <div className="announcement-bar">
+        ✨ Free Shipping on Orders Over $75 | Use Code: FREESHIP75 ✨
+      </div>
+
       {/* Navbar */}
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
