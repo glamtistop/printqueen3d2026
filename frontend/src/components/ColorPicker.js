@@ -62,7 +62,7 @@ const ColorPicker = ({ label, value, onChange, dataTestId, onOpenChange }) => {
       
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl flex items-center justify-between hover:border-blue-400 transition-all duration-300 focus:ring-4 focus:ring-blue-100 focus:outline-none"
       >
         <div className="flex items-center space-x-3">
