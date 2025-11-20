@@ -71,7 +71,7 @@ class Product(BaseModel):
     category: str
     images: List[str]
     variants: List[ProductVariant] = []
-    stock: int
+    stock: int = 0
     is_custom: bool = False
     custom_page_url: Optional[str] = None
     published: bool = True
@@ -87,7 +87,7 @@ class ProductCreate(BaseModel):
     category: str
     images: List[str]
     variants: List[ProductVariant] = []
-    stock: int
+    stock: int = 0
     published: bool = True
     collection_ids: List[str] = []
     badge: Optional[str] = None
