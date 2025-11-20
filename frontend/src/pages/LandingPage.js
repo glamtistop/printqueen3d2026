@@ -176,13 +176,12 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Banner - Auto-rotating Carousel */}
-      <section className="relative w-full overflow-hidden" style={{ marginTop: '104px' }}>
-        <div className="relative">
+      <section className="relative w-full bg-gray-100" style={{ marginTop: '104px' }}>
+        <div className="relative w-full">
           <img
             src={bannerImages[currentBannerIndex]}
             alt="Print Queen 3D Hero"
-            className="w-full h-auto object-cover transition-opacity duration-1000"
-            style={{ maxHeight: '600px' }}
+            className="w-full h-auto object-contain transition-opacity duration-1000"
           />
           
           {/* Carousel Indicators */}
