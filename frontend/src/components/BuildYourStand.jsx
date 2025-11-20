@@ -342,8 +342,12 @@ const BuildYourStand = ({ product }) => {
               <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform duration-300 ease-in-out ${expandedSections.logo ? 'rotate-180' : ''}`} />
             </button>
             
-            {expandedSections.logo && (
-              <div className="p-6 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div 
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                expandedSections.logo ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="p-6">
                 <input
                   type="file"
                   accept="image/*"
