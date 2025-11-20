@@ -460,8 +460,12 @@ const BuildYourStand = ({ product }) => {
               <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform duration-300 ease-in-out ${expandedSections.icons ? 'rotate-180' : ''}`} />
             </button>
             
-            {expandedSections.icons && (
-              <div className="p-6 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div 
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                expandedSections.icons ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="p-6">
                 <p className="text-sm text-gray-600 mb-4">
                   Choose an icon for each NFC chip ({maxLinks} total)
                 </p>
