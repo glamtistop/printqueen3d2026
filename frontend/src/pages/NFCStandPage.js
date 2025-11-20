@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../App';
-import { Package, Upload, Link as LinkIcon, ShoppingCart, User, LogOut, X, Check } from 'lucide-react';
+import { Package, Upload, Link as LinkIcon, ShoppingCart, User, LogOut, X, Check, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import ColorPicker from '../components/ColorPicker';
