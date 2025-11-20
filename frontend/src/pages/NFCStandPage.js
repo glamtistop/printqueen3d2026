@@ -499,7 +499,10 @@ const NFCStandPage = () => {
 
             {/* Step 4: NFC Links */}
             <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500 delay-300">
-              <div className="flex items-center justify-between mb-4">
+              <div 
+                className="flex items-center justify-between mb-4 cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded-lg transition-colors"
+                onClick={() => toggleSection('links')}
+              >
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
                     hasNfcLinks ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-purple-500 to-purple-600'
@@ -508,11 +511,16 @@ const NFCStandPage = () => {
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">Add NFC Links</h2>
                 </div>
-                {hasNfcLinks && (
-                  <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
-                )}
+                <div className="flex items-center space-x-2">
+                  {hasNfcLinks && (
+                    <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
+                  )}
+                  <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform duration-300 ${expandedSections.links ? 'rotate-180' : ''}`} />
+                </div>
               </div>
               
+              {expandedSections.links && (
+              <>
               <p className="text-sm text-gray-600 mb-4">
                 Provide up to {maxLinks} links to program into your NFC chips
               </p>
