@@ -331,7 +331,7 @@ const BuildYourStand = ({ product }) => {
                   <p className="text-sm text-gray-600">Add your brand logo</p>
                 </div>
               </div>
-              <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform ${expandedSections.logo ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform duration-300 ease-in-out ${expandedSections.logo ? 'rotate-180' : ''}`} />
             </button>
             
             {expandedSections.logo && (
