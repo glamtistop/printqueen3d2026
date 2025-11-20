@@ -258,38 +258,49 @@ const NFCStandPage = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">🎨</span>
+          </div>
+
+          {/* Product Details - Right Side */}
+          <div className="space-y-6">
+            <div>
+              <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full mb-2">
+                Payment Stands
+              </span>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">Custom NFC Payment Stand</h1>
+              <p className="text-3xl font-bold text-green-600 mb-6">Starting at $45.00</p>
+            </div>
+
+            <p className="text-gray-600 text-lg">
+              Design your perfect NFC stand with personalized colors, your logo, and custom programming. Professional, branded solution for accepting payments on the go.
+            </p>
+
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl">🎨</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Your Colors</h3>
-                  <p className="text-gray-600">Choose from 32 premium colors for primary and secondary accents</p>
+                  <h3 className="font-semibold text-gray-900">Custom Colors</h3>
+                  <p className="text-sm text-gray-600">32 premium colors for primary and secondary accents</p>
                 </div>
               </div>
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">📱</span>
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl">📱</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">NFC Programmed</h3>
-                  <p className="text-gray-600">Up to 3 NFC chips programmed with your custom links</p>
+                  <h3 className="font-semibold text-gray-900">NFC Programmed</h3>
+                  <p className="text-sm text-gray-600">Up to 3 NFC chips with your custom links</p>
                 </div>
               </div>
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">🏷️</span>
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl">🏷️</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Your Branding</h3>
-                  <p className="text-gray-600">Upload your logo for a professional, branded appearance</p>
+                  <h3 className="font-semibold text-gray-900">Your Branding</h3>
+                  <p className="text-sm text-gray-600">Upload your logo for a professional look</p>
                 </div>
-              </div>
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
-                <p className="text-center text-gray-700 font-semibold">
-                  ⚡ Starting at <span className="text-3xl font-bold text-green-600">$45.00</span>
-                </p>
               </div>
             </div>
           </div>
