@@ -172,10 +172,6 @@ const NFCStandPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white" data-testid="nfc-stand-page">
       {/* Announcement Bar */}
-      <div className="announcement-bar">
-        ✨ Custom NFC Stands - Ships within 5-7 Business Days ✨
-      </div>
-
       {/* Navbar */}
       <nav className="navbar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
