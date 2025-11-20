@@ -15,7 +15,8 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     images: [],
     published: true,
     collection_ids: [],
-    variants: []
+    variants: [],
+    badge: ''
   });
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
