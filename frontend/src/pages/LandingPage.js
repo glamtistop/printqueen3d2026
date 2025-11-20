@@ -175,14 +175,31 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero Banner */}
+      {/* Hero Banner - Auto-rotating Carousel */}
       <section className="relative w-full overflow-hidden" style={{ marginTop: '104px' }}>
-        <img
-          src="https://printqueen3d-storefront1.vercel.app/mobilebanner.png"
-          alt="Print Queen 3D Hero"
-          className="w-full h-auto object-cover"
-          style={{ maxHeight: '600px' }}
-        />
+        <div className="relative">
+          <img
+            src={bannerImages[currentBannerIndex]}
+            alt="Print Queen 3D Hero"
+            className="w-full h-auto object-cover transition-opacity duration-1000"
+            style={{ maxHeight: '600px' }}
+          />
+          
+          {/* Carousel Indicators */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {bannerImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentBannerIndex(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === currentBannerIndex 
+                    ? 'bg-white shadow-lg' 
+                    : 'bg-white/50 hover:bg-white/75'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Shop Categories */}
