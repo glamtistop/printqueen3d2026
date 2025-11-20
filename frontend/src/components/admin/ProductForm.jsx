@@ -17,7 +17,8 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     collection_ids: [],
     variants: [],
     badge: '',
-    available_colors: []
+    available_colors: [],
+    material_details: ''
   });
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
