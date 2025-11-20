@@ -318,7 +318,10 @@ const NFCStandPage = () => {
           <div className="space-y-6 lg:space-y-8">
             {/* Step 1: Base Selection */}
             <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500">
-              <div className="flex items-center justify-between mb-4">
+              <div 
+                className="flex items-center justify-between mb-4 cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded-lg transition-colors"
+                onClick={() => toggleSection('base')}
+              >
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
                     selectedBase ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-blue-500 to-blue-600'
@@ -327,11 +330,15 @@ const NFCStandPage = () => {
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">Choose Your Base</h2>
                 </div>
-                {selectedBase && (
-                  <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
-                )}
+                <div className="flex items-center space-x-2">
+                  {selectedBase && (
+                    <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
+                  )}
+                  <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform duration-300 ${expandedSections.base ? 'rotate-180' : ''}`} />
+                </div>
               </div>
               
+              {expandedSections.base && (
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {BASE_OPTIONS.map((option) => (
                   <button
