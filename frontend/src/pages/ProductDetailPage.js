@@ -324,6 +324,13 @@ const ProductDetailPage = () => {
           </div>
         </div>
 
+        {/* Custom Builder Component */}
+        {product.custom_builder === 'nfc-stand-builder' && (
+          <div className="mt-12">
+            <BuildYourStand product={product} />
+          </div>
+        )}
+
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-16 pt-8 border-t border-gray-200">
