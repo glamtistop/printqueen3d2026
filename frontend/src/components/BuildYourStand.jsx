@@ -232,6 +232,8 @@ const BuildYourStand = ({ product }) => {
                       setSelectedBase(option.id);
                       setNfcLinks(option.id.includes('3nfc') ? ['', '', ''] : ['', '']);
                       setSelectedIcons({});
+                      // Auto-collapse and move to next step
+                      handleStepCompletion('base', 'colors');
                     }}
                     className={`p-4 rounded-xl border-2 transition-all duration-300 text-left ${
                       selectedBase === option.id
