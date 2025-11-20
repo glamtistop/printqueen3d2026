@@ -62,6 +62,8 @@ class Product(BaseModel):
     images: List[str]
     variants: List[ProductVariant] = []
     stock: int
+    is_custom: bool = False
+    custom_page_url: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ProductCreate(BaseModel):
