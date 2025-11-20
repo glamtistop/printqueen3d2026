@@ -297,12 +297,14 @@ const NFCStandPage = () => {
                   value={primaryColor}
                   onChange={setPrimaryColor}
                   dataTestId="primary-color-picker"
+                  onOpenChange={setIsColorDropdownOpen}
                 />
                 <ColorPicker
                   label="Secondary Color"
                   value={secondaryColor}
                   onChange={setSecondaryColor}
                   dataTestId="secondary-color-picker"
+                  onOpenChange={setIsColorDropdownOpen}
                 />
               </div>
 
