@@ -654,7 +654,16 @@ async def create_collection(collection_data: CollectionCreate, user: User = Depe
     collection = Collection(**collection_data.model_dump())
     collection_dict = collection.model_dump()
     collection_dict['created_at'] = collection_dict['created_at'].isoformat()
-    await db.collections.insert_one(collection_dict)
+    await db.product_collections.insert_one(collection_dict)
+    
+    # If product_ids are provided, also update those products' collection_ids
+    if collection_data.product_ids:
+        for product_id in collection_data.product_ids:
+            await db.products.update_one(
+                {"id": product_id},
+                {"$addToSet": {"collection_ids": collection.id}}
+            )
+    
     return collection
 
 @api_router.put("/collections/{collection_id}", response_model=Collection)
