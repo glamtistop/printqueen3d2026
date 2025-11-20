@@ -397,7 +397,7 @@ const BuildYourStand = ({ product }) => {
                   <p className="text-sm text-gray-600">Program your NFC chips</p>
                 </div>
               </div>
-              <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform ${expandedSections.links ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform duration-300 ease-in-out ${expandedSections.links ? 'rotate-180' : ''}`} />
             </button>
             
             {expandedSections.links && (
