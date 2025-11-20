@@ -692,6 +692,70 @@ const NFCStandPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="site-footer mt-20">
+        <div className="footer-content">
+          {/* Brand Section */}
+          <div className="footer-section">
+            <img 
+              src="/printqueen-logo.png" 
+              alt="Print Queen 3D" 
+              className="h-16 w-auto mb-4"
+            />
+            <p className="text-gray-300 font-semibold mb-2">
+              Precision in Every Layer. Style in Every Print.<br />
+              Built in LA. Made for Everywhere.<br />
+              If You Can Dream It, We Can Print It.
+            </p>
+            <p className="text-gray-400 text-sm mb-4">
+              <strong>Local Pickup Available In These Cities:</strong><br />
+              Los Angeles, Altadena, Long Beach, Hawthorne, West Covina<br />
+              <strong>Shipping Everywhere</strong>
+            </p>
+            <p className="text-gray-300">
+              <a href="tel:8004956227" className="hover:text-blue-400">800-495-6227</a><br />
+              <a href="mailto:Printqueen3d@gmail.com" className="hover:text-blue-400">Printqueen3d@gmail.com</a>
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div className="footer-section">
+            <h3>Quick Links</h3>
+            <ul className="footer-links">
+              <li><Link to="/">About Us</Link></li>
+              <li><Link to="/products">Shop Products</Link></li>
+              <li><Link to="/nfc-stand">Request a Quote</Link></li>
+              {user && <li><Link to="/orders">My Account</Link></li>}
+            </ul>
+          </div>
+
+          {/* Connect & Collaborate */}
+          <div className="footer-section">
+            <h3>Connect & Collaborate</h3>
+            <ul className="footer-links">
+              <li><a href="mailto:Printqueen3d@gmail.com">Partner With Us</a></li>
+              <li><a href="#">Product Care</a></li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div className="footer-section">
+            <h3>Legal</h3>
+            <ul className="footer-links">
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="#">Refund Policy</a></li>
+              <li><a href="#">Shipping Policy</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <p>© 2025 Print Queen 3D. All rights reserved.</p>
+          <p className="text-sm text-gray-400 mt-2">Made to order in Los Angeles · Fast, reliable shipping · Local pickup available</p>
+        </div>
+      </footer>
     </div>
   );
 };
