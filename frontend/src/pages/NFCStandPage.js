@@ -218,10 +218,10 @@ const NFCStandPage = () => {
       </nav>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-36 pb-12">
         {/* Header with Product Showcase */}
         <div className="text-center mb-8 sm:mb-12 fade-in-up">
-          <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-full text-sm font-semibold mb-3">
+          <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-full text-sm font-semibold mb-3 mt-2">
             ⭐ Fully Customizable
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
