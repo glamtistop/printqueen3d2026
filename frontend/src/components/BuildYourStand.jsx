@@ -530,7 +530,7 @@ const BuildYourStand = ({ product }) => {
                   ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
