@@ -213,7 +213,7 @@ const BuildYourStand = ({ product }) => {
         {/* Customization Steps */}
         <div className="lg:col-span-2 space-y-4">
           {/* Step 1: Choose Base */}
-          <div className="glass-card rounded-2xl overflow-hidden">
+          <div id="step-base" className="glass-card rounded-2xl overflow-hidden scroll-mt-24">
             <button
               onClick={() => toggleSection('base')}
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-blue-50 to-white hover:from-blue-100 transition-colors"
