@@ -136,6 +136,13 @@ const BuildYourStand = ({ product }) => {
     const newLinks = [...nfcLinks];
     newLinks[index] = value;
     setNfcLinks(newLinks);
+    
+    // Check if at least one link is filled
+    const hasAnyLink = newLinks.slice(0, maxLinks).some(link => link.trim() !== '');
+    if (hasAnyLink) {
+      // Auto-collapse and move to next step
+      handleStepCompletion('links', 'icons');
+    }
   };
 
   const toggleSection = (section) => {
