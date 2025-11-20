@@ -175,9 +175,25 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero Banner - Auto-rotating Carousel */}
-      <section className="relative w-full bg-gray-100" style={{ marginTop: '104px' }}>
-        <div className="relative w-full">
+      {/* Marquee - Pink Gradient */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white py-3" style={{ marginTop: '104px' }}>
+        <div className="inline-flex items-center space-x-2 animate-marquee whitespace-nowrap">
+          <span className="font-medium">Fast & reliable U.S. shipping</span>
+          <span>·</span>
+          <span className="font-medium">Local pickup in Los Angeles, Altadena, Long Beach, Hawthorne, West Covina</span>
+          <span>·</span>
+          <span className="font-medium">Handmade 3D printed designs made to order in LA</span>
+          <span>·</span>
+          <span className="font-medium">Fast & reliable U.S. shipping</span>
+          <span>·</span>
+          <span className="font-medium">Local pickup in Los Angeles, Altadena, Long Beach, Hawthorne, West Covina</span>
+        </div>
+      </div>
+
+      {/* Hero Banner - Auto-rotating Carousel (Desktop) / Static Banner (Mobile) */}
+      <section className="relative w-full bg-gray-100">
+        {/* Desktop Banner - Carousel */}
+        <div className="hidden md:block relative w-full">
           <img
             src={bannerImages[currentBannerIndex]}
             alt="Print Queen 3D Hero"
@@ -199,6 +215,15 @@ const LandingPage = () => {
               />
             ))}
           </div>
+        </div>
+
+        {/* Mobile Banner - Static */}
+        <div className="block md:hidden relative w-full">
+          <img
+            src="https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/7969hqqc_mobilebanner.png"
+            alt="Print Queen 3D Mobile Banner"
+            className="w-full h-auto object-contain"
+          />
         </div>
       </section>
 
