@@ -77,7 +77,6 @@ const ProductsPage = () => {
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center">
               <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-14 w-auto" />
-              </span>
             </Link>
 
             <div className="flex items-center space-x-6">
