@@ -415,16 +415,17 @@ const NFCStandPage = () => {
                 />
               </div>
 
-              {/* Color Preview */}
-              {primaryColor && secondaryColor && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-xl animate-in fade-in duration-300">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">Color Preview:</p>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-1 h-24 rounded-lg shadow-md" style={{ backgroundColor: primaryColor }} />
-                    <div className="flex-1 h-24 rounded-lg shadow-md" style={{ backgroundColor: secondaryColor }} />
+                {/* Color Preview */}
+                {primaryColor && secondaryColor && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-xl animate-in fade-in duration-300">
+                    <p className="text-sm font-semibold text-gray-700 mb-3">Color Preview:</p>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex-1 h-24 rounded-lg shadow-md" style={{ backgroundColor: primaryColor }} />
+                      <div className="flex-1 h-24 rounded-lg shadow-md" style={{ backgroundColor: secondaryColor }} />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
               )}
             </div>
 
