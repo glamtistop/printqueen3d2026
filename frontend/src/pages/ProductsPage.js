@@ -252,26 +252,16 @@ const ProductsPage = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-bold text-green-600" data-testid={`product-price-${product.id}`}>
-                      ${product.is_custom ? 'Starting at ' : ''}${product.price.toFixed(2)}
+                      ${product.custom_builder ? 'Starting at ' : ''}${product.price.toFixed(2)}
                     </span>
-                    {product.custom_builder ? (
-                      <Link to={`/products/${product.id}`}>
-                        <Button
-                          className="btn-secondary"
-                          data-testid={`customize-${product.id}`}
-                        >
-                          Customize
-                        </Button>
-                      </Link>
-                    ) : (
+                    <Link to={`/products/${product.id}`}>
                       <Button
-                        onClick={() => handleAddToCart(product)}
-                        className="btn-primary"
-                        data-testid={`add-to-cart-${product.id}`}
+                        className={product.custom_builder ? "btn-secondary" : "btn-primary"}
+                        data-testid={`view-details-${product.id}`}
                       >
-                        Add to Cart
+                        {product.custom_builder ? 'Customize' : 'View Details'}
                       </Button>
-                    )}
+                    </Link>
                   </div>
                   {product.stock <= 5 && product.stock > 0 && (
                     <p className="text-sm text-yellow-600 font-medium">Only {product.stock} left in stock!</p>
