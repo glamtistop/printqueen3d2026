@@ -92,6 +92,7 @@ class ProductCreate(BaseModel):
     published: bool = True
     collection_ids: List[str] = []
     badge: Optional[str] = None
+    available_colors: List[str] = []
 
 class Category(BaseModel):
     model_config = ConfigDict(extra="ignore")
