@@ -175,7 +175,11 @@ const ProductsPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" data-testid="products-grid">
             {products.map((product) => (
               <div key={product.id} className="product-card glass-card rounded-2xl overflow-hidden" data-testid={`product-card-${product.id}`}>
-                <Link to={product.is_custom ? product.custom_page_url : `/products/${product.id}`}>
+                <Link to={
+                  product.category === 'Payment Stands' ? '/nfc-stand' :
+                  product.is_custom ? product.custom_page_url : 
+                  `/products/${product.id}`
+                }>
                   <div className="h-64 bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center overflow-hidden">
                     {product.images && product.images.length > 0 ? (
                       <img
