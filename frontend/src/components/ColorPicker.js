@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
-const COLORS = [
+export const COLORS = [
   { name: 'Crimson Red', hex: '#DC143C' },
   { name: 'Ruby Red', hex: '#E0115F' },
   { name: 'Coral Pink', hex: '#FF6B6B' },
