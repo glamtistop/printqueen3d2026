@@ -33,7 +33,8 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
         images: product.images || [],
         published: product.published !== undefined ? product.published : true,
         collection_ids: product.collection_ids || [],
-        variants: product.variants || []
+        variants: product.variants || [],
+        badge: product.badge || ''
       });
     }
     fetchCategories();
