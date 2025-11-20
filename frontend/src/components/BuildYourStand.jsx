@@ -94,21 +94,21 @@ const BuildYourStand = ({ product }) => {
       [completedStep]: false
     }));
     
-    // Wait for collapse animation to finish, then open next step
+    // Wait for collapse animation to mostly finish (500ms animation)
     setTimeout(() => {
       setExpandedSections(prev => ({
         ...prev,
         [nextStep]: true
       }));
       
-      // Scroll to next step after it starts opening
+      // Scroll to next step after expansion starts
       setTimeout(() => {
         const nextElement = document.getElementById(`step-${nextStep}`);
         if (nextElement) {
           nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-      }, 200);
-    }, 400);
+      }, 300);
+    }, 600);
   };
 
   const isFormComplete = selectedBase && primaryColor && secondaryColor && logoFile && hasNfcLinks && hasIcons;
