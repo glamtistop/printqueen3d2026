@@ -71,6 +71,7 @@ const NFCStandPage = () => {
   const [logoPreview, setLogoPreview] = useState(null);
   const [nfcLinks, setNfcLinks] = useState(['', '', '']);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
 
   const selectedBaseOption = BASE_OPTIONS.find(b => b.id === selectedBase);
   const totalPrice = selectedBaseOption ? selectedBaseOption.price : 0;
