@@ -404,6 +404,37 @@ async def get_products(category: Optional[str] = None):
             product['created_at'] = datetime.fromisoformat(product['created_at'])
     return products
 
+@api_router.get("/products/featured/list", response_model=List[Product])
+async def get_featured_products(limit: int = 6):
+    """Get featured products (up to 6 for homepage)"""
+    # Find the Featured collection
+    featured_collection = await db.product_collections.find_one(
+        {"name": {"$regex": "^featured$", "$options": "i"}},
+        {"_id": 0}
+    )
+    
+    if not featured_collection:
+        # If no featured collection, return latest published products
+        products = await db.products.find(
+            {"published": True},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+    else:
+        # Get products in the featured collection that are published
+        products = await db.products.find(
+            {
+                "collection_ids": featured_collection["id"],
+                "published": True
+            },
+            {"_id": 0}
+        ).limit(limit).to_list(limit)
+    
+    for product in products:
+        if isinstance(product.get('created_at'), str):
+            product['created_at'] = datetime.fromisoformat(product['created_at'])
+    
+    return products
+
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str):
     """Get single product"""
