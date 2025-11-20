@@ -180,36 +180,16 @@ const LandingPage = () => {
       </div>
 
       {/* Hero Banner - Auto-rotating Carousel (Desktop) / Static Banner (Mobile) */}
-      <section className="relative w-full overflow-hidden">
-        {/* Desktop Banner - Carousel with Blurred Background */}
+      <section className="relative w-full overflow-hidden" style={{ backgroundColor: '#d8ecdd' }}>
+        {/* Desktop Banner - Carousel */}
         <div className="hidden md:block relative w-full" style={{ height: '550px' }}>
-          {/* Blurred Background Image */}
-          <div 
-            className="absolute inset-0 transition-opacity duration-1000"
-            style={{
-              backgroundImage: `url(${bannerImages[currentBannerIndex]})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'blur(40px) brightness(0.7)',
-              transform: 'scale(1.1)',
-            }}
-          />
-          
-          {/* Main Banner Image with Feathered Edges */}
-          <div className="relative z-10 flex items-center justify-center h-full">
-            <div 
-              className="relative h-full"
-              style={{
-                WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
-                maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
-              }}
-            >
-              <img
-                src={bannerImages[currentBannerIndex]}
-                alt="Print Queen 3D Hero"
-                className="h-full w-auto object-contain transition-opacity duration-1000"
-              />
-            </div>
+          {/* Main Banner Image */}
+          <div className="relative flex items-center justify-center h-full">
+            <img
+              src={bannerImages[currentBannerIndex]}
+              alt="Print Queen 3D Hero"
+              className="h-full w-auto object-contain transition-opacity duration-1000"
+            />
           </div>
           
           {/* Carousel Indicators */}
