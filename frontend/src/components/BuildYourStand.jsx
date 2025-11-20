@@ -235,7 +235,7 @@ const BuildYourStand = ({ product }) => {
             </button>
             
             {expandedSections.base && (
-              <div className="p-6 grid md:grid-cols-2 gap-4">
+              <div className="p-6 grid md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
                 {BASE_OPTIONS.map((option) => (
                   <button
                     key={option.id}
