@@ -35,7 +35,7 @@ const CartPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <Link to="/" className="flex items-center space-x-2">
-              <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-18 w-auto" />
+              <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-14 w-auto" />
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
                 Print Queen 3D
               </span>
