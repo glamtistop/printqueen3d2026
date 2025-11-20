@@ -182,7 +182,7 @@ const LandingPage = () => {
       {/* Hero Banner - Auto-rotating Carousel (Desktop) / Static Banner (Mobile) */}
       <section className="relative w-full overflow-hidden">
         {/* Desktop Banner - Carousel with Blurred Background */}
-        <div className="hidden md:block relative w-full" style={{ height: '450px' }}>
+        <div className="hidden md:block relative w-full" style={{ height: '550px' }}>
           {/* Blurred Background Image */}
           <div 
             className="absolute inset-0 transition-opacity duration-1000"
@@ -195,13 +195,21 @@ const LandingPage = () => {
             }}
           />
           
-          {/* Main Banner Image */}
+          {/* Main Banner Image with Feathered Edges */}
           <div className="relative z-10 flex items-center justify-center h-full">
-            <img
-              src={bannerImages[currentBannerIndex]}
-              alt="Print Queen 3D Hero"
-              className="h-full w-auto object-contain transition-opacity duration-1000"
-            />
+            <div 
+              className="relative h-full"
+              style={{
+                WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+                maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+              }}
+            >
+              <img
+                src={bannerImages[currentBannerIndex]}
+                alt="Print Queen 3D Hero"
+                className="h-full w-auto object-contain transition-opacity duration-1000"
+              />
+            </div>
           </div>
           
           {/* Carousel Indicators */}
