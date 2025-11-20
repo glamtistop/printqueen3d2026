@@ -425,6 +425,7 @@ const NFCStandPage = () => {
                   </div>
                 </div>
               )}
+              )}
             </div>
 
             {/* Step 3: Logo Upload */}
