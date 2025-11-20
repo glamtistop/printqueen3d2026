@@ -309,6 +309,86 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_token", path="/")
     return response
 
+# ============ EMAIL/PASSWORD AUTH (BACKUP METHOD) ============
+
+def hash_password(password: str) -> str:
+    """Hash password using bcrypt"""
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    """Verify password against hash"""
+    return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+@api_router.post("/auth/set-password")
+async def set_password(password_data: SetPassword, user: User = Depends(require_auth)):
+    """Set password for existing user (authenticated users only)"""
+    if len(password_data.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    
+    hashed_password = hash_password(password_data.password)
+    
+    await db.users.update_one(
+        {"id": user.id},
+        {"$set": {"hashed_password": hashed_password}}
+    )
+    
+    return {"message": "Password set successfully"}
+
+@api_router.post("/auth/login")
+async def email_password_login(login_data: EmailPasswordLogin):
+    """Login with email and password (backup authentication method)"""
+    # Find user by email
+    user_doc = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+    
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Check if user has a password set
+    if not user_doc.get("hashed_password"):
+        raise HTTPException(status_code=401, detail="Password not set. Please use Google login.")
+    
+    # Verify password
+    if not verify_password(login_data.password, user_doc["hashed_password"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Create session
+    session_token = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    user_session = UserSession(
+        user_id=user_doc["id"],
+        session_token=session_token,
+        expires_at=expires_at
+    )
+    session_dict = user_session.model_dump()
+    session_dict['expires_at'] = session_dict['expires_at'].isoformat()
+    session_dict['created_at'] = session_dict['created_at'].isoformat()
+    await db.user_sessions.insert_one(session_dict)
+    
+    # Create response with cookie
+    response = JSONResponse(content={
+        "message": "Login successful",
+        "user": {
+            "id": user_doc["id"],
+            "email": user_doc["email"],
+            "name": user_doc["name"],
+            "is_admin": user_doc.get("is_admin", False)
+        }
+    })
+    
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    return response
+
 # ============ PRODUCT ROUTES ============
 
 @api_router.get("/products", response_model=List[Product])
