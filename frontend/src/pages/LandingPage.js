@@ -432,7 +432,7 @@ const LandingPage = () => {
             <ul className="footer-links">
               <li><Link to="/">About Us</Link></li>
               <li><Link to="/products">Shop Products</Link></li>
-              <li><Link to="/nfc-stand">Request a Quote</Link></li>
+              <li><Link to="/products/nfc-stand-custom">Request a Quote</Link></li>
               {user && <li><Link to="/orders">My Account</Link></li>}
             </ul>
           </div>
