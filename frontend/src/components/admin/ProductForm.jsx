@@ -11,7 +11,7 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     description: '',
     price: '',
     category: '',
-    stock: '',
+    stock: 0,
     images: [],
     published: true,
     collection_ids: [],
