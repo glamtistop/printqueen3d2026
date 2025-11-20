@@ -437,7 +437,7 @@ const BuildYourStand = ({ product }) => {
                   ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Step 5: Icon Selection */}
