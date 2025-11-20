@@ -343,7 +343,7 @@ const ProductDetailPage = () => {
 
         {/* Custom Builder Component */}
         {product.custom_builder === 'nfc-stand-builder' && (
-          <div className="mt-12">
+          <div id="custom-builder-section" className="mt-12 scroll-mt-24">
             <BuildYourStand product={product} />
           </div>
         )}
