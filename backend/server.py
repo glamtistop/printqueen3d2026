@@ -642,7 +642,7 @@ async def get_category_names():
 @api_router.get("/collections", response_model=List[Collection])
 async def get_collections():
     """Get all collections"""
-    collections = await db.collections.find({}, {"_id": 0}).to_list(1000)
+    collections = await db.product_collections.find({}, {"_id": 0}).to_list(1000)
     for collection in collections:
         if isinstance(collection.get('created_at'), str):
             collection['created_at'] = datetime.fromisoformat(collection['created_at'])
