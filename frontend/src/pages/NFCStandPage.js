@@ -273,7 +273,7 @@ const NFCStandPage = () => {
             </div>
 
             {/* Step 2: Colors */}
-            <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500 delay-100">
+            <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500 delay-100 overflow-visible">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
