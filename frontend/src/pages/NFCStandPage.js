@@ -75,6 +75,20 @@ const NFCStandPage = () => {
   const selectedBaseOption = BASE_OPTIONS.find(b => b.id === selectedBase);
   const totalPrice = selectedBaseOption ? selectedBaseOption.price : 0;
   const maxLinks = selectedBase?.includes('3nfc') ? 3 : 2;
+  
+  // Check if at least one NFC link is provided
+  const hasNfcLinks = nfcLinks.some(link => link.trim() !== '');
+  
+  // Check if all required fields are filled
+  const isFormComplete = selectedBase && primaryColor && secondaryColor && logoFile && hasNfcLinks;
+  
+  // Get list of missing requirements
+  const missingRequirements = [];
+  if (!selectedBase) missingRequirements.push('Base configuration');
+  if (!primaryColor) missingRequirements.push('Primary color');
+  if (!secondaryColor) missingRequirements.push('Secondary color');
+  if (!logoFile) missingRequirements.push('Logo upload');
+  if (!hasNfcLinks) missingRequirements.push('At least one NFC link');
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
