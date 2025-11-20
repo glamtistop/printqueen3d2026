@@ -287,40 +287,57 @@ const ProductDetailPage = () => {
               </div>
             )}
 
-            {/* Quantity */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Quantity</label>
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                  data-testid="decrease-quantity"
-                >
-                  -
-                </Button>
-                <span className="text-xl font-semibold w-12 text-center" data-testid="quantity-value">{quantity}</span>
-                <Button
-                  variant="outline"
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  disabled={quantity >= product.stock}
-                  data-testid="increase-quantity"
-                >
-                  +
-                </Button>
+            {/* Quantity - Only show for non-custom products */}
+            {!product.custom_builder && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Quantity</label>
+                <div className="flex items-center space-x-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    data-testid="decrease-quantity"
+                  >
+                    -
+                  </Button>
+                  <span className="text-xl font-semibold w-12 text-center" data-testid="quantity-value">{quantity}</span>
+                  <Button
+                    variant="outline"
+                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    disabled={quantity >= product.stock}
+                    data-testid="increase-quantity"
+                  >
+                    +
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-500">{product.stock} available</p>
               </div>
-              <p className="text-sm text-gray-500">{product.stock} available</p>
-            </div>
+            )}
 
-            {/* Add to Cart */}
-            <Button
-              onClick={handleAddToCart}
-              disabled={product.stock === 0}
-              className="w-full btn-primary text-lg py-6"
-              data-testid="add-to-cart-button"
-            >
-              {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-            </Button>
+            {/* Add to Cart or Customize Button */}
+            {product.custom_builder ? (
+              <Button
+                onClick={() => {
+                  const builderElement = document.getElementById('custom-builder-section');
+                  if (builderElement) {
+                    builderElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="w-full btn-primary text-lg py-6"
+                data-testid="customize-button"
+              >
+                Customize Your Stand
+              </Button>
+            ) : (
+              <Button
+                onClick={handleAddToCart}
+                disabled={product.stock === 0}
+                className="w-full btn-primary text-lg py-6"
+                data-testid="add-to-cart-button"
+              >
+                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              </Button>
+            )}
           </div>
         </div>
 
