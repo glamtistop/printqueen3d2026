@@ -540,6 +540,8 @@ const NFCStandPage = () => {
                   </div>
                 ))}
               </div>
+              </>
+              )}
             </div>
 
             {/* Step 5: Icon Selection */}
