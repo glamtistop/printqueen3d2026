@@ -471,6 +471,13 @@ async def delete_category(category_id: str, user: User = Depends(require_admin))
         raise HTTPException(status_code=404, detail="Category not found")
     return {"message": "Category deleted successfully"}
 
+@api_router.get("/category-names")
+async def get_category_names():
+    """Get category names for filtering (backward compatible)"""
+    # Get unique category names from products for filtering
+    categories = await db.products.distinct("category")
+    return categories
+
 # ============ COLLECTION ROUTES ============
 
 @api_router.get("/collections", response_model=List[Collection])
