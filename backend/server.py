@@ -495,6 +495,108 @@ async def update_order_status(order_id: str, status: str, user: User = Depends(r
         raise HTTPException(status_code=404, detail="Order not found")
     return {"message": "Order status updated"}
 
+# ============ NFC STAND ROUTES ============
+
+from fastapi import File, UploadFile, Form
+import base64
+
+@api_router.post("/nfc-stand/order")
+async def create_nfc_stand_order(
+    logo: UploadFile = File(...),
+    baseOption: str = Form(...),
+    baseOptionName: str = Form(...),
+    primaryColor: str = Form(...),
+    secondaryColor: str = Form(...),
+    nfcLinks: str = Form(...),
+    totalPrice: float = Form(...),
+    userEmail: str = Form(...),
+    userName: str = Form(...)
+):
+    """Create custom NFC stand order and send email notification"""
+    try:
+        # Read logo file
+        logo_contents = await logo.read()
+        logo_base64 = base64.b64encode(logo_contents).decode('utf-8')
+        
+        # Parse NFC links
+        import json
+        nfc_links_list = json.loads(nfcLinks)
+        
+        # Create order record
+        order_data = {
+            "id": str(uuid.uuid4()),
+            "type": "nfc_stand",
+            "user_email": userEmail,
+            "user_name": userName,
+            "base_option": baseOption,
+            "base_option_name": baseOptionName,
+            "primary_color": primaryColor,
+            "secondary_color": secondaryColor,
+            "nfc_links": nfc_links_list,
+            "logo_filename": logo.filename,
+            "logo_data": logo_base64,
+            "total_price": totalPrice,
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.nfc_stand_orders.insert_one(order_data)
+        
+        # Send email notification (mock implementation - you'll need to configure actual email service)
+        email_body = f"""
+        New Custom NFC Stand Order Received!
+        
+        Order ID: {order_data['id']}
+        Customer: {userName} ({userEmail})
+        
+        Configuration:
+        - Base: {baseOptionName}
+        - Primary Color: {primaryColor}
+        - Secondary Color: {secondaryColor}
+        - NFC Links: {', '.join(nfc_links_list)}
+        - Total Price: ${totalPrice:.2f}
+        
+        Logo attached (base64 encoded)
+        
+        Please check the admin dashboard for full details.
+        """
+        
+        logger.info(f"NFC Stand Order Created: {order_data['id']}")
+        logger.info(f"Email notification would be sent to admin with order details")
+        
+        # In production, integrate with SendGrid, AWS SES, or similar email service
+        # Example with SendGrid:
+        # from sendgrid import SendGridAPIClient
+        # from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+        # 
+        # message = Mail(
+        #     from_email='noreply@printqueen3d.com',
+        #     to_emails='admin@printqueen3d.com',
+        #     subject=f'New NFC Stand Order - {order_data["id"]}',
+        #     html_content=email_body
+        # )
+        # 
+        # attached_file = Attachment(
+        #     FileContent(logo_base64),
+        #     FileName(logo.filename),
+        #     FileType('image/png'),
+        #     Disposition('attachment')
+        # )
+        # message.attachment = attached_file
+        # 
+        # sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        # response = sg.send(message)
+        
+        return {
+            "success": True,
+            "order_id": order_data['id'],
+            "message": "Order submitted successfully! You will receive a confirmation email shortly."
+        }
+        
+    except Exception as e:
+        logger.error(f"NFC Stand Order Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process order")
+
 # Include router
 app.include_router(api_router)
 
