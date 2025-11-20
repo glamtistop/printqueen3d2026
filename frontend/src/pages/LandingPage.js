@@ -53,9 +53,12 @@ const LandingPage = () => {
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center space-x-3">
-              <Package className="h-10 w-10 text-blue-600" />
-              <span className="logo-text">Print Queen 3D</span>
+            <Link to="/" className="flex items-center">
+              <img 
+                src="/printqueen-logo.png" 
+                alt="Print Queen 3D" 
+                className="h-16 w-auto"
+              />
             </Link>
 
             {/* Desktop Menu */}
