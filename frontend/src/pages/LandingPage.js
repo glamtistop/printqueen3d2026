@@ -278,42 +278,48 @@ const LandingPage = () => {
             <p className="text-lg text-gray-600">Handpicked favorites from our collection</p>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[
-              { name: 'Custom NFC Stand', price: 45.00, image: 'https://printqueen3d-storefront1.vercel.app/paymentstands.PNG', badge: 'Customizable' },
-              { name: 'NFC Keychain Set', price: 24.99, image: 'https://printqueen3d-storefront1.vercel.app/nfckeychain.png', badge: 'Popular' },
-              { name: 'Geometric Planter', price: 34.99, image: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400', badge: 'New' },
-              { name: 'Desk Organizer', price: 29.99, image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400', badge: 'Trending' }
-            ].map((product, index) => (
-              <Link
-                key={index}
-                to={product.name === 'Custom NFC Stand' ? '/nfc-stand' : '/products'}
-                className="group product-card rounded-xl overflow-hidden hover:scale-105 transition-all duration-300"
-              >
-                <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  {product.badge && (
-                    <div className="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                      {product.badge}
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900 mb-2">{product.name}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-green-600">${product.price.toFixed(2)}</span>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors">
-                      View
-                    </button>
+          {loadingProducts ? (
+            <div className="text-center py-12">
+              <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading products...</p>
+            </div>
+          ) : featuredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No featured products available yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <Link
+                  key={product.id}
+                  to={product.is_custom && product.custom_page_url ? product.custom_page_url : `/products/${product.id}`}
+                  className="group product-card rounded-xl overflow-hidden hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+                    <img
+                      src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/400'}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    {product.is_custom && (
+                      <div className="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        Customizable
+                      </div>
+                    )}
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-gray-900 mb-2">{product.name}</h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-green-600">${product.price.toFixed(2)}</span>
+                      <button className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors">
+                        View
+                      </button>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-10">
             <Link to="/products">
