@@ -239,33 +239,32 @@ const NFCStandPage = () => {
                 )}
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {BASE_OPTIONS.map((option) => (
                   <button
                     key={option.id}
                     onClick={() => setSelectedBase(option.id)}
-                    className={`relative group overflow-hidden rounded-xl border-2 transition-all duration-300 ${
+                    className={`relative group overflow-hidden rounded-lg border-2 transition-all duration-300 ${
                       selectedBase === option.id
-                        ? 'border-blue-500 ring-4 ring-blue-100 sm:scale-105'
-                        : 'border-gray-200 hover:border-blue-300 sm:hover:scale-102'
+                        ? 'border-blue-500 ring-2 ring-blue-200'
+                        : 'border-gray-200 hover:border-blue-300'
                     }`}
                     data-testid={`base-option-${option.id}`}
                   >
-                    <div className="aspect-square overflow-hidden">
+                    <div className="aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
                       <img
                         src={option.image}
                         alt={option.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <div className="p-3 bg-white">
-                      <h3 className="font-bold text-sm text-gray-900 mb-1">{option.name}</h3>
-                      <p className="text-xs text-gray-600 mb-2">{option.description}</p>
+                    <div className="p-2 bg-white">
+                      <h3 className="font-semibold text-xs text-gray-900 leading-tight mb-1">{option.name}</h3>
                       <p className="text-lg font-bold text-green-600">${option.price.toFixed(2)}</p>
                     </div>
                     {selectedBase === option.id && (
-                      <div className="absolute top-2 right-2 bg-blue-500 rounded-full p-1">
-                        <Check className="h-4 w-4 text-white" />
+                      <div className="absolute top-1.5 right-1.5 bg-blue-500 rounded-full p-1">
+                        <Check className="h-3 w-3 text-white" />
                       </div>
                     )}
                   </button>
