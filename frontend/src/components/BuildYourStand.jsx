@@ -79,6 +79,36 @@ const BuildYourStand = ({ product }) => {
   const hasIcons = Object.keys(selectedIcons).length === maxLinks && 
                    Object.values(selectedIcons).every(icon => icon && icon.trim() !== '');
 
+  // Check completion status for each step
+  const isStep1Complete = !!selectedBase;
+  const isStep2Complete = !!primaryColor && !!secondaryColor;
+  const isStep3Complete = !!logoFile;
+  const isStep4Complete = hasNfcLinks;
+  const isStep5Complete = hasIcons;
+
+  // Auto-collapse and open next step when current step is completed
+  const handleStepCompletion = (completedStep, nextStep) => {
+    // Close current step
+    setExpandedSections(prev => ({
+      ...prev,
+      [completedStep]: false
+    }));
+    
+    // Open next step after a brief delay
+    setTimeout(() => {
+      setExpandedSections(prev => ({
+        ...prev,
+        [nextStep]: true
+      }));
+      
+      // Scroll to next step
+      const nextElement = document.getElementById(`step-${nextStep}`);
+      if (nextElement) {
+        nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 300);
+  };
+
   const isFormComplete = selectedBase && primaryColor && secondaryColor && logoFile && hasNfcLinks && hasIcons;
   const missingRequirements = [];
   if (!selectedBase) missingRequirements.push('Base option');
