@@ -170,7 +170,7 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Banner */}
-      <section className="relative w-full overflow-hidden" style={{ marginTop: '108px' }}>
+      <section className="relative w-full overflow-hidden" style={{ marginTop: '104px' }}>
         <img
           src="https://printqueen3d-storefront1.vercel.app/mobilebanner.png"
           alt="Print Queen 3D Hero"
