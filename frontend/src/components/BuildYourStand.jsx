@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../App';
-import { Upload, X, Check, ChevronDown } from 'lucide-react';
+import { Upload, X, Check, ChevronDown, Link as LinkIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import ColorPicker from './ColorPicker';
@@ -15,35 +15,30 @@ const BASE_OPTIONS = [
     id: '2nfc',
     name: '2 NFC Chips',
     price: 45.00,
-    image: 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=400',
     description: 'Perfect for dual functionality'
   },
   {
     id: '3nfc',
     name: '3 NFC Chips',
     price: 55.00,
-    image: 'https://images.unsplash.com/photo-1600096194735-ec70d4a4a9a8?w=400',
     description: 'Maximum versatility'
   },
   {
     id: '2nfc-card',
     name: '2 NFC + Business Card Holder',
     price: 60.00,
-    image: 'https://images.unsplash.com/photo-1590872596793-49b39cb073c8?w=400',
     description: 'Professional networking solution'
   },
   {
     id: '2nfc-square',
     name: '2 NFC + Square Reader',
     price: 65.00,
-    image: 'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400',
     description: 'Accept payments on the go'
   },
   {
     id: '3nfc-card',
     name: '3 NFC + Business Card Holder',
     price: 70.00,
-    image: 'https://images.unsplash.com/photo-1587440871875-191322ee64b0?w=400',
     description: 'Complete business solution'
   }
 ];
@@ -65,6 +60,7 @@ const BuildYourStand = ({ product }) => {
   const [logoPreview, setLogoPreview] = useState('');
   const [nfcLinks, setNfcLinks] = useState(['', '', '']);
   const [selectedIcons, setSelectedIcons] = useState({});
+  const [customIcons, setCustomIcons] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     base: true,
@@ -155,6 +151,7 @@ const BuildYourStand = ({ product }) => {
       setLogoPreview('');
       setNfcLinks(['', '', '']);
       setSelectedIcons({});
+      setCustomIcons({});
       
     } catch (error) {
       console.error('Error submitting order:', error);
@@ -183,8 +180,10 @@ const BuildYourStand = ({ product }) => {
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-blue-50 to-white hover:from-blue-100 transition-colors"
             >
               <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
-                  1
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                  selectedBase ? 'bg-green-600' : 'bg-blue-600'
+                }`}>
+                  {selectedBase ? <Check className="h-6 w-6" /> : '1'}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Choose Your Base</h3>
@@ -229,8 +228,10 @@ const BuildYourStand = ({ product }) => {
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-purple-50 to-white hover:from-purple-100 transition-colors"
             >
               <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
-                  2
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                  primaryColor && secondaryColor ? 'bg-green-600' : 'bg-purple-600'
+                }`}>
+                  {primaryColor && secondaryColor ? <Check className="h-6 w-6" /> : '2'}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Choose Colors</h3>
@@ -247,24 +248,202 @@ const BuildYourStand = ({ product }) => {
                   value={primaryColor}
                   onChange={setPrimaryColor}
                   dataTestId="primary-color-picker"
-                  onOpenChange={(isOpen) => {
-                    if (!isOpen) return;
-                  }}
                 />
                 <ColorPicker
                   label="Secondary Color"
                   value={secondaryColor}
                   onChange={setSecondaryColor}
                   dataTestId="secondary-color-picker"
-                  onOpenChange={(isOpen) => {
-                    if (!isOpen) return;
-                  }}
                 />
               </div>
             )}
           </div>
 
-          {/* Continuing in next edit for brevity... */}
+          {/* Step 3: Upload Logo */}
+          <div className="glass-card rounded-2xl overflow-hidden">
+            <button
+              onClick={() => toggleSection('logo')}
+              className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-orange-50 to-white hover:from-orange-100 transition-colors"
+            >
+              <div className="flex items-center space-x-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                  logoFile ? 'bg-green-600' : 'bg-orange-600'
+                }`}>
+                  {logoFile ? <Check className="h-6 w-6" /> : '3'}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Upload Logo</h3>
+                  <p className="text-sm text-gray-600">Add your brand logo</p>
+                </div>
+              </div>
+              <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform ${expandedSections.logo ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {expandedSections.logo && (
+              <div className="p-6">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                  id="logo-upload"
+                />
+                <label
+                  htmlFor="logo-upload"
+                  className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-300 hover:border-blue-400"
+                >
+                  {logoPreview ? (
+                    <div className="relative w-full h-full p-4">
+                      <img
+                        src={logoPreview}
+                        alt="Logo preview"
+                        className="w-full h-full object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setLogoFile(null);
+                          setLogoPreview('');
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="h-12 w-12 text-gray-400 mb-3" />
+                      <p className="mb-2 text-sm text-gray-600">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, SVG (MAX. 10MB)</p>
+                    </div>
+                  )}
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Step 4: NFC Links */}
+          <div className="glass-card rounded-2xl overflow-hidden">
+            <button
+              onClick={() => toggleSection('links')}
+              className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-green-50 to-white hover:from-green-100 transition-colors"
+            >
+              <div className="flex items-center space-x-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                  hasNfcLinks ? 'bg-green-600' : 'bg-green-500'
+                }`}>
+                  {hasNfcLinks ? <Check className="h-6 w-6" /> : '4'}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Add NFC Links</h3>
+                  <p className="text-sm text-gray-600">Program your NFC chips</p>
+                </div>
+              </div>
+              <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform ${expandedSections.links ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {expandedSections.links && (
+              <div className="p-6">
+                <p className="text-sm text-gray-600 mb-4">
+                  Provide up to {maxLinks} links to program into your NFC chips
+                </p>
+
+                <div className="space-y-3">
+                  {Array.from({ length: maxLinks }).map((_, index) => (
+                    <div key={index} className="relative">
+                      <LinkIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                      <input
+                        type="url"
+                        value={nfcLinks[index]}
+                        onChange={(e) => handleLinkChange(index, e.target.value)}
+                        placeholder={`Link ${index + 1} (e.g., https://your-website.com)`}
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-300 outline-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Step 5: Icon Selection */}
+          <div className="glass-card rounded-2xl overflow-hidden">
+            <button
+              onClick={() => toggleSection('icons')}
+              className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-indigo-50 to-white hover:from-indigo-100 transition-colors"
+            >
+              <div className="flex items-center space-x-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                  hasIcons ? 'bg-green-600' : 'bg-indigo-600'
+                }`}>
+                  {hasIcons ? <Check className="h-6 w-6" /> : '5'}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Select Icons</h3>
+                  <p className="text-sm text-gray-600">Choose icons for each chip</p>
+                </div>
+              </div>
+              <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform ${expandedSections.icons ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {expandedSections.icons && (
+              <div className="p-6">
+                <p className="text-sm text-gray-600 mb-4">
+                  Choose an icon for each NFC chip ({maxLinks} total)
+                </p>
+
+                <div className="space-y-4">
+                  {Array.from({ length: maxLinks }).map((_, index) => (
+                    <div key={index} className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Icon for Chip {index + 1}
+                      </label>
+                      <select
+                        value={selectedIcons[index] || ''}
+                        onChange={(e) => {
+                          const newIcons = {...selectedIcons};
+                          newIcons[index] = e.target.value;
+                          setSelectedIcons(newIcons);
+                          // Clear custom text if not custom
+                          if (e.target.value !== 'Custom') {
+                            const newCustom = {...customIcons};
+                            newCustom[index] = '';
+                            setCustomIcons(newCustom);
+                          }
+                        }}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-300 outline-none"
+                      >
+                        <option value="">Select an icon...</option>
+                        {ICON_OPTIONS.map((icon) => (
+                          <option key={icon} value={icon}>{icon}</option>
+                        ))}
+                      </select>
+                      
+                      {/* Custom icon text field */}
+                      {selectedIcons[index] === 'Custom' && (
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            value={customIcons[index] || ''}
+                            onChange={(e) => {
+                              const newCustom = {...customIcons};
+                              newCustom[index] = e.target.value;
+                              setCustomIcons(newCustom);
+                            }}
+                            placeholder="Enter custom icon text"
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-300 outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Order Summary */}
