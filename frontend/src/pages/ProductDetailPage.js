@@ -26,6 +26,7 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState({});
   const [selectedColor, setSelectedColor] = useState('');
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
