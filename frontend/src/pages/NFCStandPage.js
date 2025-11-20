@@ -109,29 +109,13 @@ const NFCStandPage = () => {
   };
 
   const handleSubmit = async () => {
-    // Validation
-    if (!selectedBase) {
-      toast.error('Please select a base option');
-      return;
-    }
-    if (!primaryColor) {
-      toast.error('Please select a primary color');
-      return;
-    }
-    if (!secondaryColor) {
-      toast.error('Please select a secondary color');
-      return;
-    }
-    if (!logoFile) {
-      toast.error('Please upload your logo');
+    // Comprehensive validation
+    if (!isFormComplete) {
+      toast.error(`Please complete all required fields: ${missingRequirements.join(', ')}`);
       return;
     }
 
     const filledLinks = nfcLinks.filter(link => link.trim() !== '').slice(0, maxLinks);
-    if (filledLinks.length === 0) {
-      toast.error(`Please provide at least one NFC link`);
-      return;
-    }
 
     setIsSubmitting(true);
 
