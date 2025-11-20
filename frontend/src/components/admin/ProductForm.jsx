@@ -177,25 +177,54 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Badge Text (Optional)
+            </label>
+            <input
+              type="text"
+              value={formData.badge}
+              onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+              placeholder="e.g., New, Sale, Popular, Customizable"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">Displayed as a badge on product card</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Collections
             </label>
-            <select
-              multiple
-              value={formData.collection_ids}
-              onChange={(e) => {
-                const values = Array.from(e.target.selectedOptions, option => option.value);
-                setFormData({ ...formData, collection_ids: values });
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              size={4}
-            >
-              {collections.map((col) => (
-                <option key={col.id} value={col.id}>
-                  {col.name}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+            <div className="border border-gray-300 rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
+              {collections.length === 0 ? (
+                <p className="text-sm text-gray-500">No collections available</p>
+              ) : (
+                collections.map((col) => (
+                  <div key={col.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`collection-${col.id}`}
+                      checked={formData.collection_ids.includes(col.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({ 
+                            ...formData, 
+                            collection_ids: [...formData.collection_ids, col.id] 
+                          });
+                        } else {
+                          setFormData({ 
+                            ...formData, 
+                            collection_ids: formData.collection_ids.filter(id => id !== col.id) 
+                          });
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor={`collection-${col.id}`} className="ml-2 block text-sm text-gray-700">
+                      {col.name}
+                    </label>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           <div className="flex items-center">
