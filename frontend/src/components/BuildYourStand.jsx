@@ -263,7 +263,7 @@ const BuildYourStand = ({ product }) => {
           </div>
 
           {/* Step 2: Choose Colors */}
-          <div className="glass-card rounded-2xl overflow-hidden">
+          <div id="step-colors" className="glass-card rounded-2xl overflow-hidden scroll-mt-24">
             <button
               onClick={() => toggleSection('colors')}
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-purple-50 to-white hover:from-purple-100 transition-colors"
