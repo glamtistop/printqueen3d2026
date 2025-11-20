@@ -492,6 +492,77 @@ const NFCStandPage = () => {
                 ))}
               </div>
             </div>
+
+            {/* Step 5: Icon Selection */}
+            <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500 delay-400">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
+                    hasIcons ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-indigo-500 to-indigo-600'
+                  }`}>
+                    {hasIcons ? <Check className="h-6 w-6" /> : '5'}
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Select Icons</h2>
+                </div>
+                {hasIcons && (
+                  <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
+                )}
+              </div>
+              
+              <p className="text-sm text-gray-600 mb-4">
+                Choose an icon for each NFC chip ({maxLinks} total)
+              </p>
+
+              <div className="space-y-4">
+                {Array.from({ length: maxLinks }).map((_, index) => (
+                  <div key={index} className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Icon for Chip {index + 1}
+                    </label>
+                    <select
+                      value={selectedIcons[index]}
+                      onChange={(e) => {
+                        const newIcons = [...selectedIcons];
+                        newIcons[index] = e.target.value;
+                        setSelectedIcons(newIcons);
+                        // Clear custom text if not custom
+                        if (e.target.value !== 'Custom') {
+                          const newCustom = [...customIcons];
+                          newCustom[index] = '';
+                          setCustomIcons(newCustom);
+                        }
+                      }}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-300 outline-none"
+                    >
+                      <option value="">Select an icon...</option>
+                      {ICON_OPTIONS.map((icon) => (
+                        <option key={icon} value={icon}>{icon}</option>
+                      ))}
+                    </select>
+                    
+                    {/* Custom icon text field */}
+                    {selectedIcons[index] === 'Custom' && (
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          value={customIcons[index]}
+                          onChange={(e) => {
+                            const newCustom = [...customIcons];
+                            newCustom[index] = e.target.value;
+                            setCustomIcons(newCustom);
+                          }}
+                          placeholder="Enter custom icon(s), separate multiple with commas"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-300 outline-none"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Example: LinkedIn, GitHub, Website
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Right Side - Order Summary */}
