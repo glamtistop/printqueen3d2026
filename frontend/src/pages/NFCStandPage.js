@@ -666,6 +666,25 @@ const NFCStandPage = () => {
                     </div>
                   )}
 
+                  {/* Icon Selections */}
+                  {selectedIcons.some(icon => icon) && (
+                    <div className="pb-4 border-b border-gray-200">
+                      <span className="text-gray-600 block mb-2">Selected Icons:</span>
+                      <div className="space-y-2">
+                        {selectedIcons.slice(0, maxLinks).map((icon, index) => (
+                          icon && (
+                            <div key={index} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-500">Chip {index + 1}:</span>
+                              <span className="font-medium text-gray-900">
+                                {icon === 'Custom' ? customIcons[index] || 'Custom' : icon}
+                              </span>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between pt-4">
                     <span className="text-2xl font-bold text-gray-900">Total:</span>
                     <span className="text-3xl font-bold text-green-600" data-testid="total-price">
