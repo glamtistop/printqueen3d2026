@@ -537,9 +537,12 @@ async def upload_product_image(file: UploadFile = File(...), user: User = Depend
     
     try:
         content = await file.read()
+        logging.info(f"Uploading image: {file.filename}, size: {len(content)} bytes")
         result = CloudinaryService.upload_image(content, folder="products")
+        logging.info(f"Upload successful: {result.get('public_id')}")
         return result
     except Exception as e:
+        logging.error(f"Upload failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.delete("/upload/image/{public_id}")
