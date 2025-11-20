@@ -127,6 +127,8 @@ const BuildYourStand = ({ product }) => {
         setLogoPreview(reader.result);
       };
       reader.readAsDataURL(file);
+      // Auto-collapse and move to next step
+      handleStepCompletion('logo', 'links');
     }
   };
 
