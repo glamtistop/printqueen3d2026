@@ -61,6 +61,10 @@ const BASE_OPTIONS = [
   }
 ];
 
+const ICON_OPTIONS = [
+  'Instagram', 'Cash App', 'Apple Pay', 'Zelle', 'Venmo', 'Twitter "X"', 'Tiktok', 'Custom'
+];
+
 const NFCStandPage = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -70,6 +74,8 @@ const NFCStandPage = () => {
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [nfcLinks, setNfcLinks] = useState(['', '', '']);
+  const [selectedIcons, setSelectedIcons] = useState(['', '', '']);
+  const [customIcons, setCustomIcons] = useState(['', '', '']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
 
