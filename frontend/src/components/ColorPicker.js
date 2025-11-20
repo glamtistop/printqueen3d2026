@@ -74,7 +74,7 @@ const ColorPicker = ({ label, value, onChange, dataTestId }) => {
             className="fixed inset-0 z-[100]" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute z-[101] mt-2 w-full bg-white border-2 border-gray-200 rounded-2xl shadow-2xl max-h-96 overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="fixed z-[101] left-4 right-4 sm:absolute sm:left-auto sm:right-auto sm:w-full mt-2 bg-white border-2 border-blue-300 rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="p-4 grid grid-cols-2 gap-3">
               {COLORS.map((color) => (
                 <button
