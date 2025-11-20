@@ -36,7 +36,8 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
         published: product.published !== undefined ? product.published : true,
         collection_ids: product.collection_ids || [],
         variants: product.variants || [],
-        badge: product.badge || ''
+        badge: product.badge || '',
+        available_colors: product.available_colors || []
       });
     }
     fetchCategories();
