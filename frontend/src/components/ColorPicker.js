@@ -75,7 +75,7 @@ const ColorPicker = ({ label, value, onChange, dataTestId }) => {
             onClick={() => setIsOpen(false)}
           />
           <div className="fixed z-[101] left-4 right-4 sm:absolute sm:left-auto sm:right-auto sm:w-full mt-2 bg-white border-2 border-blue-300 rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="p-4 grid grid-cols-2 gap-3">
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
               {COLORS.map((color) => (
                 <button
                   key={color.hex}
@@ -85,21 +85,21 @@ const ColorPicker = ({ label, value, onChange, dataTestId }) => {
                     setIsOpen(false);
                   }}
                   className={`flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 hover:bg-blue-50 ${
-                    value === color.hex ? 'bg-blue-50 ring-2 ring-blue-500' : 'hover:scale-105'
+                    value === color.hex ? 'bg-blue-50 ring-2 ring-blue-500' : 'hover:scale-102'
                   }`}
                 >
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     <div 
-                      className="w-10 h-10 rounded-lg border-2 border-gray-300 shadow-sm"
+                      className="w-12 h-12 rounded-lg border-2 border-gray-300 shadow-sm"
                       style={{ backgroundColor: color.hex }}
                     />
                     {value === color.hex && (
                       <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-0.5">
-                        <Check className="h-3 w-3 text-white" />
+                        <Check className="h-4 w-4 text-white" />
                       </div>
                     )}
                   </div>
-                  <span className="text-sm font-medium text-gray-700 text-left flex-1">
+                  <span className="text-base font-medium text-gray-700 text-left flex-1">
                     {color.name}
                   </span>
                 </button>
