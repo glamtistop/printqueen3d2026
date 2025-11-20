@@ -181,7 +181,7 @@ const NFCStandPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <Link to="/" className="flex items-center">
-              <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-14 w-auto" />
+              <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-20 w-auto" />
             </Link>
 
             <div className="flex items-center space-x-6">
