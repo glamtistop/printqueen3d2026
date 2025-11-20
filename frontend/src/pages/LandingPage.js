@@ -16,12 +16,30 @@ const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [email, setEmail] = useState('');
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   const bannerImages = [
     'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/3gxh6aog_custom3dprints.PNG',
     'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/gzhz9uee_paymentstands.PNG',
     'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/cmhra1j0_nfckeychain.png'
   ];
+
+  // Fetch featured products
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/featured/list?limit=6`);
+        const data = await response.json();
+        setFeaturedProducts(data);
+      } catch (error) {
+        console.error('Failed to fetch featured products:', error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    fetchFeaturedProducts();
+  }, []);
 
   // Auto-rotate banner every 5 seconds
   useEffect(() => {
