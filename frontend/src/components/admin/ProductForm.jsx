@@ -67,7 +67,7 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
       const payload = {
         ...formData,
         price: parseFloat(formData.price),
-        stock: parseInt(formData.stock)
+        stock: parseInt(formData.stock) || 0
       };
 
       if (product) {
