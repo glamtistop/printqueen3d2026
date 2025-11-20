@@ -300,32 +300,68 @@ const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center space-y-6">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900">
-            Ready to Start Creating?
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto promo-banner border-yellow-400">
+          <h2 className="promo-title" style={{ color: '#1e293b' }}>
+            Ready to Elevate Your Space?
           </h2>
-          <p className="text-xl text-gray-600">
-            Browse our collection and bring your ideas to life today.
+          <p className="promo-subtitle" style={{ color: '#475569' }}>
+            Discover unique 3D printed pieces that bring personality and function to your life
           </p>
           <Link to="/products">
-            <Button className="btn-secondary text-lg px-8 py-6" data-testid="shop-now-button">
-              Shop Now
-            </Button>
+            <button className="btn-primary text-lg px-10 py-4" data-testid="shop-now-button">
+              Start Shopping
+            </button>
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Package className="h-8 w-8 text-blue-400" />
-            <span className="text-2xl font-bold">3D Prints</span>
+      <footer className="site-footer">
+        <div className="footer-content">
+          <div className="footer-section">
+            <div className="flex items-center space-x-2 mb-4">
+              <Package className="h-10 w-10 text-blue-400" />
+              <span className="logo-text" style={{ WebkitTextFillColor: 'white' }}>Print Queen 3D</span>
+            </div>
+            <p className="text-gray-400">
+              Premium 3D printed products crafted with precision and care. Bringing your imagination to life, one layer at a time.
+            </p>
           </div>
-          <p className="text-gray-400">
-            © 2025 3D Prints Store. All rights reserved.
-          </p>
+
+          <div className="footer-section">
+            <h3>Quick Links</h3>
+            <ul className="footer-links">
+              <li><Link to="/products">Shop All</Link></li>
+              <li><Link to="/products">New Arrivals</Link></li>
+              <li><Link to="/">About Us</Link></li>
+              <li><Link to="/">Contact</Link></li>
+            </ul>
+          </div>
+
+          <div className="footer-section">
+            <h3>Customer Care</h3>
+            <ul className="footer-links">
+              <li><Link to="/orders">Track Order</Link></li>
+              <li><a href="#">Shipping Info</a></li>
+              <li><a href="#">Returns</a></li>
+              <li><a href="#">FAQs</a></li>
+            </ul>
+          </div>
+
+          <div className="footer-section">
+            <h3>Connect With Us</h3>
+            <ul className="footer-links">
+              <li><a href="#">Instagram</a></li>
+              <li><a href="#">Facebook</a></li>
+              <li><a href="#">Pinterest</a></li>
+              <li><a href="#">TikTok</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <p>© 2025 Print Queen 3D. All rights reserved. Made with ♥ for 3D print lovers.</p>
         </div>
       </footer>
     </div>
