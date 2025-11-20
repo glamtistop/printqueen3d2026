@@ -165,7 +165,7 @@ const LandingPage = () => {
       </nav>
 
       {/* Marquee - Pink Gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white py-3" style={{ marginTop: '104px' }}>
+      <div className="relative overflow-hidden bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white py-3" style={{ marginTop: '80px' }}>
         <div className="inline-flex items-center space-x-2 animate-marquee whitespace-nowrap">
           <span className="font-medium">Fast & reliable U.S. shipping</span>
           <span>·</span>
