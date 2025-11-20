@@ -413,7 +413,6 @@ const NFCStandPage = () => {
                   dataTestId="secondary-color-picker"
                   onOpenChange={setIsColorDropdownOpen}
                 />
-              </div>
 
                 {/* Color Preview */}
                 {primaryColor && secondaryColor && (
