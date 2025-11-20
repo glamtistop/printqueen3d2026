@@ -379,7 +379,7 @@ const BuildYourStand = ({ product }) => {
           </div>
 
           {/* Step 4: NFC Links */}
-          <div className="glass-card rounded-2xl overflow-hidden">
+          <div id="step-links" className="glass-card rounded-2xl overflow-hidden scroll-mt-24">
             <button
               onClick={() => toggleSection('links')}
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-green-50 to-white hover:from-green-100 transition-colors"
