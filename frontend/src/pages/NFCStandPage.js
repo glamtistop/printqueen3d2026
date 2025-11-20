@@ -377,7 +377,10 @@ const NFCStandPage = () => {
             <div className={`product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500 delay-100 transition-all duration-300 ${
               isColorDropdownOpen ? 'pb-96' : ''
             }`}>
-              <div className="flex items-center justify-between mb-4">
+              <div 
+                className="flex items-center justify-between mb-4 cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded-lg transition-colors"
+                onClick={() => toggleSection('colors')}
+              >
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
                     (primaryColor && secondaryColor) ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-yellow-500 to-yellow-600'
@@ -386,11 +389,15 @@ const NFCStandPage = () => {
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">Select Colors</h2>
                 </div>
-                {(primaryColor && secondaryColor) && (
-                  <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
-                )}
+                <div className="flex items-center space-x-2">
+                  {(primaryColor && secondaryColor) && (
+                    <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
+                  )}
+                  <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform duration-300 ${expandedSections.colors ? 'rotate-180' : ''}`} />
+                </div>
               </div>
               
+              {expandedSections.colors && (
               <div className="space-y-4">
                 <ColorPicker
                   label="Primary Color"
