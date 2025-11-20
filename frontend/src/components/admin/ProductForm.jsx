@@ -144,15 +144,16 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock *
+                Stock Quantity
               </label>
               <input
                 type="number"
                 value={formData.stock}
                 onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                placeholder="0 for made-to-order"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
               />
+              <p className="text-xs text-gray-500 mt-1">Leave as 0 for made-to-order items</p>
             </div>
           </div>
 
