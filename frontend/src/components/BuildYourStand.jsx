@@ -265,7 +265,7 @@ const BuildYourStand = ({ product }) => {
                   </button>
                 ))}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Step 2: Choose Colors */}
