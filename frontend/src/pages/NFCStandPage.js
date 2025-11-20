@@ -239,15 +239,15 @@ const NFCStandPage = () => {
                 )}
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {BASE_OPTIONS.map((option) => (
                   <button
                     key={option.id}
                     onClick={() => setSelectedBase(option.id)}
                     className={`relative group overflow-hidden rounded-xl border-2 transition-all duration-300 ${
                       selectedBase === option.id
-                        ? 'border-blue-500 ring-4 ring-blue-100 scale-105'
-                        : 'border-gray-200 hover:border-blue-300 hover:scale-102'
+                        ? 'border-blue-500 ring-4 ring-blue-100 sm:scale-105'
+                        : 'border-gray-200 hover:border-blue-300 sm:hover:scale-102'
                     }`}
                     data-testid={`base-option-${option.id}`}
                   >
