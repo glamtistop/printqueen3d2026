@@ -180,50 +180,120 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Wave Divider */}
-      <div className="section-divider">
-        <div className="wave"></div>
-      </div>
+      {/* Categories Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8" data-testid="categories-section">
+        <div className="max-w-7xl mx-auto">
+          <div className="section-header">
+            <h2 className="section-title">Shop by Category</h2>
+            <p className="section-subtitle">Find exactly what you're looking for</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { name: 'Art & Decor', color: 'from-blue-400 to-blue-600', icon: '🎨' },
+              { name: 'Accessories', color: 'from-green-400 to-green-600', icon: '✨' },
+              { name: 'Office', color: 'from-yellow-400 to-yellow-600', icon: '📋' },
+              { name: 'Home & Garden', color: 'from-pink-400 to-pink-600', icon: '🌿' }
+            ].map((category, index) => (
+              <Link key={index} to={`/products?category=${category.name}`} className="group">
+                <div className="product-card p-8 text-center hover:scale-105 transition-transform">
+                  <div className={`text-5xl mb-4 group-hover:scale-110 transition-transform`}>
+                    {category.icon}
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">{category.name}</h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Promo Banner */}
+      <section className="px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="promo-banner">
+            <h2 className="promo-title">New Arrivals Daily! 🎉</h2>
+            <p className="promo-subtitle">Check back often for fresh designs and exclusive drops</p>
+            <Link to="/products">
+              <button className="btn-primary">Browse New Items</button>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative" data-testid="features-section">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-blue-50" data-testid="features-section">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-              Why Choose Us?
-            </h2>
-            <p className="text-xl text-gray-600">Premium quality meets innovative design</p>
+          <div className="section-header">
+            <h2 className="section-title">Why Print Queen 3D?</h2>
+            <p className="section-subtitle">Quality you can trust, service you'll love</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="glass-card rounded-2xl p-8 text-center space-y-4 fade-in">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <div className="product-card p-8 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                 <Package className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Premium Quality</h3>
+              <h3 className="text-xl font-bold text-gray-900">Premium Quality</h3>
               <p className="text-gray-600">
-                Every print is crafted with precision using top-tier materials and advanced printing technology.
+                Every print is crafted with precision using top-tier materials and cutting-edge 3D printing technology.
               </p>
             </div>
 
-            <div className="glass-card rounded-2xl p-8 text-center space-y-4 fade-in" style={{ animationDelay: '0.1s' }}>
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+            <div className="product-card p-8 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
                 <Zap className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Fast Delivery</h3>
+              <h3 className="text-xl font-bold text-gray-900">Fast Turnaround</h3>
               <p className="text-gray-600">
-                Quick turnaround times without compromising on quality. Get your prints delivered fast.
+                Quick processing times mean you get your beautiful 3D prints delivered to your door faster.
               </p>
             </div>
 
-            <div className="glass-card rounded-2xl p-8 text-center space-y-4 fade-in" style={{ animationDelay: '0.2s' }}>
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center">
+            <div className="product-card p-8 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center">
                 <Shield className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Secure Checkout</h3>
+              <h3 className="text-xl font-bold text-gray-900">Secure Shopping</h3>
               <p className="text-gray-600">
-                Shop with confidence using our secure payment system powered by Stripe.
+                Shop with confidence using our secure checkout powered by Stripe. Your data is always protected.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="testimonials-section">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="section-header">
+            <h2 className="section-title">What Our Customers Say</h2>
+            <p className="section-subtitle">Real reviews from happy customers</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="testimonial-card">
+              <div className="testimonial-stars">★★★★★</div>
+              <p className="testimonial-text">
+                "Amazing quality! The detail on my dragon sculpture is incredible. Print Queen 3D never disappoints!"
+              </p>
+              <p className="testimonial-author">- Sarah M.</p>
+            </div>
+
+            <div className="testimonial-card">
+              <div className="testimonial-stars">★★★★★</div>
+              <p className="testimonial-text">
+                "Fast shipping and beautiful products. The phone stand is perfect for my desk. Highly recommend!"
+              </p>
+              <p className="testimonial-author">- Mike R.</p>
+            </div>
+
+            <div className="testimonial-card">
+              <div className="testimonial-stars">★★★★★</div>
+              <p className="testimonial-text">
+                "Love my geometric planter! It's exactly as pictured and the quality exceeded my expectations."
+              </p>
+              <p className="testimonial-author">- Emily K.</p>
             </div>
           </div>
         </div>
