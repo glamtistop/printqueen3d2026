@@ -313,7 +313,7 @@ const BuildYourStand = ({ product }) => {
           </div>
 
           {/* Step 3: Upload Logo */}
-          <div className="glass-card rounded-2xl overflow-hidden">
+          <div id="step-logo" className="glass-card rounded-2xl overflow-hidden scroll-mt-24">
             <button
               onClick={() => toggleSection('logo')}
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-orange-50 to-white hover:from-orange-100 transition-colors"
