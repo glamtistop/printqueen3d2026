@@ -65,7 +65,12 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50" data-testid="products-page">
+    <div className="min-h-screen" data-testid="products-page">
+      {/* Announcement Bar */}
+      <div className="announcement-bar">
+        ✨ Free Shipping on Orders Over $75 | Use Code: FREESHIP75 ✨
+      </div>
+      
       {/* Navbar */}
       <nav className="navbar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
