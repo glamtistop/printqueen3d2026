@@ -288,8 +288,12 @@ const BuildYourStand = ({ product }) => {
               <ChevronDown className={`h-6 w-6 text-gray-500 transition-transform duration-300 ease-in-out ${expandedSections.colors ? 'rotate-180' : ''}`} />
             </button>
             
-            {expandedSections.colors && (
-              <div className="p-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div 
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                expandedSections.colors ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="p-6 space-y-6">
                 <ColorPicker
                   label="Primary Color"
                   value={primaryColor}
