@@ -164,6 +164,11 @@ const NFCStandPage = () => {
     }
   };
 
+  // Scroll to top when component mounts
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white" data-testid="nfc-stand-page">
       {/* Announcement Bar */}
