@@ -225,11 +225,18 @@ const NFCStandPage = () => {
           <div className="space-y-8">
             {/* Step 1: Base Selection */}
             <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
-                  1
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
+                    selectedBase ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                  }`}>
+                    {selectedBase ? <Check className="h-6 w-6" /> : '1'}
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Choose Your Base</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Choose Your Base</h2>
+                {selectedBase && (
+                  <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
+                )}
               </div>
               
               <div className="grid grid-cols-2 gap-4">
