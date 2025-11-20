@@ -24,6 +24,7 @@ const ProductDetailPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState({});
+  const [selectedColor, setSelectedColor] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +34,20 @@ const ProductDetailPage = () => {
   const fetchProduct = async () => {
     try {
       const response = await axios.get(`${API}/products/${id}`);
-      setProduct(response.data);
+      const productData = response.data;
+      
+      // Redirect Payment Stands products to custom builder page
+      if (productData.category === 'Payment Stands') {
+        navigate('/nfc-stand');
+        return;
+      }
+      
+      setProduct(productData);
+      
+      // Set default color if available
+      if (productData.available_colors && productData.available_colors.length > 0) {
+        setSelectedColor(productData.available_colors[0]);
+      }
     } catch (error) {
       console.error('Error fetching product:', error);
       toast.error('Failed to load product');
