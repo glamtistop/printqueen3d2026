@@ -256,10 +256,10 @@ const ProductsPage = () => {
                     </span>
                     <Link to={`/products/${product.id}`}>
                       <Button
-                        className={product.custom_builder ? "btn-secondary" : "btn-primary"}
+                        className="btn-primary"
                         data-testid={`view-details-${product.id}`}
                       >
-                        {product.custom_builder ? 'Customize' : 'View Details'}
+                        View Details
                       </Button>
                     </Link>
                   </div>
