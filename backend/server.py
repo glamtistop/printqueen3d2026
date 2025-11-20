@@ -94,6 +94,7 @@ class ProductCreate(BaseModel):
     collection_ids: List[str] = []
     badge: Optional[str] = None
     available_colors: List[str] = []
+    material_details: Optional[str] = None
 
 class Category(BaseModel):
     model_config = ConfigDict(extra="ignore")
