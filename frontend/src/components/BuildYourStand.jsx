@@ -278,13 +278,25 @@ const BuildYourStand = ({ product }) => {
                 <ColorPicker
                   label="Primary Color"
                   value={primaryColor}
-                  onChange={setPrimaryColor}
+                  onChange={(color) => {
+                    setPrimaryColor(color);
+                    // If secondary color is already selected, move to next step
+                    if (secondaryColor) {
+                      handleStepCompletion('colors', 'logo');
+                    }
+                  }}
                   dataTestId="primary-color-picker"
                 />
                 <ColorPicker
                   label="Secondary Color"
                   value={secondaryColor}
-                  onChange={setSecondaryColor}
+                  onChange={(color) => {
+                    setSecondaryColor(color);
+                    // If primary color is already selected, move to next step
+                    if (primaryColor) {
+                      handleStepCompletion('colors', 'logo');
+                    }
+                  }}
                   dataTestId="secondary-color-picker"
                 />
               </div>
