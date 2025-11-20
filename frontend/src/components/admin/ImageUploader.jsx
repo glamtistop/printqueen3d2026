@@ -8,6 +8,11 @@ export const ImageUploader = ({ onImagesUploaded, existingImages = [] }) => {
   const [dragActive, setDragActive] = useState(false);
   const [images, setImages] = useState(existingImages);
 
+  // Update images when existingImages prop changes
+  React.useEffect(() => {
+    setImages(existingImages);
+  }, [existingImages]);
+
   const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
