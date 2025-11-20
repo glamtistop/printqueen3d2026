@@ -58,8 +58,18 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = () => {
     if (product) {
-      addToCart(product, quantity, Object.keys(selectedVariant).length > 0 ? selectedVariant : null);
-      toast.success(`${quantity} x ${product.name} added to cart!`);
+      const customization = {};
+      if (selectedColor) {
+        customization.color = selectedColor;
+      }
+      if (Object.keys(selectedVariant).length > 0) {
+        Object.assign(customization, selectedVariant);
+      }
+      
+      addToCart(product, quantity, Object.keys(customization).length > 0 ? customization : null);
+      
+      const colorText = selectedColor ? ` (${selectedColor})` : '';
+      toast.success(`${quantity} x ${product.name}${colorText} added to cart!`);
     }
   };
 
