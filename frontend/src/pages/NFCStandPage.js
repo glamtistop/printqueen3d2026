@@ -379,11 +379,18 @@ const NFCStandPage = () => {
 
             {/* Step 4: NFC Links */}
             <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500 delay-300">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                  4
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
+                    hasNfcLinks ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-purple-500 to-purple-600'
+                  }`}>
+                    {hasNfcLinks ? <Check className="h-6 w-6" /> : '4'}
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Add NFC Links</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Add NFC Links</h2>
+                {hasNfcLinks && (
+                  <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
+                )}
               </div>
               
               <p className="text-sm text-gray-600 mb-4">
