@@ -348,16 +348,167 @@ async def update_product(product_id: str, product_data: ProductCreate, user: Use
 @api_router.delete("/products/{product_id}")
 async def delete_product(product_id: str, user: User = Depends(require_admin)):
     """Delete product (admin only)"""
-    result = await db.products.delete_one({"id": product_id})
-    if result.deleted_count == 0:
+    # Get product to find images
+    product = await db.products.find_one({"id": product_id})
+    if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Delete images from Cloudinary
+    if product.get("images"):
+        for image_url in product["images"]:
+            if "cloudinary" in image_url:
+                try:
+                    public_id = image_url.split("/")[-1].split(".")[0]
+                    CloudinaryService.delete_image(f"products/{public_id}")
+                except:
+                    pass
+    
+    result = await db.products.delete_one({"id": product_id})
     return {"message": "Product deleted successfully"}
 
-@api_router.get("/categories")
+@api_router.patch("/products/{product_id}/publish")
+async def toggle_product_publish(product_id: str, published: bool, user: User = Depends(require_admin)):
+    """Toggle product publish status"""
+    result = await db.products.update_one(
+        {"id": product_id},
+        {"$set": {"published": published, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"message": f"Product {'published' if published else 'unpublished'} successfully"}
+
+@api_router.post("/products/bulk-delete")
+async def bulk_delete_products(product_ids: List[str], user: User = Depends(require_admin)):
+    """Bulk delete products"""
+    deleted_count = 0
+    for product_id in product_ids:
+        try:
+            product = await db.products.find_one({"id": product_id})
+            if product:
+                # Delete images from Cloudinary
+                if product.get("images"):
+                    for image_url in product["images"]:
+                        if "cloudinary" in image_url:
+                            try:
+                                public_id = image_url.split("/")[-1].split(".")[0]
+                                CloudinaryService.delete_image(f"products/{public_id}")
+                            except:
+                                pass
+                
+                await db.products.delete_one({"id": product_id})
+                deleted_count += 1
+        except:
+            continue
+    
+    return {"message": f"Deleted {deleted_count} products successfully"}
+
+@api_router.post("/upload/image")
+async def upload_product_image(file: UploadFile = File(...), user: User = Depends(require_admin)):
+    """Upload product image to Cloudinary"""
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    try:
+        content = await file.read()
+        result = CloudinaryService.upload_image(content, folder="products")
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/upload/image/{public_id}")
+async def delete_product_image(public_id: str, user: User = Depends(require_admin)):
+    """Delete product image from Cloudinary"""
+    try:
+        result = CloudinaryService.delete_image(public_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============ CATEGORY ROUTES ============
+
+@api_router.get("/categories", response_model=List[Category])
 async def get_categories():
-    """Get all product categories"""
-    categories = await db.products.distinct("category")
+    """Get all categories"""
+    categories = await db.categories.find({}, {"_id": 0}).to_list(1000)
+    for category in categories:
+        if isinstance(category.get('created_at'), str):
+            category['created_at'] = datetime.fromisoformat(category['created_at'])
     return categories
+
+@api_router.post("/categories", response_model=Category)
+async def create_category(category_data: CategoryCreate, user: User = Depends(require_admin)):
+    """Create new category"""
+    category = Category(**category_data.model_dump())
+    category_dict = category.model_dump()
+    category_dict['created_at'] = category_dict['created_at'].isoformat()
+    await db.categories.insert_one(category_dict)
+    return category
+
+@api_router.put("/categories/{category_id}", response_model=Category)
+async def update_category(category_id: str, category_data: CategoryCreate, user: User = Depends(require_admin)):
+    """Update category"""
+    existing = await db.categories.find_one({"id": category_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    update_dict = category_data.model_dump()
+    await db.categories.update_one({"id": category_id}, {"$set": update_dict})
+    
+    updated = await db.categories.find_one({"id": category_id}, {"_id": 0})
+    if isinstance(updated.get('created_at'), str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    return updated
+
+@api_router.delete("/categories/{category_id}")
+async def delete_category(category_id: str, user: User = Depends(require_admin)):
+    """Delete category"""
+    result = await db.categories.delete_one({"id": category_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return {"message": "Category deleted successfully"}
+
+# ============ COLLECTION ROUTES ============
+
+@api_router.get("/collections", response_model=List[Collection])
+async def get_collections():
+    """Get all collections"""
+    collections = await db.collections.find({}, {"_id": 0}).to_list(1000)
+    for collection in collections:
+        if isinstance(collection.get('created_at'), str):
+            collection['created_at'] = datetime.fromisoformat(collection['created_at'])
+    return collections
+
+@api_router.post("/collections", response_model=Collection)
+async def create_collection(collection_data: CollectionCreate, user: User = Depends(require_admin)):
+    """Create new collection"""
+    collection = Collection(**collection_data.model_dump())
+    collection_dict = collection.model_dump()
+    collection_dict['created_at'] = collection_dict['created_at'].isoformat()
+    await db.collections.insert_one(collection_dict)
+    return collection
+
+@api_router.put("/collections/{collection_id}", response_model=Collection)
+async def update_collection(collection_id: str, collection_data: CollectionCreate, user: User = Depends(require_admin)):
+    """Update collection"""
+    existing = await db.collections.find_one({"id": collection_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    
+    update_dict = collection_data.model_dump()
+    await db.collections.update_one({"id": collection_id}, {"$set": update_dict})
+    
+    updated = await db.collections.find_one({"id": collection_id}, {"_id": 0})
+    if isinstance(updated.get('created_at'), str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    return updated
+
+@api_router.delete("/collections/{collection_id}")
+async def delete_collection(collection_id: str, user: User = Depends(require_admin)):
+    """Delete collection"""
+    result = await db.collections.delete_one({"id": collection_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    return {"message": "Collection deleted successfully"}
 
 # ============ ORDER ROUTES ============
 
