@@ -221,10 +221,10 @@ const BuildYourStand = ({ product }) => {
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-blue-50 to-white hover:from-blue-100 transition-colors"
             >
               <div className="flex items-center space-x-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
                   selectedBase ? 'bg-green-600' : 'bg-blue-600'
                 }`}>
-                  {selectedBase ? <Check className="h-6 w-6" /> : '1'}
+                  {selectedBase ? <Check className="h-6 w-6 animate-in zoom-in duration-300" /> : '1'}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Choose Your Base</h3>
