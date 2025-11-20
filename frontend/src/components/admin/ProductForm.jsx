@@ -192,74 +192,24 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
             <p className="text-xs text-gray-500 mt-1">Displayed as a badge on product card</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Available Colors (Optional)
+          <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+            <input
+              type="checkbox"
+              id="enable-colors"
+              checked={formData.available_colors.length > 0}
+              onChange={(e) => {
+                setFormData({ 
+                  ...formData, 
+                  available_colors: e.target.checked ? ['enabled'] : [] 
+                });
+              }}
+              className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="enable-colors" className="text-sm font-medium text-gray-700 cursor-pointer">
+              Enable Color Selection for Customers
             </label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={colorInput}
-                  onChange={(e) => setColorInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (colorInput.trim() && !formData.available_colors.includes(colorInput.trim())) {
-                        setFormData({ 
-                          ...formData, 
-                          available_colors: [...formData.available_colors, colorInput.trim()] 
-                        });
-                        setColorInput('');
-                      }
-                    }
-                  }}
-                  placeholder="e.g., Red, Blue, Green"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (colorInput.trim() && !formData.available_colors.includes(colorInput.trim())) {
-                      setFormData({ 
-                        ...formData, 
-                        available_colors: [...formData.available_colors, colorInput.trim()] 
-                      });
-                      setColorInput('');
-                    }
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Add
-                </button>
-              </div>
-              {formData.available_colors.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.available_colors.map((color, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
-                    >
-                      {color}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData({
-                            ...formData,
-                            available_colors: formData.available_colors.filter((_, i) => i !== index)
-                          });
-                        }}
-                        className="text-gray-500 hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <p className="text-xs text-gray-500">Add color options for customer selection. Leave empty if no color choice.</p>
-            </div>
           </div>
+          <p className="text-xs text-gray-500 -mt-2 pl-4">Customers can choose from 32 premium colors when this is enabled</p>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
