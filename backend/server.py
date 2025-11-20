@@ -96,6 +96,7 @@ class ProductCreate(BaseModel):
     badge: Optional[str] = None
     available_colors: List[str] = []
     material_details: Optional[str] = None
+    custom_builder: Optional[str] = None
 
 class Category(BaseModel):
     model_config = ConfigDict(extra="ignore")
