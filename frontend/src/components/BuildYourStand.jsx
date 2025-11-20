@@ -285,7 +285,7 @@ const BuildYourStand = ({ product }) => {
             </button>
             
             {expandedSections.colors && (
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-500">
                 <ColorPicker
                   label="Primary Color"
                   value={primaryColor}
