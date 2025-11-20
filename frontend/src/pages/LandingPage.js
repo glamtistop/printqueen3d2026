@@ -44,17 +44,6 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Announcement Bar */}
-      <div className="announcement-bar text-center">
-        <div className="inline-flex items-center space-x-2 animate-marquee">
-          <span>Fast & reliable U.S. shipping</span>
-          <span>·</span>
-          <span>Local pickup in Los Angeles, Altadena, Long Beach, Hawthorne, West Covina</span>
-          <span>·</span>
-          <span>Handmade 3D printed designs made to order in LA</span>
-        </div>
-      </div>
-
       {/* Navbar */}
       <nav className="navbar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
