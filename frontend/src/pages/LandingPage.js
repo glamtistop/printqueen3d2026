@@ -157,35 +157,25 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <section className="hero-section" data-testid="hero-section">
-        <div className="hero-bg">
-          <div className="hero-orb hero-orb-1"></div>
-          <div className="hero-orb hero-orb-2"></div>
-          <div className="hero-orb hero-orb-3"></div>
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
-          <div className="text-center space-y-8 fade-in">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
-              Transform Your Ideas Into
-              <span className="block mt-2 bg-gradient-to-r from-blue-600 via-green-600 to-yellow-500 bg-clip-text text-transparent">
-                Beautiful 3D Prints
-              </span>
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover our premium collection of custom 3D printed products. From art pieces to functional designs, we bring your imagination to life with cutting-edge technology.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/products">
-                <Button className="btn-primary text-lg px-8 py-6" data-testid="explore-products-button">
-                  Explore Products
-                </Button>
-              </Link>
-              {!user && (
-                <Button onClick={handleLogin} variant="outline" className="text-lg px-8 py-6 border-2 border-blue-600 text-blue-600 hover:bg-blue-50">
-                  Get Started
-                </Button>
-              )}
-            </div>
+        <div className="hero-content fade-in-up">
+          <div className="hero-badge">✨ Premium 3D Printed Creations</div>
+          <h1 className="hero-title">
+            Welcome to Print Queen 3D
+          </h1>
+          <p className="hero-subtitle">
+            Discover our curated collection of stunning 3D printed products. From elegant decor to functional accessories, each piece is crafted with precision and care.
+          </p>
+          <div className="hero-buttons">
+            <Link to="/products">
+              <button className="btn-primary" data-testid="explore-products-button">
+                Shop Collection
+              </button>
+            </Link>
+            {!user && (
+              <button onClick={handleLogin} className="btn-secondary">
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </section>
