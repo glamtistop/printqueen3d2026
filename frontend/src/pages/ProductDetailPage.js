@@ -39,12 +39,6 @@ const ProductDetailPage = () => {
       const response = await axios.get(`${API}/products/${id}`);
       const productData = response.data;
       
-      // Redirect Payment Stands products to custom builder page
-      if (productData.category === 'Payment Stands') {
-        navigate('/nfc-stand');
-        return;
-      }
-      
       setProduct(productData);
       
       // Show color picker if product has color options
