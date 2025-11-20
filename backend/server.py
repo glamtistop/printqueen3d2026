@@ -706,7 +706,13 @@ async def update_collection(collection_id: str, collection_data: CollectionCreat
 @api_router.delete("/collections/{collection_id}")
 async def delete_collection(collection_id: str, user: User = Depends(require_admin)):
     """Delete collection"""
-    result = await db.collections.delete_one({"id": collection_id})
+    # First, remove this collection_id from all products
+    await db.products.update_many(
+        {"collection_ids": collection_id},
+        {"$pull": {"collection_ids": collection_id}}
+    )
+    
+    result = await db.product_collections.delete_one({"id": collection_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Collection not found")
     return {"message": "Collection deleted successfully"}
