@@ -177,6 +177,7 @@ const NFCStandPage = () => {
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center">
               <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-14 w-auto" />
+            </Link>
 
             <div className="flex items-center space-x-6">
               <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
