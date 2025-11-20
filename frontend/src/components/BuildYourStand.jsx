@@ -423,7 +423,7 @@ const BuildYourStand = ({ product }) => {
           </div>
 
           {/* Step 5: Icon Selection */}
-          <div className="glass-card rounded-2xl overflow-hidden">
+          <div id="step-icons" className="glass-card rounded-2xl overflow-hidden scroll-mt-24">
             <button
               onClick={() => toggleSection('icons')}
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-indigo-50 to-white hover:from-indigo-100 transition-colors"
