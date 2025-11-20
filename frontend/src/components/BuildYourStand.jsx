@@ -319,7 +319,7 @@ const BuildYourStand = ({ product }) => {
                   dataTestId="secondary-color-picker"
                 />
               </div>
-            )}
+            </div>
           </div>
 
           {/* Step 3: Upload Logo */}
