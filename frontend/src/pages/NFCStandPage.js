@@ -434,10 +434,33 @@ const NFCStandPage = () => {
                     </span>
                   </div>
 
+                  {/* Requirements Checklist */}
+                  {!isFormComplete && (
+                    <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-4 animate-in fade-in duration-300">
+                      <p className="text-sm font-semibold text-yellow-800 mb-2">⚠️ Complete these steps to place your order:</p>
+                      <ul className="space-y-1 text-sm text-yellow-700">
+                        {!selectedBase && <li className="flex items-center space-x-2"><span>❌</span><span>Select a base configuration</span></li>}
+                        {!primaryColor && <li className="flex items-center space-x-2"><span>❌</span><span>Choose primary color</span></li>}
+                        {!secondaryColor && <li className="flex items-center space-x-2"><span>❌</span><span>Choose secondary color</span></li>}
+                        {!logoFile && <li className="flex items-center space-x-2"><span>❌</span><span>Upload your logo</span></li>}
+                        {!hasNfcLinks && <li className="flex items-center space-x-2"><span>❌</span><span>Add at least one NFC link</span></li>}
+                      </ul>
+                    </div>
+                  )}
+
+                  {isFormComplete && (
+                    <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-4 animate-in fade-in duration-300">
+                      <p className="text-sm font-semibold text-green-800 flex items-center space-x-2">
+                        <span>✅</span>
+                        <span>All options selected! Ready to place your custom order.</span>
+                      </p>
+                    </div>
+                  )}
+
                   <button
                     onClick={handleSubmit}
-                    disabled={!selectedBase || !primaryColor || !secondaryColor || !logoFile || isSubmitting}
-                    className="w-full btn-primary text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-6"
+                    disabled={!isFormComplete || isSubmitting}
+                    className="w-full btn-primary text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-6 transition-all duration-300"
                     data-testid="submit-order-button"
                   >
                     {isSubmitting ? (
@@ -445,7 +468,7 @@ const NFCStandPage = () => {
                     ) : (
                       <>
                         <ShoppingCart className="h-5 w-5" />
-                        <span>Place Custom Order</span>
+                        <span>{isFormComplete ? 'Place Custom Order' : 'Complete All Options First'}</span>
                       </>
                     )}
                   </button>
