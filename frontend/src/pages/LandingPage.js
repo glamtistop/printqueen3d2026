@@ -292,7 +292,7 @@ const LandingPage = () => {
               {featuredProducts.map((product) => (
                 <Link
                   key={product.id}
-                  to={product.is_custom && product.custom_page_url ? product.custom_page_url : `/products/${product.id}`}
+                  to={`/products/${product.id}`}
                   className="group product-card rounded-xl overflow-hidden hover:scale-105 transition-all duration-300"
                 >
                   <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
