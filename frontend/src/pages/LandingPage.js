@@ -14,7 +14,22 @@ const LandingPage = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [email, setEmail] = useState('');
+
+  const bannerImages = [
+    'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/3gxh6aog_custom3dprints.PNG',
+    'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/gzhz9uee_paymentstands.PNG',
+    'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/cmhra1j0_nfckeychain.png'
+  ];
+
+  // Auto-rotate banner every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % bannerImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [bannerImages.length]);
 
   const handleLogin = () => {
     const redirectUrl = `${window.location.origin}/products`;
