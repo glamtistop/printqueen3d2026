@@ -621,6 +621,8 @@ const NFCStandPage = () => {
                   </div>
                 ))}
               </div>
+              </>
+              )}
             </div>
           </div>
 
