@@ -154,6 +154,7 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
+              <Route path="/nfc-stand" element={<NFCStandPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={user ? <CheckoutPage /> : <Navigate to="/" />} />
               <Route path="/order-success" element={user ? <OrderSuccessPage /> : <Navigate to="/" />} />
