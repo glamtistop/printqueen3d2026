@@ -494,6 +494,7 @@ const NFCStandPage = () => {
                   )}
                 </label>
               </div>
+              )}
             </div>
 
             {/* Step 4: NFC Links */}
