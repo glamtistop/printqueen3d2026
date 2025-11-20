@@ -219,14 +219,13 @@ const LandingPage = () => {
       {/* Shop Categories */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {[
-              { name: 'Payment Stands', link: '/nfc-stand', image: 'https://printqueen3d-storefront1.vercel.app/paymentstands.PNG' },
-              { name: 'Keychains', link: '/products', image: 'https://printqueen3d-storefront1.vercel.app/nfckeychain.png' },
-              { name: 'Home Decor', link: '/products', image: 'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=400' },
-              { name: 'Incense Holders', link: '/products', image: 'https://images.unsplash.com/photo-1602874801006-63bed4e37cb7?w=400' },
-              { name: 'Toys & Fidgets', link: '/products', image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=400' },
-              { name: 'Custom 3D Prints', link: '/products', image: 'https://printqueen3d-storefront1.vercel.app/custom3dprints.PNG' }
+              { name: 'Payment Stands', link: '/nfc-stand', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/1x9anwex_Payment%20Stands.JPEG' },
+              { name: 'Keychains', link: '/products', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/lv917wjw_Keychains.JPEG' },
+              { name: 'Home Decor', link: '/products', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/qet0lf5s_Home%20Decor.JPEG' },
+              { name: 'Incense Holders', link: '/products', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/jbo339mg_Insense%20Holder.JPEG' },
+              { name: 'Custom 3D Prints', link: '/products', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/j7ob4q4t_Custom%203d%20Prints.JPEG' }
             ].map((category) => (
               <Link
                 key={category.name}
