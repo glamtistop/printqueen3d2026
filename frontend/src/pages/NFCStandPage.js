@@ -275,11 +275,18 @@ const NFCStandPage = () => {
 
             {/* Step 2: Colors */}
             <div className="product-card p-6 space-y-4 animate-in fade-in slide-in-from-left duration-500 delay-100">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
-                  2
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
+                    (primaryColor && secondaryColor) ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-yellow-500 to-yellow-600'
+                  }`}>
+                    {(primaryColor && secondaryColor) ? <Check className="h-6 w-6" /> : '2'}
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Select Colors</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Select Colors</h2>
+                {(primaryColor && secondaryColor) && (
+                  <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Complete</span>
+                )}
               </div>
               
               <div className="space-y-4">
