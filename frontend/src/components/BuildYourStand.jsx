@@ -335,7 +335,7 @@ const BuildYourStand = ({ product }) => {
             </button>
             
             {expandedSections.logo && (
-              <div className="p-6">
+              <div className="p-6 animate-in fade-in slide-in-from-top-2 duration-500">
                 <input
                   type="file"
                   accept="image/*"
