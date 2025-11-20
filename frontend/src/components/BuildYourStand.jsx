@@ -445,7 +445,7 @@ const BuildYourStand = ({ product }) => {
             </button>
             
             {expandedSections.icons && (
-              <div className="p-6">
+              <div className="p-6 animate-in fade-in slide-in-from-top-2 duration-500">
                 <p className="text-sm text-gray-600 mb-4">
                   Choose an icon for each NFC chip ({maxLinks} total)
                 </p>
