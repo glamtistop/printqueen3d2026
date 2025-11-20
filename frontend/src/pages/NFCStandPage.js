@@ -105,6 +105,7 @@ const NFCStandPage = () => {
   if (!secondaryColor) missingRequirements.push('Secondary color');
   if (!logoFile) missingRequirements.push('Logo upload');
   if (!hasNfcLinks) missingRequirements.push('At least one NFC link');
+  if (!hasIcons) missingRequirements.push('Icon selection for all chips');
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
