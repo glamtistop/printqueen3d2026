@@ -163,7 +163,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Navbar */
 .navbar {
   position: fixed;
-  top: 44px;
+  top: 48px;
   left: 0;
   right: 0;
   z-index: 999;
@@ -175,7 +175,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar.scrolled {
-  top: 0;
+  top: 44px;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    top: 44px;
+  }
+  
+  .navbar.scrolled {
+    top: 0;
+  }
 }
 
 .logo-text {
