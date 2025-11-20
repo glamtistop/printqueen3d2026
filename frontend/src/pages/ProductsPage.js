@@ -28,16 +28,12 @@ const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [loading, setLoading] = useState(true);
-
-  // Read category from URL params on mount
-  useEffect(() => {
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    // Initialize from URL params if present
     const categoryFromUrl = searchParams.get('category');
-    if (categoryFromUrl) {
-      setSelectedCategory(categoryFromUrl);
-    }
-  }, []);
+    return categoryFromUrl || 'all';
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProducts();
