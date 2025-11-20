@@ -218,11 +218,71 @@ const NFCStandPage = () => {
       </nav>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-        {/* Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        {/* Header with Product Showcase */}
         <div className="text-center mb-12 fade-in-up">
-          <h1 className="section-title">Custom NFC Stand Builder</h1>
-          <p className="section-subtitle">Design your perfect NFC stand with personalized colors and branding</p>
+          <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-full text-sm font-semibold mb-4">
+            ⭐ Fully Customizable
+          </div>
+          <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Custom NFC Payment Stand
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            Design your perfect NFC stand with personalized colors, your logo, and custom programming. Perfect for businesses accepting contactless payments.
+          </p>
+        </div>
+
+        {/* Product Showcase */}
+        <div className="max-w-5xl mx-auto mb-16">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="product-card rounded-2xl overflow-hidden">
+              <img
+                src="https://printqueen3d-storefront1.vercel.app/paymentstands.PNG"
+                alt="Custom NFC Payment Stand"
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">🎨</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Your Colors</h3>
+                  <p className="text-gray-600">Choose from 32 premium colors for primary and secondary accents</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">📱</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">NFC Programmed</h3>
+                  <p className="text-gray-600">Up to 3 NFC chips programmed with your custom links</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">🏷️</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Your Branding</h3>
+                  <p className="text-gray-600">Upload your logo for a professional, branded appearance</p>
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
+                <p className="text-center text-gray-700 font-semibold">
+                  ⚡ Starting at <span className="text-3xl font-bold text-green-600">$45.00</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Customization Section Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-bold text-gray-900 mb-3">Build Your Stand</h2>
+          <p className="text-lg text-gray-600">Complete all 4 steps to create your perfect NFC stand</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
