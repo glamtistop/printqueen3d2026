@@ -88,25 +88,27 @@ const BuildYourStand = ({ product }) => {
 
   // Auto-collapse and open next step when current step is completed
   const handleStepCompletion = (completedStep, nextStep) => {
-    // Close current step
+    // Close current step with smooth animation
     setExpandedSections(prev => ({
       ...prev,
       [completedStep]: false
     }));
     
-    // Open next step after a brief delay
+    // Wait for collapse animation to finish, then open next step
     setTimeout(() => {
       setExpandedSections(prev => ({
         ...prev,
         [nextStep]: true
       }));
       
-      // Scroll to next step
-      const nextElement = document.getElementById(`step-${nextStep}`);
-      if (nextElement) {
-        nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 300);
+      // Scroll to next step after it starts opening
+      setTimeout(() => {
+        const nextElement = document.getElementById(`step-${nextStep}`);
+        if (nextElement) {
+          nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 200);
+    }, 400);
   };
 
   const isFormComplete = selectedBase && primaryColor && secondaryColor && logoFile && hasNfcLinks && hasIcons;
