@@ -401,7 +401,7 @@ const BuildYourStand = ({ product }) => {
             </button>
             
             {expandedSections.links && (
-              <div className="p-6">
+              <div className="p-6 animate-in fade-in slide-in-from-top-2 duration-500">
                 <p className="text-sm text-gray-600 mb-4">
                   Provide up to {maxLinks} links to program into your NFC chips
                 </p>
