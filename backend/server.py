@@ -76,6 +76,7 @@ class Product(BaseModel):
     custom_page_url: Optional[str] = None
     published: bool = True
     collection_ids: List[str] = []
+    badge: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -89,6 +90,7 @@ class ProductCreate(BaseModel):
     stock: int
     published: bool = True
     collection_ids: List[str] = []
+    badge: Optional[str] = None
 
 class Category(BaseModel):
     model_config = ConfigDict(extra="ignore")
