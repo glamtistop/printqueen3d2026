@@ -180,18 +180,32 @@ const LandingPage = () => {
       </div>
 
       {/* Hero Banner - Auto-rotating Carousel (Desktop) / Static Banner (Mobile) */}
-      <section className="relative w-full bg-gray-100">
-        {/* Desktop Banner - Carousel */}
-        <div className="hidden md:block relative w-full">
-          <img
-            src={bannerImages[currentBannerIndex]}
-            alt="Print Queen 3D Hero"
-            className="w-full h-auto object-contain transition-opacity duration-1000"
-            style={{ maxHeight: '350px' }}
+      <section className="relative w-full overflow-hidden">
+        {/* Desktop Banner - Carousel with Blurred Background */}
+        <div className="hidden md:block relative w-full" style={{ height: '450px' }}>
+          {/* Blurred Background Image */}
+          <div 
+            className="absolute inset-0 transition-opacity duration-1000"
+            style={{
+              backgroundImage: `url(${bannerImages[currentBannerIndex]})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'blur(40px) brightness(0.7)',
+              transform: 'scale(1.1)',
+            }}
           />
           
+          {/* Main Banner Image */}
+          <div className="relative z-10 flex items-center justify-center h-full">
+            <img
+              src={bannerImages[currentBannerIndex]}
+              alt="Print Queen 3D Hero"
+              className="h-full w-auto object-contain transition-opacity duration-1000"
+            />
+          </div>
+          
           {/* Carousel Indicators */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
             {bannerImages.map((_, index) => (
               <button
                 key={index}
