@@ -19,7 +19,6 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     badge: '',
     available_colors: []
   });
-  const [colorInput, setColorInput] = useState('');
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(false);
