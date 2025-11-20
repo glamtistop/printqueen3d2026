@@ -86,8 +86,17 @@ const NFCStandPage = () => {
   // Check if at least one NFC link is provided
   const hasNfcLinks = nfcLinks.some(link => link.trim() !== '');
   
+  // Check if icons are selected for each chip
+  const hasIcons = selectedIcons.slice(0, maxLinks).every((icon, index) => {
+    if (!icon) return false;
+    if (icon === 'Custom') {
+      return customIcons[index] && customIcons[index].trim() !== '';
+    }
+    return true;
+  });
+  
   // Check if all required fields are filled
-  const isFormComplete = selectedBase && primaryColor && secondaryColor && logoFile && hasNfcLinks;
+  const isFormComplete = selectedBase && primaryColor && secondaryColor && logoFile && hasNfcLinks && hasIcons;
   
   // Get list of missing requirements
   const missingRequirements = [];
