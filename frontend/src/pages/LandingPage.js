@@ -301,9 +301,9 @@ const LandingPage = () => {
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
-                    {product.is_custom && (
+                    {product.badge && (
                       <div className="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                        Customizable
+                        {product.badge}
                       </div>
                     )}
                   </div>
