@@ -52,7 +52,7 @@ const LandingPage = () => {
               <img 
                 src="/printqueen-logo.png" 
                 alt="Print Queen 3D" 
-                className="h-20 w-auto"
+                className="h-18 w-auto"
               />
             </Link>
 
