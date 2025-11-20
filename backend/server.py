@@ -37,9 +37,17 @@ class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: str
     name: str
-    picture: str
+    picture: str = ""
     is_admin: bool = False
+    hashed_password: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class EmailPasswordLogin(BaseModel):
+    email: str
+    password: str
+
+class SetPassword(BaseModel):
+    password: str
 
 class UserSession(BaseModel):
     model_config = ConfigDict(extra="ignore")
