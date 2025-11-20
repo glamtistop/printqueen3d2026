@@ -632,9 +632,10 @@ async def delete_category(category_id: str, user: User = Depends(require_admin))
 
 @api_router.get("/category-names")
 async def get_category_names():
-    """Get category names for filtering (backward compatible)"""
-    # Get unique category names from products for filtering
-    categories = await db.products.distinct("category")
+    """Get all category names from categories collection"""
+    # Get all categories from the categories collection
+    category_docs = await db.categories.find({}, {"_id": 0, "name": 1}).to_list(100)
+    categories = [cat["name"] for cat in category_docs]
     return categories
 
 # ============ COLLECTION ROUTES ============
