@@ -182,6 +182,20 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Material Details (Optional)
+            </label>
+            <textarea
+              value={formData.material_details}
+              onChange={(e) => setFormData({ ...formData, material_details: e.target.value })}
+              placeholder="e.g., Premium PLA filament, eco-friendly, durable and lightweight"
+              rows="3"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">Describe the materials used. Leave empty to hide from product page.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Badge Text (Optional)
             </label>
             <input
