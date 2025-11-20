@@ -271,10 +271,10 @@ const BuildYourStand = ({ product }) => {
               className="w-full flex items-center justify-between p-6 text-left bg-gradient-to-r from-purple-50 to-white hover:from-purple-100 transition-colors"
             >
               <div className="flex items-center space-x-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all duration-300 ${
                   primaryColor && secondaryColor ? 'bg-green-600' : 'bg-purple-600'
                 }`}>
-                  {primaryColor && secondaryColor ? <Check className="h-6 w-6" /> : '2'}
+                  {primaryColor && secondaryColor ? <Check className="h-6 w-6 animate-in zoom-in duration-300" /> : '2'}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Choose Colors</h3>
