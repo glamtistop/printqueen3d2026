@@ -132,7 +132,18 @@ const ProductsPage = () => {
         {/* Filters */}
         <div className="mb-8 flex items-center space-x-4">
           <Filter className="h-5 w-5 text-gray-600" />
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select 
+            value={selectedCategory} 
+            onValueChange={(value) => {
+              setSelectedCategory(value);
+              // Update URL params when category changes
+              if (value === 'all') {
+                setSearchParams({});
+              } else {
+                setSearchParams({ category: value });
+              }
+            }}
+          >
             <SelectTrigger className="w-64" data-testid="category-filter">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
