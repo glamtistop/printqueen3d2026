@@ -78,6 +78,22 @@ const NFCStandPage = () => {
   const [customIcons, setCustomIcons] = useState(['', '', '']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
+  
+  // Collapsible sections state
+  const [expandedSections, setExpandedSections] = useState({
+    base: false,
+    colors: false,
+    logo: false,
+    links: false,
+    icons: false
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   const selectedBaseOption = BASE_OPTIONS.find(b => b.id === selectedBase);
   const totalPrice = selectedBaseOption ? selectedBaseOption.price : 0;
