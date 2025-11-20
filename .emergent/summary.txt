@@ -1,74 +1,50 @@
 <analysis>**original_problem_statement:**
 The user wants to build a modern e-commerce website for Print Queen 3D, replicating their existing Vercel site. Key requirements include user authentication (Google Login), an admin dashboard for product management, and Stripe integration.
 
-During this session, the user requested a major expansion of the admin capabilities to be similar to Shopify, including:
--   **Product Management**: Add/edit/delete/duplicate products, manage publish status, upload images, and assign to categories/collections.
--   **Category & Collection Management**: Full CRUD for product categories and collections.
--   **Order Management**: View orders and update fulfillment status.
--   **Customer Management**: View registered users.
-
-The user also provided extensive, iterative feedback on the homepage UI, requesting:
--   An auto-rotating banner carousel with specific desktop and mobile images.
--   Moving the top marquee and changing its style.
--   Updating all category images.
--   Numerous adjustments to the banner size, background effects (including a blurred background, feathered edges, and finally a solid color), and navbar thickness/position.
-
-Finally, the user requested enhancements to the Custom NFC Stand builder page:
--   A new Icon Selector step, where the number of icon choices dynamically matches the selected base option.
--   Making all customization steps collapsible to create a cleaner, accordion-style UI.
--   Adding the site-wide footer to the page.
+During the course of development, the user's requests expanded significantly:
+-   **Admin Dashboard**: Build a comprehensive, Shopify-like admin panel for full CRUD management of Products, Categories, Collections, Orders, and Customers. This includes features like duplicating products, managing publish status, and assigning products to collections/categories.
+-   **Homepage UI**: Iteratively refine the homepage UI, including an auto-rotating banner carousel, a marquee, category grid, and a featured products section that pulls dynamically from a Featured collection.
+-   **Product Page Features**: Enhance the product pages with features like selectable color options, production time, shipping info, material details, and a Related Products section.
+-   **Custom Product Builder (NFC Stand)**: Create a multi-step customizer for the NFC Stand product. This evolved into a highly interactive, animated, wizard-like component with collapsible steps that guide the user through the process.
+-   **Architectural Refactor**: Unify the product page experience by creating a single, dynamic  that can conditionally render custom builders (like the Build Your Stand component) based on product settings in the admin.
+-   **UX & Cohesion**: A strong focus on creating a uniform, cohesive, and professional user experience across the site, with consistent layouts, navigation, and smooth animations.
 
 PRODUCT REQUIREMENTS:
 - **Core Functionality**:
-  - User login/authentication (Google Social Login and a new secure email/password backup).
+  - User login/authentication (Google Social Login and a secure email/password backup).
   - A comprehensive admin dashboard for managing products, categories, collections, orders, and customers.
   - Cloudinary integration for image uploads.
   - Stripe integration for payments.
 - **Design & UX**:
-  - Replicate the design and layout of the user's reference site.
-  - A fixed navigation bar on all pages.
-  - A homepage with a marquee, a banner carousel (with different images for desktop/mobile), a 6-item category grid, and a featured products section.
-- **Custom Product Page (NFC Stand)**:
-  - A multi-step, collapsible builder interface for customizing the NFC Stand.
-  - Options for base, colors, logo upload, NFC links, and icon selection.
-  - Selections must be reflected in the order summary and validated before purchase.
+  - A consistent and professional design across all pages.
+  - A fixed navigation bar with the site logo.
+  - A homepage with a marquee, banner carousel, category grid, and a dynamic featured products section.
+  - Smooth, professional animations for interactive elements like the product builder.
+- **Unified Product Page**:
+  - A single product detail page template for all products.
+  - Optional, non-mandatory fields for Material Details and a Badge (e.g., Customizable).
+  - An optional, premium color picker that can be enabled per-product.
+  - A section for Production Time, Shipping Info, and Related Products.
+- **Modular Custom Product Builder**:
+  - A system in the admin panel to assign a Custom Builder component to a product.
+  - A reusable Build Your Stand component with a 5-step, guided, collapsible accordion UI for customization (Base, Colors, Logo, Links, Icons).
 
 **User's preferred language**: English
 
 **what currently exists?**
 A full-stack e-commerce application with a FastAPI backend, React frontend, and MongoDB database.
 
-Key features implemented:
-- A highly polished homepage matching the user's latest requests, including a fixed navbar, a pink-gradient marquee, an auto-rotating banner carousel with a solid color background and separate mobile/desktop images, and a grid of 6 categories with custom images.
-- A comprehensive, multi-tabbed admin dashboard with functionality for managing products, categories, collections, orders, and customers. Image uploads are integrated with Cloudinary, but are currently blocked by a configuration issue.
-- A dual authentication system supporting both Google social login and a secure email/password backup.
-- A feature-rich NFC Stand builder page with a clean, collapsible (accordion-style) UI for all five customization steps and a complete site footer.
-- The previous authentication bug for regular users has been resolved.
+The application features a polished and consistent UI/UX. The core functionality includes a comprehensive admin dashboard, a dynamic homepage, and a unified product page architecture. The standout feature is the modular Build Your Stand component, which is a highly interactive and animated wizard that guides users through product customization. The critical Cloudinary image upload bug has been resolved, and the admin panel is fully functional for managing all aspects of the store's data.
 
 **Last working item**:
--   **Last item agent was working**: Debugging a failing image upload feature within the admin dashboard.
--   **Status**: BLOCKED
+-   **Last item agent was working**: The agent moved the Material Details section to be under the product image on the product detail page for better layout consistency.
+-   **Status**: USER VERIFICATION PENDING
 -   **Agent Testing Done**: Y
--   **Which testing method agent to use?**: Manual testing in the admin UI after the fix is applied. Use the  to verify.
+-   **Which testing method agent to use?**: Manual testing. The user can verify this by visiting a product page with material details (e.g., Dragon Sculpture).
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1 (P0)**: Image uploads in the admin dashboard fail with a .
-
-**Issues Detail**:
--   **Issue 1: Cloudinary image upload fails**
-    -   **Attempted fixes**: The agent traced the error to the backend  endpoint. A direct test of the Cloudinary service revealed the root cause: . The credentials are in the  file, but the  value is incorrect.
-    -   **Next debug checklist**:
-        1.  Receive the correct  from the user.
-        2.  Update the  variable in the  file.
-        3.  Restart the backend service using backend: stopped
-backend: started.
-        4.  Ask the user to test the image upload functionality again through the admin dashboard.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical blocker for the admin dashboard, as the user cannot add images to products without it.
-    -   **Status**: BLOCKED
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: Backend (config change) and Frontend (user workflow).
-    -   **Blocked on other issue**: Blocked on user providing the correct Cloudinary cloud name.
+-   None. All issues raised during the session were resolved.
 
 **In progress Task List**:
 -   None.
@@ -76,124 +52,118 @@ backend: started.
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
     -   **(P0) Implement Stripe Payments**: Integrate the Stripe service for the checkout process.
-    -   **(P1) Implement Email Notification for NFC Orders**: Integrate the Resend email service to notify the owner of new custom orders via the  endpoint.
+    -   **(P1) Implement Email Notification for NFC Orders**: Integrate the Resend email service to notify the owner of new custom orders.
 -   **Future Tasks**:
     -   **(P2) Implement Parallax Effects**: Add parallax scrolling effects as per the original user request.
     -   **(P2) Activate Newsletter Form**: Implement the backend logic to capture and store emails from the newsletter signup form.
 
 **Completed work in this session**
-- **Core Functionality & Bug Fixes**:
-  - **Authentication Fixed**: Resolved the critical bug preventing regular user login by correcting the API call method to the Emergent Auth service.
-  - **Email/Password Login**: Implemented a complete, secure backup authentication system using email/password with  hashing.
-  - **Admin Access Flow**: Successfully diagnosed and guided the user through fixing access issues related to session caching and client-side SSL errors.
-- **Admin Dashboard (Phase A)**:
-  - **Full Scaffolding**: Built a comprehensive, multi-tabbed admin dashboard inspired by Shopify.
-  - **Product Management**: Implemented full CRUD, publish/unpublish toggles, and laid the groundwork for Cloudinary image uploads.
-  - **Duplicate Product Feature**: Added a one-click duplicate button to the products table.
-  - **Taxonomy Management**: Built full CRUD interfaces for Categories and Collections.
-  - **Order & Customer Management**: Created views for listing orders (with fulfillment status) and customers.
-- **Homepage UI Overhaul (Iterative)**:
-  - **Banner Carousel**: Implemented an auto-rotating banner carousel with user-provided images.
-  - **Responsive Banners**: Added a separate, vertically-oriented banner specifically for mobile view.
-  - **Layout & Style**: Moved the marquee, applied a pink gradient, updated all category images (twice), and performed multiple adjustments to banner height and navbar thickness.
-  - **Background Effects**: Experimented with and reverted several banner background effects (blurred, feathered) before settling on a user-chosen solid background color ().
-- **NFC Stand Page Enhancements**:
-  - **Collapsible UI**: Transformed the multi-step form into a clean, accordion-style interface where all sections are collapsible.
-  - **Icon Selector Feature**: Added a new Select Icons step that dynamically generates dropdowns based on the number of NFC chips chosen, including a Custom text input option.
-  - **Order Summary Update**: Integrated the selected icons into the order summary panel.
-  - **Footer Added**: Added the standard site footer to the page.
+- **Critical Bug Fix**:
+  - **Cloudinary Image Uploads Fixed**: Diagnosed and resolved the  during image uploads by correcting the Cloudinary configuration ( and then switching to  format) in  and .
+- **Admin & Product Management Features**:
+  - **Enhanced Product Form**: Updated the admin product form to allow displaying/removing existing images, managing collection assignments via checkboxes, and adding an optional badge text field.
+  - **Stock Management**: Made the stock/inventory field optional in the backend model and frontend form, defaulting to 0 for made-to-order items.
+  - **Collections Bug Fixed**: Corrected a critical bug where the admin UI was writing to the wrong MongoDB collection ( instead of ), causing data inconsistency. Migrated data and fixed all related API endpoints in .
+  - **Category Seeding**: Created 6 main business categories in the database with AI-generated descriptions, as requested.
+- **Homepage & Filtering**:
+  - **Dynamic Featured Products**: Implemented the  endpoint and updated  to dynamically display up to 6 products from the Featured collection.
+  - **Category-Based Filtering**: Updated  links to point to the products page with a category filter. Updated  to read this filter from the URL, display a heading for the current category, and correctly filter products.
+  - **Category Dropdown Fixed**: Updated the category dropdown on  to show all available categories from the database, not just those with assigned products.
+  - **Filtering Race Condition Fixed**: Resolved a bug in  where refreshing the page would incorrectly show all products before applying the category filter.
+- **Product Page Architecture Refactor**:
+  - **Unified Product Page**: Refactored the architecture to use a single  for all products, removing the hard redirect for Payment Stands.
+  - **Modular Custom Builder**: Created a new reusable component, , containing the full 5-step NFC stand customizer.
+  - **Conditional Rendering**: Added a  field to the product model and a dropdown in the admin form.  now conditionally renders the  component if this field is set for a product.
+- **Advanced UX/UI Enhancements**:
+  - **Premium Color Picker**: Replaced the simple product color selector with the sophisticated  component from the NFC page, providing a consistent, premium UI with 32 color swatches.
+  - **Context-Aware Add to Cart Button**: Modified  so if a product has a custom builder, the Add to Cart button changes to Customize Your Stand and smoothly scrolls the user down to the builder section.
+  - **Guided Builder Flow**: Implemented a sophisticated wizard-like experience in . Completed steps now automatically collapse with a checkmark, and the view smoothly scrolls to the next available step.
+  - **Smooth Animations**: Replaced jarring conditional rendering with smooth CSS height and opacity transitions for the accordion collapse/expand, creating a polished, professional feel.
+  - **Layout & Info Consistency**: Added Production Time, Shipping Info, and Material Details sections to the product page. Refined layouts on both  and  (now ) to be consistent, including the placement of the Back to Products button.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
 
 **Known issue recurrence from previous fork**
--   The regular user authentication issue recurred but was definitively fixed in this session by correcting the underlying API call from POST to GET.
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend**: React, TailwindCSS,  for icons.
+-   **Frontend**: React, TailwindCSS, , Framer Motion (implicitly via Tailwind classes for transitions). Heavy use of React hooks (, , ) for complex state management and animations.
 -   **Backend**: FastAPI, Pydantic, Motor (async MongoDB).
 -   **Database**: MongoDB.
--   **Authentication**: Dual system - JWT-based Google Social Login via Emergent Auth, and a separate secure email/password flow using  for hashing.
--   **Image Hosting**: Cloudinary (integration in progress, currently blocked).
+-   **Architecture**: Unified Product Page with modular, conditionally rendered components.
 
 **key DB schema**
--   **users**: 
 -   **products**: 
--   **categories**:  (New Collection)
--   **product_collections**:  (New Collection)
--   **orders**: 
+-   **product_collections**: 
+-   **categories**: 
 
 **changes in tech stack**
--   Added  to the backend stack for password hashing.
--   Added  for image management.
+-   No new technologies were added, but there was a significant increase in the use of CSS transitions and advanced React patterns for UI/UX.
 
 **All files**
 -   **Created**:
-    -   : Initializes and configures the Cloudinary service.
-    -   : A suite of 7 new components to power the admin dashboard.
-    -   : The new tabbed layout for the admin section.
-    -   : A new page for the email/password login form.
+    -   : A large, reusable component containing the complete, animated 5-step product customizer.
 -   **Updated**:
-    -   : Heavily modified to add dozens of new endpoints for the admin dashboard (products, categories, collections, orders, image upload) and the new email/password authentication flow. Pydantic models were also updated.
-    -   : Added Cloudinary credentials.
-    -   : Added .
-    -   : Extensively updated with the banner carousel, responsive images, new marquee position/style, updated category images, and adjusted navbar/banner heights.
-    -   : Extensively updated to implement the collapsible sections UI and add the new icon selector feature.
-    -   : Updated to add the route for  and to point  to the new dashboard.
-    -   : Updated navbar styles to remove the top gap and adjust thickness.
-    -   All other page components (, , etc.): Updated to ensure navbar consistency.
+    -   : Added  endpoint, fixed all  endpoints to use the correct  DB collection, and updated the  model with several new optional fields (, , etc.).
+    -    & : Fixed Cloudinary credentials to use the  format.
+    -   : Heavily refactored to serve as the unified page for all products, conditionally rendering color pickers, info sections, and the new custom builder component.
+    -   : Updated to handle category filtering from URL parameters, fixed a race-condition bug, and updated the API call for fetching category lists.
+    -   : Updated to fetch and display dynamic featured products and link categories correctly.
+    -   : Significantly updated to manage new product fields like , ,  (as a toggle),  (with checkboxes), and  (as a dropdown).
+    -   : Exported the  array for use in other components.
+    -   Multiple page components (, , etc.): Removed hardcoded navbar title text for UI consistency.
 
 **Areas that need refactoring**:
--   The  file is now very large and complex. The individual Step sections could be broken out into their own components to improve readability and maintainability.
+-   The new  component is very large (~600+ lines). While it works well, each of the 5 steps could be broken down into smaller, child components to improve maintainability.
 
 **key api endpoints**
--   : New endpoint for email/password authentication.
--   : New admin endpoint to set a user's password.
--   , , : Full CRUD endpoints for admin management.
--   : New endpoint to duplicate a product.
--   : Endpoint for uploading images to Cloudinary (currently broken).
--   : New endpoint to update an order's fulfillment status.
+-   : NEW - Fetches products belonging to the Featured collection.
+-   , , : FIXED - Now correctly interact with the  database collection.
+-   : FIXED - Now returns all categories from the  collection, not just those in use.
 
 **Critical Info for New Agent**
--   **CURRENT BLOCKER**: The immediate task is to get the correct Cloudinary  from the user and update it in . The current value Root is incorrect.
--   **Dual Authentication**: The application now has two login methods. Google Auth is the primary, but a secure email/password system was added as a backup to resolve a client-side SSL issue the user was facing.
--   **User Iteration Style**: The user provides frequent and specific UI feedback. Be prepared for rapid, iterative changes, especially for visual elements.
+-   **Unified Architecture**: The biggest change is the move to a single . Do not look for separate pages for different product types. Logic is handled conditionally within this file and the  component.
+-   **Focus on UX**: The user places a very high value on smooth animations and a cohesive, consistent user experience. Any new UI work should prioritize this.
+-   **Admin-Driven UI**: Many frontend features (color pickers, custom builders, badges) are now driven by optional fields set in the admin's product editor.
+-   **Cloudinary is Fixed**: The previously blocking image upload issue is resolved.
 
 **documents created in this job**
 -   None.
 
 **Last 5 User Messages and any pending user messages**
-1.  **User Request**: Add selected icons to the order summary on the NFC page.
+1.  **User Request**: Suggest ideas for the product page.
+    -   *Status*: **Completed**. Agent suggested and user approved adding Production Time, Material Details, Shipping Info, and Related Products.
+2.  **User Request**: Implement the approved product page sections.
     -   *Status*: **Completed**.
-2.  **User Bug Report**: in admin dashboard im trying to upload image and it says it failed to upload image
-    -   *Status*: **In Progress (Blocked)**. Agent identified the root cause is an invalid Cloudinary cloud name.
-3.  **User Response**: (Not a message, but the agent asked the user for the correct cloud name).
-    -   *Status*: **Pending User Response**.
-4.  User messages after this point in the history were not processed by the agent before the job ended.
+3.  **User Request**: Refactor the site to have a single, unified product page, with the NFC builder being a conditionally rendered component.
+    -   *Status*: **Completed**.
+4.  **User Request**: Implement an interactive, wizard-like flow for the builder with smooth collapse/expand animations.
+    -   *Status*: **Completed**. Agent delivered this in two passes, first with basic logic, then with polished CSS animations.
+5.  **User Request**: Move the Material Details section under the product image.
+    -   *Status*: **Completed**. This was the last action taken.
 
 **Project Health Check:**
 -   **Broken**:
-    -   Image upload functionality in the admin dashboard is non-functional due to an invalid Cloudinary .
+    -   None.
 -   **Mocked**:
-    -   The email notification system (Resend) for custom NFC orders is a placeholder.
     -   Stripe payment integration has not been implemented.
+    -   The Resend email notification system for custom NFC orders is a placeholder.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES. A comprehensive E2E test was run which confirmed all major features (including the previously broken authentication) were working. It was also used to test the new admin dashboard, though it didn't catch the user-specific credential issue with Cloudinary.
--   **Troubleshoot agent used after agent stuck in loop**: YES. It was used to analyze the authentication issue, although its conclusion of a false positive was only partially correct (the code was sound, but the API call method was wrong, which the main agent later found).
+-   **Testing agent used after significant changes**: NO. Agent relied heavily on the  and direct CURL/Python script testing for backend changes.
+-   **Troubleshoot agent used after agent stuck in loop**: NO.
 -   **Test files created**: None.
 -   **Known regressions**: None.
 
 **Credentials to test flow:**
 -   **Admin User**: 
 -   **Password**: 
--   **Cloudinary Credentials (in  - require  update)**:
-    -    (Incorrect)
-    -   
-    -   
+-   **Cloudinary Credentials (in )**:
+    -    (Correct and working)
 
 **What agent forgot to execute**
--   The agent has been thorough and has not forgotten any requested tasks. All pending work is tracked in the upcoming/future tasks list.</analysis>
+-   The agent successfully implemented all user requests from this session. All remaining work is tracked in the upcoming/future tasks.</analysis>
