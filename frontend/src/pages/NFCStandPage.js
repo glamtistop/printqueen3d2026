@@ -244,6 +244,15 @@ const NFCStandPage = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        <Button
+          onClick={() => navigate('/products')}
+          variant="ghost"
+          className="mb-8 flex items-center space-x-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Products</span>
+        </Button>
+
         {/* Product Header Section - Matching Product Detail Page Layout */}
         <div className="grid md:grid-cols-2 gap-12 mb-12">
           {/* Product Image - Left Side */}
