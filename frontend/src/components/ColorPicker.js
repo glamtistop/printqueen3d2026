@@ -36,10 +36,25 @@ const COLORS = [
   { name: 'Midnight Black', hex: '#0C0C0C' }
 ];
 
-const ColorPicker = ({ label, value, onChange, dataTestId }) => {
+const ColorPicker = ({ label, value, onChange, dataTestId, onOpenChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const selectedColor = COLORS.find(c => c.hex === value);
+  
+  const handleToggle = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    if (onOpenChange) {
+      onOpenChange(newState);
+    }
+  };
+  
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onOpenChange) {
+      onOpenChange(false);
+    }
+  };
 
   return (
     <div className="relative" data-testid={dataTestId}>
