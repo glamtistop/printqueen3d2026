@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
+import { motion } from 'framer-motion';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -173,7 +174,12 @@ const ProductDetailPage = () => {
 
         <div className="grid md:grid-cols-2 gap-12">
           {/* Images */}
-          <div className="space-y-4">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-4"
+          >
             <div className="glass-card rounded-2xl overflow-hidden h-96 flex items-center justify-center bg-gradient-to-br from-blue-100 to-green-100">
               {product.images && product.images.length > 0 ? (
                 <img
@@ -215,10 +221,15 @@ const ProductDetailPage = () => {
                 <p className="text-sm text-gray-700">{product.material_details}</p>
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* Details */}
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="space-y-6"
+          >
             <div>
               <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full mb-2">
                 {product.category}
@@ -338,7 +349,7 @@ const ProductDetailPage = () => {
                 {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
               </Button>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Custom Builder Component */}
@@ -350,7 +361,13 @@ const ProductDetailPage = () => {
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="mt-16 pt-8 border-t border-gray-200">
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mt-16 pt-8 border-t border-gray-200"
+          >
             <h2 className="text-3xl font-bold text-gray-900 mb-8">You May Also Like</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
@@ -378,7 +395,7 @@ const ProductDetailPage = () => {
                 </Link>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
