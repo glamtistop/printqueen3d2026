@@ -9,12 +9,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '../components/ui/sheet';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const LandingPage = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [email, setEmail] = useState('');
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -69,14 +75,14 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
-      <nav className="navbar">
+      <nav className="navbar sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <Link to="/" className="flex items-center">
+          <div className="flex justify-between items-center h-16">
+            <Link to="/" className="flex items-center group">
               <img 
                 src="/printqueen-logo.png" 
                 alt="Print Queen 3D" 
-                className="h-14 w-auto"
+                className="h-12 w-auto transition-transform group-hover:scale-105"
               />
             </Link>
 
@@ -97,7 +103,7 @@ const LandingPage = () => {
                         <span>{user.name}</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuItem onClick={() => navigate('/orders')} data-testid="my-orders-link">
                         My Orders
                       </DropdownMenuItem>
@@ -120,76 +126,71 @@ const LandingPage = () => {
               )}
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden text-gray-700"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              data-testid="mobile-menu-button"
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden pb-4 space-y-2">
-              <Link
-                to="/products"
-                className="block px-4 py-2 text-gray-700 hover:bg-blue-50 rounded"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Shop
-              </Link>
-              {user ? (
-                <>
-                  <Link
-                    to="/cart"
-                    className="block px-4 py-2 text-gray-700 hover:bg-blue-50 rounded"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Cart
-                  </Link>
-                  <Link
-                    to="/orders"
-                    className="block px-4 py-2 text-gray-700 hover:bg-blue-50 rounded"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    My Orders
-                  </Link>
-                  {user.is_admin && (
+            {/* Mobile Menu Button (Sheet) */}
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" data-testid="mobile-menu-button">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                  <SheetHeader>
+                    <SheetTitle className="text-left">Menu</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-col gap-4 mt-8">
                     <Link
-                      to="/admin"
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 rounded"
-                      onClick={() => setMobileMenuOpen(false)}
+                      to="/products"
+                      className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
                     >
-                      Admin Dashboard
+                      Shop All Products
                     </Link>
-                  )}
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 rounded"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleLogin}
-                  className="block w-full text-left px-4 py-2 text-blue-600 font-semibold hover:bg-blue-50 rounded"
-                >
-                  Sign In
-                </button>
-              )}
+                    {user ? (
+                      <>
+                        <Link
+                          to="/cart"
+                          className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                        >
+                          Cart
+                        </Link>
+                        <Link
+                          to="/orders"
+                          className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                        >
+                          My Orders
+                        </Link>
+                        {user.is_admin && (
+                          <Link
+                            to="/admin"
+                            className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                          >
+                            Admin Dashboard
+                          </Link>
+                        )}
+                        <Button 
+                          onClick={logout} 
+                          variant="outline" 
+                          className="justify-start mt-4"
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Logout
+                        </Button>
+                      </>
+                    ) : (
+                      <Button onClick={handleLogin} className="btn-primary w-full mt-4">
+                        Sign In
+                      </Button>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
-          )}
+          </div>
         </div>
       </nav>
 
       {/* Marquee - Pink Gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white py-3" style={{ marginTop: '56px' }}>
+      <div className="relative overflow-hidden bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white py-3">
         <div className="inline-flex items-center space-x-2 animate-marquee whitespace-nowrap">
           <span className="font-medium">Fast & reliable U.S. shipping</span>
           <span>·</span>
