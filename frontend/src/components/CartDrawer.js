@@ -41,7 +41,7 @@ const CartDrawer = ({ children }) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild onClick={() => setIsOpen(true)}>
+      <SheetTrigger asChild>
         {children}
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md flex flex-col h-full">
