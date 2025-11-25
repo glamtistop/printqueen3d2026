@@ -2,22 +2,18 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext, CartContext } from '../App';
-import { Package, ShoppingCart, User, LogOut, Search, X } from 'lucide-react';
+import { Package, Search, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+import Navbar from '../components/Navbar';
+import { Skeleton } from '../components/ui/skeleton';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const ProductsPage = () => {
-  const { user, logout } = useContext(AuthContext);
-  const { addToCart, cart } = useContext(CartContext);
+  const { user } = useContext(AuthContext);
+  const { addToCart } = useContext(CartContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
@@ -68,11 +64,6 @@ const ProductsPage = () => {
     }
   };
 
-  const handleAddToCart = (product) => {
-    addToCart(product, 1);
-    toast.success(`${product.name} added to cart!`);
-  };
-
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
     // Update URL without full navigation
@@ -93,54 +84,10 @@ const ProductsPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50" data-testid="products-page">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <Link to="/" className="flex items-center">
-              <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-14 w-auto" />
-            </Link>
-
-            <div className="flex items-center space-x-6">
-              <Link to="/cart" className="relative">
-                <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-blue-600 transition-colors" />
-                {cart.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cart.length}
-                  </span>
-                )}
-              </Link>
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-2">
-                      <User className="h-5 w-5" />
-                      <span>{user.name}</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate('/orders')}>
-                      My Orders
-                    </DropdownMenuItem>
-                    {user.is_admin && (
-                      <DropdownMenuItem onClick={() => navigate('/admin')}>
-                        Admin Dashboard
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={logout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12">
         {/* Page Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4" data-testid="page-title">
@@ -214,8 +161,20 @@ const ProductsPage = () => {
 
         {/* Products Grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="aspect-square w-full rounded-2xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex justify-between pt-2">
+                    <Skeleton className="h-8 w-20" />
+                    <Skeleton className="h-10 w-32" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-12">

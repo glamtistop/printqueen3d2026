@@ -1,25 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
-import { ShoppingCart, Package, Shield, Zap, Menu, X, LogOut, User, ChevronRight, Star } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '../components/ui/sheet';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import Navbar from '../components/Navbar';
+import { Skeleton } from '../components/ui/skeleton';
 
 const LandingPage = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [email, setEmail] = useState('');
@@ -61,11 +48,6 @@ const LandingPage = () => {
     return () => clearInterval(interval);
   }, [bannerImages.length]);
 
-  const handleLogin = () => {
-    const redirectUrl = `${window.location.origin}/products`;
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-  };
-
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
     alert(`Thanks for joining! Check ${email} for your 10% off code.`);
@@ -74,120 +56,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-      <nav className="navbar sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center group">
-              <img 
-                src="/printqueen-logo.png" 
-                alt="Print Queen 3D" 
-                className="h-12 w-auto transition-transform group-hover:scale-105"
-              />
-            </Link>
-
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-8">
-              <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium transition-colors" data-testid="products-link">
-                Shop
-              </Link>
-              {user ? (
-                <>
-                  <Link to="/cart" className="text-gray-700 hover:text-blue-600 transition-colors" data-testid="cart-link">
-                    <ShoppingCart className="h-6 w-6" />
-                  </Link>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="flex items-center space-x-2" data-testid="user-menu">
-                        <User className="h-5 w-5" />
-                        <span>{user.name}</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem onClick={() => navigate('/orders')} data-testid="my-orders-link">
-                        My Orders
-                      </DropdownMenuItem>
-                      {user.is_admin && (
-                        <DropdownMenuItem onClick={() => navigate('/admin')} data-testid="admin-link">
-                          Admin Dashboard
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={logout} data-testid="logout-button">
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              ) : (
-                <Button onClick={handleLogin} className="btn-primary" data-testid="login-button">
-                  Sign In
-                </Button>
-              )}
-            </div>
-
-            {/* Mobile Menu Button (Sheet) */}
-            <div className="md:hidden">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" data-testid="mobile-menu-button">
-                    <Menu className="h-6 w-6" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                  <SheetHeader>
-                    <SheetTitle className="text-left">Menu</SheetTitle>
-                  </SheetHeader>
-                  <div className="flex flex-col gap-4 mt-8">
-                    <Link
-                      to="/products"
-                      className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                    >
-                      Shop All Products
-                    </Link>
-                    {user ? (
-                      <>
-                        <Link
-                          to="/cart"
-                          className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                        >
-                          Cart
-                        </Link>
-                        <Link
-                          to="/orders"
-                          className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                        >
-                          My Orders
-                        </Link>
-                        {user.is_admin && (
-                          <Link
-                            to="/admin"
-                            className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                          >
-                            Admin Dashboard
-                          </Link>
-                        )}
-                        <Button 
-                          onClick={logout} 
-                          variant="outline" 
-                          className="justify-start mt-4"
-                        >
-                          <LogOut className="h-4 w-4 mr-2" />
-                          Logout
-                        </Button>
-                      </>
-                    ) : (
-                      <Button onClick={handleLogin} className="btn-primary w-full mt-4">
-                        Sign In
-                      </Button>
-                    )}
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Marquee - Pink Gradient */}
       <div className="relative overflow-hidden bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white py-3">
@@ -302,9 +171,16 @@ const LandingPage = () => {
           </div>
           
           {loadingProducts ? (
-            <div className="text-center py-12">
-              <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading products...</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-square w-full rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : featuredProducts.length === 0 ? (
             <div className="text-center py-12">
