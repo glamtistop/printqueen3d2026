@@ -178,6 +178,7 @@ function App() {
       <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateCartQuantity, clearCart }}>
         <div className="App bg-slate-50 min-h-screen font-sans text-slate-900">
           <BrowserRouter>
+            <ScrollToTop />
             <AnimatedRoutes user={user} />
           </BrowserRouter>
           <Toaster position="top-right" theme="light" />
