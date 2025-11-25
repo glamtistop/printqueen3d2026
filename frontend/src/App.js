@@ -12,6 +12,7 @@ import OrdersPage from './pages/OrdersPage';
 import AdminDashboard from './pages/AdminDashboardNew';
 import LoginPage from './pages/LoginPage';
 import PageTransition from './components/PageTransition';
+import ScrollToTop from './components/ScrollToTop';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
 
