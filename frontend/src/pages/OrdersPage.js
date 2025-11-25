@@ -5,12 +5,8 @@ import { AuthContext } from '../App';
 import { Package, User, LogOut, Calendar, Truck, CheckCircle, Clock, RefreshCw, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+import Navbar from '../components/Navbar';
+import { Skeleton } from '../components/ui/skeleton';
 import { motion } from 'framer-motion';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -73,7 +69,7 @@ const OrderTimeline = ({ status }) => {
 };
 
 const OrdersPage = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,39 +106,7 @@ const OrdersPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50" data-testid="orders-page">
-      {/* Navbar */}
-      <nav className="navbar sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center">
-              <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-12 w-auto" />
-            </Link>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2">
-                  <User className="h-5 w-5" />
-                  <span>{user.name}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate('/products')}>
-                  Browse Products
-                </DropdownMenuItem>
-                {user.is_admin && (
-                  <DropdownMenuItem onClick={() => navigate('/admin')}>
-                    Admin Dashboard
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20">
@@ -162,9 +126,26 @@ const OrdersPage = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-20">
-            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-500">Syncing orders...</p>
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                <div className="flex justify-between">
+                  <div className="flex gap-4">
+                    <Skeleton className="h-12 w-12 rounded-lg" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-20 w-full rounded-lg" />
+                <div className="flex justify-between pt-4">
+                  <Skeleton className="h-8 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : orders.length === 0 ? (
           <motion.div 

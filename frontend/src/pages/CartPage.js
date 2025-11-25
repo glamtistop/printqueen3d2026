@@ -1,18 +1,13 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext, CartContext } from '../App';
-import { Package, Trash2, ArrowLeft, User, LogOut } from 'lucide-react';
+import { Package, Trash2, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+import Navbar from '../components/Navbar';
 
 const CartPage = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { cart, removeFromCart, updateCartQuantity } = useContext(CartContext);
   const navigate = useNavigate();
 
@@ -30,44 +25,10 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50" data-testid="cart-page">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <Link to="/" className="flex items-center">
-              <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-14 w-auto" />
-            </Link>
-
-            {user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2">
-                    <User className="h-5 w-5" />
-                    <span>{user.name}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate('/orders')}>
-                    My Orders
-                  </DropdownMenuItem>
-                  {user.is_admin && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      Admin Dashboard
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={logout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12">
         <Button
           onClick={() => navigate('/products')}
           variant="ghost"

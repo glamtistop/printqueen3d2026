@@ -7,12 +7,8 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import ColorPicker, { COLORS } from '../components/ColorPicker';
 import BuildYourStand from '../components/BuildYourStand';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+import Navbar from '../components/Navbar';
+import { Skeleton } from '../components/ui/skeleton';
 import { motion } from 'framer-motion';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -21,8 +17,8 @@ const API = `${BACKEND_URL}/api`;
 const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useContext(AuthContext);
-  const { addToCart, cart } = useContext(CartContext);
+  const { user } = useContext(AuthContext);
+  const { addToCart } = useContext(CartContext);
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -92,8 +88,23 @@ const ProductDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+          <div className="grid md:grid-cols-2 gap-12">
+            <Skeleton className="h-96 w-full rounded-2xl" />
+            <div className="space-y-6">
+              <Skeleton className="h-8 w-32 rounded-full" />
+              <Skeleton className="h-12 w-3/4" />
+              <Skeleton className="h-10 w-1/4" />
+              <Skeleton className="h-32 w-full" />
+              <div className="grid grid-cols-2 gap-4">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -114,54 +125,10 @@ const ProductDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50" data-testid="product-detail-page">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <Link to="/" className="flex items-center">
-              <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-14 w-auto" />
-            </Link>
-
-            <div className="flex items-center space-x-6">
-              <Link to="/cart" className="relative">
-                <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-blue-600 transition-colors" />
-                {cart.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cart.length}
-                  </span>
-                )}
-              </Link>
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-2">
-                      <User className="h-5 w-5" />
-                      <span>{user.name}</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate('/orders')}>
-                      My Orders
-                    </DropdownMenuItem>
-                    {user.is_admin && (
-                      <DropdownMenuItem onClick={() => navigate('/admin')}>
-                        Admin Dashboard
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={logout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12">
         <Button
           onClick={() => navigate('/products')}
           variant="ghost"
