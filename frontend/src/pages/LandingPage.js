@@ -58,21 +58,6 @@ const LandingPage = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Marquee - Pink Gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white py-3">
-        <div className="inline-flex items-center space-x-2 animate-marquee whitespace-nowrap">
-          <span className="font-medium">Fast & reliable U.S. shipping</span>
-          <span>·</span>
-          <span className="font-medium">Local pickup in Los Angeles, Altadena, Long Beach, Hawthorne, West Covina</span>
-          <span>·</span>
-          <span className="font-medium">Handmade 3D printed designs made to order in LA</span>
-          <span>·</span>
-          <span className="font-medium">Fast & reliable U.S. shipping</span>
-          <span>·</span>
-          <span className="font-medium">Local pickup in Los Angeles, Altadena, Long Beach, Hawthorne, West Covina</span>
-        </div>
-      </div>
-
       {/* Hero Banner - Auto-rotating Carousel (Desktop) / Static Banner (Mobile) */}
       <section className="relative w-full overflow-hidden" style={{ backgroundColor: '#d8ecdd' }}>
         {/* Desktop Banner - Carousel with Parallax */}

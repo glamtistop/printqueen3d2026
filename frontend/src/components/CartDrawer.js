@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext, AuthContext } from '../App';
 import { ShoppingCart, Trash2, Package, Plus, Minus, X } from 'lucide-react';
@@ -19,10 +19,12 @@ const CartDrawer = ({ children }) => {
   const { cart, removeFromCart, updateCartQuantity } = useContext(CartContext);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleCheckout = () => {
+    setIsOpen(false);
     if (!user) {
       toast.error('Please sign in to checkout');
       const redirectUrl = `${window.location.origin}/checkout`;
@@ -32,9 +34,14 @@ const CartDrawer = ({ children }) => {
     }
   };
 
+  const handleStartShopping = () => {
+    setIsOpen(false);
+    navigate('/products');
+  };
+
   return (
-    <Sheet>
-      <SheetTrigger asChild>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetTrigger asChild onClick={() => setIsOpen(true)}>
         {children}
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md flex flex-col h-full">
@@ -57,7 +64,7 @@ const CartDrawer = ({ children }) => {
               <p className="text-gray-500">Looks like you haven't added anything yet.</p>
             </div>
             <Button 
-              onClick={() => document.querySelector('[data-radix-collection-item]')?.click()} // Close sheet hack or just navigate
+              onClick={handleStartShopping}
               className="btn-primary"
             >
               Start Shopping
@@ -153,7 +160,7 @@ const CartDrawer = ({ children }) => {
                   <button
                     type="button"
                     className="font-medium text-blue-600 hover:text-blue-500"
-                    onClick={() => document.querySelector('[data-radix-collection-item]')?.click()}
+                    onClick={() => setIsOpen(false)}
                   >
                     Continue Shopping
                     <span aria-hidden="true"> &rarr;</span>
