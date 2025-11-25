@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const LandingPage = () => {
   const { user, logout } = useContext(AuthContext);
@@ -18,6 +19,11 @@ const LandingPage = () => {
   const [email, setEmail] = useState('');
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+
+  // Parallax Scroll Hook
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 500], [0, 150]);
+  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.5]);
 
   const bannerImages = [
     'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/3gxh6aog_custom3dprints.PNG',
@@ -199,8 +205,12 @@ const LandingPage = () => {
 
       {/* Hero Banner - Auto-rotating Carousel (Desktop) / Static Banner (Mobile) */}
       <section className="relative w-full overflow-hidden" style={{ backgroundColor: '#d8ecdd' }}>
-        {/* Desktop Banner - Carousel */}
-        <div className="hidden md:block relative w-full" style={{ height: '550px' }}>
+        {/* Desktop Banner - Carousel with Parallax */}
+        <motion.div 
+          style={{ y: heroY, opacity: heroOpacity }}
+          className="hidden md:block relative w-full" 
+          style={{ height: '550px' }}
+        >
           {/* Main Banner Image */}
           <div className="relative flex items-center justify-center h-full">
             <img
@@ -225,7 +235,7 @@ const LandingPage = () => {
               />
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Mobile Banner - Static */}
         <div className="block md:hidden relative w-full">
@@ -238,7 +248,13 @@ const LandingPage = () => {
       </section>
 
       {/* Shop Categories */}
-      <section className="py-12 bg-white">
+      <motion.section 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="py-12 bg-white"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
@@ -268,10 +284,16 @@ const LandingPage = () => {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-gradient-to-b from-white to-blue-50">
+      <motion.section 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="py-16 bg-gradient-to-b from-white to-blue-50"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-3">Featured Products</h2>
@@ -329,10 +351,16 @@ const LandingPage = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Why Choose Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="py-20 px-4 sm:px-6 lg:px-8"
+      >
         <div className="max-w-6xl mx-auto">
           <h2 className="section-title text-center mb-16">Why Choose Print Queen 3D?</h2>
           
@@ -362,10 +390,16 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Newsletter Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-green-600">
+      <motion.section 
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-green-600"
+      >
         <div className="max-w-3xl mx-auto text-center text-white">
           <h2 className="text-4xl font-bold mb-4">Want 10% off?</h2>
           <p className="text-xl mb-8 opacity-90">
@@ -388,17 +422,23 @@ const LandingPage = () => {
             </button>
           </form>
         </div>
-      </section>
+      </motion.section>
 
       {/* About Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="py-20 px-4 sm:px-6 lg:px-8"
+      >
         <div className="max-w-4xl mx-auto">
           <h2 className="section-title text-center mb-8">Your Vision, Printed Perfectly.</h2>
           <p className="text-lg text-gray-600 leading-relaxed text-center">
             Print Queen 3D turns creativity into tangible design. We specialize in premium, made-to-order 3D prints—NFC payment stands, QR displays, personalized keychains and charms, lithophane lamps, vases, fidgets, and custom pieces for events and brands. Every item is printed locally in LA with quality materials, then checked by hand for a clean, professional finish. Whether you're a business that needs smart, on-brand tools or you're gifting something one-of-a-kind, we deliver fast, friendly service and precision results. Your ideas deserve to be printed perfectly.
           </p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="site-footer">
