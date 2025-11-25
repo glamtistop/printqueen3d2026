@@ -1,15 +1,20 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'instant' // Use instant to prevent "fighting" with the page transition animation
-    });
+  useLayoutEffect(() => {
+    // Immediate scroll
+    window.scrollTo(0, 0);
+    
+    // Backup scroll for after render/paint
+    // This helps when AnimatePresence is involved
+    const timeoutId = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
   }, [pathname]);
 
   return null;
