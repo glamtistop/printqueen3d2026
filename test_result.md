@@ -200,7 +200,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin Dashboard - Pickup Locations Management"
+    - "Product Pickup Settings - Admin Form"
+    - "Product Pickup Settings - Product Cards Badges"
+    - "Product Pickup Settings - Checkout Flow Filtering"
   stuck_tasks:
     - "Site Editor - Homepage Sections Management"
     - "Site Editor - Footer & Social Links"
