@@ -69,6 +69,21 @@ const ProductCard = ({ product, isSelected, onSelect, onEdit, onDuplicate, onDel
           </span>
         </div>
       )}
+
+      {/* Fulfillment Badges */}
+      <div className="absolute bottom-3 right-3 flex gap-1">
+        {product.pickup_only ? (
+          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white shadow-md flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            Pickup Only
+          </span>
+        ) : product.available_for_pickup === false ? (
+          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-500 text-white shadow-md flex items-center gap-1">
+            <Truck className="h-3 w-3" />
+            Ship Only
+          </span>
+        ) : null}
+      </div>
     </div>
 
     {/* Content */}
@@ -78,7 +93,7 @@ const ProductCard = ({ product, isSelected, onSelect, onEdit, onDuplicate, onDel
         <span className="text-lg font-bold text-emerald-600">${product.price.toFixed(2)}</span>
       </div>
       
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
           {product.category}
         </span>
@@ -87,6 +102,13 @@ const ProductCard = ({ product, isSelected, onSelect, onEdit, onDuplicate, onDel
         }`}>
           {product.stock > 0 ? `${product.stock} in stock` : 'Made to order'}
         </span>
+        {/* Pickup locations count */}
+        {product.available_for_pickup !== false && product.pickup_location_ids?.length > 0 && (
+          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            {product.pickup_location_ids.length} loc
+          </span>
+        )}
       </div>
 
       {/* Actions */}
