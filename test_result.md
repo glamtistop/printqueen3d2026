@@ -367,6 +367,18 @@ frontend:
         agent: "testing"
         comment: "✅ ENHANCED CUSTOMER ORDER PAGE FULLY FUNCTIONAL: Successfully tested all requested features. Login with ausfowler@gmail.com/Secret works perfectly. Orders page accessible at /orders with proper layout (My Orders header, Track your orders in real-time subtitle, Refresh button). Filter tabs present with counts: All (3), Active (3), Completed (0). Found 3 test orders from Phase 2 testing as expected. Order cards display all required elements: Order IDs (last 8 chars like #1ACA1F7C), dates, fulfillment type badges (Shipping/Pickup), status badges (Order Placed), Custom badges for customized orders, Live indicators for active orders. Order expansion functionality working - clicked View Details on pickup order shows: customization details with color swatches and NFC links, order timeline with pickup-specific steps (Order Placed → Preparing → Ready for Pickup → Picked Up), pickup information in green box with Print Queen HQ location details, order summary with FREE (Pickup) shipping. Shipping orders show different timeline (Order Placed → Processing → Shipped → Delivered). Filter tabs functional - Active shows 3 orders, Completed shows 0 orders with proper empty state. Real-time tracking feel achieved with Live indicators and 30-second polling. All enhanced features working exactly as specified in review request."
 
+  - task: "Enhanced Checkout Page"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/CheckoutPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ENHANCED CHECKOUT PAGE FULLY FUNCTIONAL: Comprehensive testing completed successfully with all requested features working. Login with ausfowler@gmail.com/Secret works perfectly. STEP 1 - FULFILLMENT SELECTION: Multi-step checkout flow with clear step indicator (1. Fulfillment → 2. Details → 3. Review) visible. Both 'Ship to Me' and 'Pickup In-Store' options functional. Print Queen HQ pickup location appears with complete details (1360 S Figueroa St, Los Angeles, CA 90015, Mon-Sat 10am-9pm). Date selector shows next 14 days (Thu Nov 27, Fri Nov 28, etc.) and time slots display hourly availability from 10:00 AM to 9:00 PM for Mon-Sat. STEP 2 - CUSTOMER DETAILS: Form displays with pre-filled name/email from user account. Pickup details summary shows in green box with selected location, date, and time. For shipping, address form appears instead. STEP 3 - REVIEW & PAY: Review section shows contact info, pickup/shipping details, and order items. ORDER SUMMARY SIDEBAR: Displays items list, subtotal ($49.99), tax (9.25% = $4.62), shipping (FREE for pickup, $5.99 for shipping), total ($54.61). Pay button shows correct total. All multi-step checkout functionality, pickup vs shipping selection, location/time selection, and order summary working exactly as specified in review request."
+
 agent_communication:
   - agent: "main"
     message: "Phase 1 verification complete. Homepage responsive design verified on both desktop (6-col) and mobile (2-col). Authentication system confirmed working by troubleshoot agent - previous issue was false positive. Products page and NFC builder page manually verified. Ready for comprehensive E2E testing of all user flows including: login, browse products, add to cart, NFC builder customization, and checkout process."
