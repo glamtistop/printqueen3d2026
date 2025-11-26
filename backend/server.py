@@ -1019,6 +1019,160 @@ async def get_all_customers(user: User = Depends(require_admin)):
     
     return customers
 
+# ============ SITE EDITOR ROUTES ============
+
+# Default homepage sections configuration
+DEFAULT_SECTIONS = [
+    {
+        "id": "hero",
+        "name": "Hero Banner",
+        "enabled": True,
+        "order": 1,
+        "content": {
+            "headline": "Custom 3D Printed Creations",
+            "subheadline": "Bringing Your Ideas to Life",
+            "description": "Discover unique 3D printed products crafted with precision and care.",
+            "button_text": "Shop Now",
+            "button_link": "/products"
+        }
+    },
+    {
+        "id": "marquee",
+        "name": "Scrolling Marquee",
+        "enabled": True,
+        "order": 2,
+        "content": {
+            "headline": "FREE SHIPPING ON ORDERS OVER $50 • NEW ARRIVALS WEEKLY • CUSTOM ORDERS WELCOME"
+        }
+    },
+    {
+        "id": "categories",
+        "name": "Category Grid",
+        "enabled": True,
+        "order": 3,
+        "content": {
+            "headline": "Shop by Category",
+            "subheadline": "Find exactly what you're looking for"
+        }
+    },
+    {
+        "id": "featured",
+        "name": "Featured Products",
+        "enabled": True,
+        "order": 4,
+        "content": {
+            "headline": "Featured Products",
+            "subheadline": "Our most popular items"
+        }
+    },
+    {
+        "id": "why_choose_us",
+        "name": "Why Choose Us",
+        "enabled": True,
+        "order": 5,
+        "content": {
+            "headline": "Why Choose Print Queen 3D?",
+            "description": "Quality craftsmanship, fast shipping, and exceptional customer service."
+        }
+    },
+    {
+        "id": "newsletter",
+        "name": "Newsletter Signup",
+        "enabled": True,
+        "order": 6,
+        "content": {
+            "headline": "Stay in the Loop",
+            "description": "Subscribe for exclusive deals and new product announcements.",
+            "button_text": "Subscribe"
+        }
+    }
+]
+
+@api_router.get("/site-config")
+async def get_public_site_config():
+    """Get public site configuration (no auth required)"""
+    # Get site settings
+    settings = await db.site_settings.find_one({"id": "site_settings"}, {"_id": 0})
+    if not settings:
+        settings = SiteSettings().model_dump()
+        settings['updated_at'] = settings['updated_at'].isoformat()
+    
+    # Get homepage sections
+    sections_config = await db.homepage_sections.find_one({"id": "homepage_sections"}, {"_id": 0})
+    if not sections_config:
+        sections_config = {
+            "id": "homepage_sections",
+            "sections": DEFAULT_SECTIONS,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+    
+    return {
+        "settings": settings,
+        "homepage_sections": sections_config["sections"]
+    }
+
+@api_router.get("/admin/site-settings")
+async def get_site_settings(user: User = Depends(require_admin)):
+    """Get site settings (admin only)"""
+    settings = await db.site_settings.find_one({"id": "site_settings"}, {"_id": 0})
+    if not settings:
+        # Return default settings
+        default_settings = SiteSettings()
+        return default_settings.model_dump()
+    return settings
+
+@api_router.put("/admin/site-settings")
+async def update_site_settings(settings_update: SiteSettingsUpdate, user: User = Depends(require_admin)):
+    """Update site settings (admin only)"""
+    update_data = {k: v for k, v in settings_update.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # Convert nested models to dict
+    if "brand_colors" in update_data and update_data["brand_colors"]:
+        update_data["brand_colors"] = update_data["brand_colors"].model_dump() if hasattr(update_data["brand_colors"], 'model_dump') else update_data["brand_colors"]
+    if "contact_info" in update_data and update_data["contact_info"]:
+        update_data["contact_info"] = update_data["contact_info"].model_dump() if hasattr(update_data["contact_info"], 'model_dump') else update_data["contact_info"]
+    if "social_links" in update_data and update_data["social_links"]:
+        update_data["social_links"] = update_data["social_links"].model_dump() if hasattr(update_data["social_links"], 'model_dump') else update_data["social_links"]
+    
+    result = await db.site_settings.update_one(
+        {"id": "site_settings"},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Site settings updated successfully"}
+
+@api_router.get("/admin/homepage-sections")
+async def get_homepage_sections(user: User = Depends(require_admin)):
+    """Get homepage sections configuration (admin only)"""
+    sections_config = await db.homepage_sections.find_one({"id": "homepage_sections"}, {"_id": 0})
+    if not sections_config:
+        # Return default sections
+        return {
+            "id": "homepage_sections",
+            "sections": DEFAULT_SECTIONS,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+    return sections_config
+
+@api_router.put("/admin/homepage-sections")
+async def update_homepage_sections(sections_update: HomepageSectionsUpdate, user: User = Depends(require_admin)):
+    """Update homepage sections configuration (admin only)"""
+    update_data = {
+        "id": "homepage_sections",
+        "sections": [section.model_dump() for section in sections_update.sections],
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    result = await db.homepage_sections.update_one(
+        {"id": "homepage_sections"},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Homepage sections updated successfully"}
+
 # ============ NFC STAND ROUTES ============
 
 from fastapi import File, UploadFile, Form
