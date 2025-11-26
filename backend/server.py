@@ -1698,6 +1698,134 @@ async def get_available_pickup_slots(location_id: str, date: str):
     }
 
 
+# ============ PRODUCT PICKUP AVAILABILITY ============
+
+class CartProductItem(BaseModel):
+    product_id: str
+    quantity: int = 1
+
+@api_router.post("/checkout/available-locations")
+async def get_available_locations_for_cart(cart_items: List[CartProductItem]):
+    """
+    Get pickup locations that can fulfill ALL products in the cart.
+    This filters locations based on each product's pickup_location_ids setting.
+    """
+    if not cart_items:
+        return {"locations": [], "all_products_available": False, "unavailable_products": []}
+    
+    # Get all enabled pickup locations
+    all_locations = await db.pickup_locations.find({"enabled": True}, {"_id": 0}).to_list(100)
+    all_location_ids = {loc["id"] for loc in all_locations}
+    
+    # Get product IDs from cart
+    product_ids = [item.product_id for item in cart_items]
+    
+    # Fetch products
+    products = await db.products.find(
+        {"id": {"$in": product_ids}},
+        {"_id": 0, "id": 1, "name": 1, "available_for_pickup": 1, "pickup_only": 1, "pickup_location_ids": 1}
+    ).to_list(100)
+    
+    # Build product map
+    product_map = {p["id"]: p for p in products}
+    
+    # Track unavailable products and compatible locations
+    unavailable_products = []
+    compatible_location_ids = None
+    shipping_available = True
+    
+    for item in cart_items:
+        product = product_map.get(item.product_id)
+        if not product:
+            continue
+        
+        # Check if product is available for pickup
+        if not product.get("available_for_pickup", True):
+            unavailable_products.append({
+                "product_id": item.product_id,
+                "name": product.get("name", "Unknown"),
+                "reason": "not_available_for_pickup"
+            })
+            continue
+        
+        # Check if product is pickup only
+        if product.get("pickup_only", False):
+            shipping_available = False
+        
+        # Get this product's compatible locations
+        product_locations = product.get("pickup_location_ids", [])
+        
+        if product_locations:
+            # Product has specific location restrictions
+            product_location_set = set(product_locations)
+            if compatible_location_ids is None:
+                compatible_location_ids = product_location_set
+            else:
+                compatible_location_ids = compatible_location_ids.intersection(product_location_set)
+        else:
+            # Product available at all locations
+            if compatible_location_ids is None:
+                compatible_location_ids = all_location_ids
+            # Don't narrow down if this product is available everywhere
+    
+    # If no products had restrictions, all locations are compatible
+    if compatible_location_ids is None:
+        compatible_location_ids = all_location_ids
+    
+    # Filter locations to only those compatible with all products
+    compatible_locations = [
+        loc for loc in all_locations 
+        if loc["id"] in compatible_location_ids
+    ]
+    
+    # Sort by order field
+    compatible_locations.sort(key=lambda x: x.get("order", 0))
+    
+    return {
+        "locations": compatible_locations,
+        "all_products_available": len(unavailable_products) == 0,
+        "unavailable_products": unavailable_products,
+        "shipping_available": shipping_available,
+        "pickup_available": len(compatible_locations) > 0 and len(unavailable_products) == 0
+    }
+
+@api_router.get("/products/{product_id}/pickup-locations")
+async def get_product_pickup_locations(product_id: str):
+    """Get all pickup locations where a specific product is available"""
+    product = await db.products.find_one({"id": product_id}, {"_id": 0})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    if not product.get("available_for_pickup", True):
+        return {"locations": [], "available_for_pickup": False}
+    
+    # Get product's location restrictions
+    product_location_ids = product.get("pickup_location_ids", [])
+    
+    # Query locations
+    if product_location_ids:
+        # Only specific locations
+        locations = await db.pickup_locations.find(
+            {"id": {"$in": product_location_ids}, "enabled": True},
+            {"_id": 0}
+        ).to_list(100)
+    else:
+        # All enabled locations
+        locations = await db.pickup_locations.find(
+            {"enabled": True},
+            {"_id": 0}
+        ).to_list(100)
+    
+    locations.sort(key=lambda x: x.get("order", 0))
+    
+    return {
+        "locations": locations,
+        "available_for_pickup": True,
+        "pickup_only": product.get("pickup_only", False)
+    }
+
+
+
 
 # Include router
 app.include_router(api_router)
