@@ -285,16 +285,26 @@ class StripeSettingsUpdate(BaseModel):
 
 # ============ PICKUP LOCATION MODELS ============
 
+class PickupTimeSlot(BaseModel):
+    start_time: str  # e.g., "10:00"
+    end_time: str    # e.g., "11:00"
+
+class PickupDaySchedule(BaseModel):
+    day: str  # e.g., "monday", "tuesday", etc.
+    enabled: bool = True
+    time_slots: List[PickupTimeSlot] = []
+
 class PickupLocation(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid4()))
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str  # e.g., "Print Queen HQ"
     address: str
     city: str
     state: str
     zip_code: str
     phone: Optional[str] = None
-    hours: Optional[str] = None  # e.g., "Mon-Fri 9am-5pm"
+    hours_display: Optional[str] = None  # e.g., "Mon-Sat 10am-9pm" for display
+    schedule: List[PickupDaySchedule] = []  # Detailed schedule with time slots
     notes: Optional[str] = None  # Parking instructions, etc.
     enabled: bool = True
     order: int = 0
@@ -307,7 +317,8 @@ class PickupLocationCreate(BaseModel):
     state: str
     zip_code: str
     phone: Optional[str] = None
-    hours: Optional[str] = None
+    hours_display: Optional[str] = None
+    schedule: List[PickupDaySchedule] = []
     notes: Optional[str] = None
     enabled: bool = True
 
@@ -318,7 +329,8 @@ class PickupLocationUpdate(BaseModel):
     state: Optional[str] = None
     zip_code: Optional[str] = None
     phone: Optional[str] = None
-    hours: Optional[str] = None
+    hours_display: Optional[str] = None
+    schedule: Optional[List[PickupDaySchedule]] = None
     notes: Optional[str] = None
     enabled: Optional[bool] = None
     order: Optional[int] = None
