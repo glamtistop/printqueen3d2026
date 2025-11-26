@@ -1419,6 +1419,173 @@ async def create_nfc_stand_order(
         logger.error(f"NFC Stand Order Error: {e}")
         raise HTTPException(status_code=500, detail="Failed to process order")
 
+# ============ PICKUP LOCATION ROUTES ============
+
+# Default schedule for Mon-Sat 10am-9pm with hourly slots
+def generate_default_schedule():
+    """Generate default Mon-Sat 10am-9pm schedule with hourly time slots"""
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    schedule = []
+    
+    for day in days:
+        time_slots = []
+        for hour in range(10, 21):  # 10am to 9pm (last slot is 8pm-9pm)
+            start = f"{hour:02d}:00"
+            end = f"{hour+1:02d}:00" if hour < 21 else "21:00"
+            time_slots.append({"start_time": start, "end_time": end})
+        
+        schedule.append({
+            "day": day,
+            "enabled": True,
+            "time_slots": time_slots
+        })
+    
+    # Sunday disabled by default
+    schedule.append({
+        "day": "sunday",
+        "enabled": False,
+        "time_slots": []
+    })
+    
+    return schedule
+
+@api_router.get("/admin/pickup-locations")
+async def get_pickup_locations(user: User = Depends(require_admin)):
+    """Get all pickup locations (admin only)"""
+    locations = await db.pickup_locations.find({}, {"_id": 0}).to_list(100)
+    
+    # Sort by order field
+    locations.sort(key=lambda x: x.get("order", 0))
+    
+    for location in locations:
+        if isinstance(location.get('created_at'), str):
+            location['created_at'] = datetime.fromisoformat(location['created_at'])
+    
+    return locations
+
+@api_router.get("/pickup-locations")
+async def get_public_pickup_locations():
+    """Get enabled pickup locations (public - for checkout)"""
+    locations = await db.pickup_locations.find({"enabled": True}, {"_id": 0}).to_list(100)
+    
+    # Sort by order field
+    locations.sort(key=lambda x: x.get("order", 0))
+    
+    return locations
+
+@api_router.get("/admin/pickup-locations/{location_id}")
+async def get_pickup_location(location_id: str, user: User = Depends(require_admin)):
+    """Get single pickup location (admin only)"""
+    location = await db.pickup_locations.find_one({"id": location_id}, {"_id": 0})
+    if not location:
+        raise HTTPException(status_code=404, detail="Pickup location not found")
+    
+    if isinstance(location.get('created_at'), str):
+        location['created_at'] = datetime.fromisoformat(location['created_at'])
+    
+    return location
+
+@api_router.post("/admin/pickup-locations", response_model=PickupLocation)
+async def create_pickup_location(location_data: PickupLocationCreate, user: User = Depends(require_admin)):
+    """Create new pickup location (admin only)"""
+    # Get current count for order
+    count = await db.pickup_locations.count_documents({})
+    
+    # If no schedule provided, generate default
+    schedule = location_data.schedule if location_data.schedule else generate_default_schedule()
+    
+    location = PickupLocation(
+        name=location_data.name,
+        address=location_data.address,
+        city=location_data.city,
+        state=location_data.state,
+        zip_code=location_data.zip_code,
+        phone=location_data.phone,
+        hours_display=location_data.hours_display,
+        schedule=schedule,
+        notes=location_data.notes,
+        enabled=location_data.enabled,
+        order=count
+    )
+    
+    location_dict = location.model_dump()
+    location_dict['created_at'] = location_dict['created_at'].isoformat()
+    
+    await db.pickup_locations.insert_one(location_dict)
+    return location
+
+@api_router.put("/admin/pickup-locations/{location_id}")
+async def update_pickup_location(location_id: str, location_data: PickupLocationUpdate, user: User = Depends(require_admin)):
+    """Update pickup location (admin only)"""
+    existing = await db.pickup_locations.find_one({"id": location_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Pickup location not found")
+    
+    update_data = {k: v for k, v in location_data.model_dump().items() if v is not None}
+    
+    if update_data:
+        await db.pickup_locations.update_one(
+            {"id": location_id},
+            {"$set": update_data}
+        )
+    
+    updated = await db.pickup_locations.find_one({"id": location_id}, {"_id": 0})
+    return updated
+
+@api_router.delete("/admin/pickup-locations/{location_id}")
+async def delete_pickup_location(location_id: str, user: User = Depends(require_admin)):
+    """Delete pickup location (admin only)"""
+    result = await db.pickup_locations.delete_one({"id": location_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Pickup location not found")
+    return {"message": "Pickup location deleted successfully"}
+
+@api_router.put("/admin/pickup-locations/{location_id}/toggle")
+async def toggle_pickup_location(location_id: str, user: User = Depends(require_admin)):
+    """Toggle pickup location enabled/disabled (admin only)"""
+    location = await db.pickup_locations.find_one({"id": location_id})
+    if not location:
+        raise HTTPException(status_code=404, detail="Pickup location not found")
+    
+    new_status = not location.get("enabled", True)
+    await db.pickup_locations.update_one(
+        {"id": location_id},
+        {"$set": {"enabled": new_status}}
+    )
+    
+    return {"message": f"Pickup location {'enabled' if new_status else 'disabled'}", "enabled": new_status}
+
+@api_router.get("/pickup-locations/{location_id}/available-slots")
+async def get_available_pickup_slots(location_id: str, date: str):
+    """Get available pickup time slots for a specific date"""
+    location = await db.pickup_locations.find_one({"id": location_id, "enabled": True}, {"_id": 0})
+    if not location:
+        raise HTTPException(status_code=404, detail="Pickup location not found")
+    
+    # Parse the date and get day of week
+    try:
+        pickup_date = datetime.strptime(date, "%Y-%m-%d")
+        day_name = pickup_date.strftime("%A").lower()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    # Find schedule for that day
+    schedule = location.get("schedule", [])
+    day_schedule = next((s for s in schedule if s.get("day") == day_name), None)
+    
+    if not day_schedule or not day_schedule.get("enabled"):
+        return {"available_slots": [], "message": "No pickup available on this day"}
+    
+    # Return available time slots
+    return {
+        "location_id": location_id,
+        "date": date,
+        "day": day_name,
+        "available_slots": day_schedule.get("time_slots", [])
+    }
+
+
+
 # Include router
 app.include_router(api_router)
 
