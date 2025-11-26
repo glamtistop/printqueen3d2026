@@ -12,6 +12,7 @@ const LandingPage = () => {
   const [email, setEmail] = useState('');
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [siteConfig, setSiteConfig] = useState(null);
 
   // Parallax Scroll Hook
   const { scrollY } = useScroll();
@@ -23,6 +24,20 @@ const LandingPage = () => {
     'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/gzhz9uee_paymentstands.PNG',
     'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/cmhra1j0_nfckeychain.png'
   ];
+
+  // Fetch site configuration
+  useEffect(() => {
+    const fetchSiteConfig = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/site-config`);
+        const data = await response.json();
+        setSiteConfig(data);
+      } catch (error) {
+        console.error('Failed to fetch site config:', error);
+      }
+    };
+    fetchSiteConfig();
+  }, []);
 
   // Fetch featured products
   useEffect(() => {
@@ -53,6 +68,25 @@ const LandingPage = () => {
     alert(`Thanks for joining! Check ${email} for your 10% off code.`);
     setEmail('');
   };
+
+  // Helper to check if a section is enabled
+  const isSectionEnabled = (sectionId) => {
+    if (!siteConfig?.homepage_sections) return true;
+    const section = siteConfig.homepage_sections.find(s => s.id === sectionId);
+    return section ? section.enabled : true;
+  };
+
+  // Helper to get section content
+  const getSectionContent = (sectionId, field, defaultValue = '') => {
+    if (!siteConfig?.homepage_sections) return defaultValue;
+    const section = siteConfig.homepage_sections.find(s => s.id === sectionId);
+    return section?.content?.[field] || defaultValue;
+  };
+
+  // Get site settings
+  const settings = siteConfig?.settings || {};
+  const contactInfo = settings.contact_info || {};
+  const socialLinks = settings.social_links || {};
 
   return (
     <div className="min-h-screen bg-white">
