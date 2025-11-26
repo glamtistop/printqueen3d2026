@@ -139,6 +139,27 @@ class OrderItem(BaseModel):
     quantity: int
     price: float
     variant: Optional[Dict[str, str]] = None
+    customization: Optional[Dict] = None  # For custom products (colors, images, etc.)
+    product_image: Optional[str] = None  # Product thumbnail
+
+class CustomerInfo(BaseModel):
+    name: str
+    email: str
+    phone: Optional[str] = None
+
+class ShippingAddress(BaseModel):
+    street: str
+    city: str
+    state: str
+    zip_code: str
+    country: str = "US"
+
+class PickupDetails(BaseModel):
+    location_id: str
+    location_name: str
+    location_address: str
+    pickup_date: str  # YYYY-MM-DD
+    pickup_time: str  # HH:MM
 
 class Order(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -146,17 +167,42 @@ class Order(BaseModel):
     user_id: str
     items: List[OrderItem]
     total: float
-    status: str = "pending"  # pending, processing, shipped, completed, cancelled
-    payment_session_id: Optional[str] = None
+    subtotal: Optional[float] = None
+    tax_amount: Optional[float] = None
+    shipping_amount: Optional[float] = None
+    # Status: pending, processing, fulfilled, shipped, picked_up, completed, cancelled
+    status: str = "pending"
+    # Fulfillment type: shipping or pickup
+    fulfillment_type: str = "shipping"  # "shipping" or "pickup"
+    # Customer info
+    customer_info: Optional[CustomerInfo] = None
+    # Shipping details (for shipping orders)
+    shipping_address: Optional[ShippingAddress] = None
     tracking_number: Optional[str] = None
     shipping_carrier: Optional[str] = None
+    # Pickup details (for pickup orders)
+    pickup_details: Optional[PickupDetails] = None
+    # Timestamps
+    payment_session_id: Optional[str] = None
     fulfilled_at: Optional[datetime] = None
+    shipped_at: Optional[datetime] = None
+    picked_up_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    # Notes
     notes: Optional[str] = None
+    admin_notes: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class OrderCreate(BaseModel):
     items: List[OrderItem]
     total: float
+    subtotal: Optional[float] = None
+    tax_amount: Optional[float] = None
+    shipping_amount: Optional[float] = None
+    fulfillment_type: str = "shipping"
+    customer_info: Optional[CustomerInfo] = None
+    shipping_address: Optional[ShippingAddress] = None
+    pickup_details: Optional[PickupDetails] = None
 
 class PaymentTransaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
