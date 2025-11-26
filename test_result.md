@@ -326,6 +326,18 @@ frontend:
         agent: "testing"
         comment: "❌ FOOTER & SOCIAL ISSUES: 1) Footer text update not reflecting on homepage - still shows original 'All rights reserved.' instead of 'Made with love in LA.' 2) Instagram URL not saving - backend API shows 'instagram': null. Form inputs may not be properly connected to save functionality."
 
+  - task: "Admin Dashboard - Pickup Locations Management"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/admin/PickupLocationManager.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "New Pickup Locations feature implemented with full CRUD operations, schedule editor with time slots, location cards with badges, and toggle functionality. Backend APIs implemented for admin management and public access. Ready for comprehensive E2E testing."
+
 agent_communication:
   - agent: "main"
     message: "Phase 1 verification complete. Homepage responsive design verified on both desktop (6-col) and mobile (2-col). Authentication system confirmed working by troubleshoot agent - previous issue was false positive. Products page and NFC builder page manually verified. Ready for comprehensive E2E testing of all user flows including: login, browse products, add to cart, NFC builder customization, and checkout process."
