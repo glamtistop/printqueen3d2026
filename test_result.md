@@ -350,3 +350,5 @@ agent_communication:
     message: "🎯 SITE EDITOR E2E TESTING INITIATED: Testing comprehensive Site Editor functionality including General settings (site name, footer text), Footer & Social (Instagram URL), and Homepage Sections (Why Choose Us toggle). Will verify changes reflect on homepage dynamically."
   - agent: "testing"
     message: "🎯 SITE EDITOR E2E TESTING COMPLETED: MIXED RESULTS - General settings (Site Name) working correctly with backend persistence. However, critical issues found: 1) Homepage Sections toggle not working - Why Choose Us section remains enabled and visible despite toggle attempts. 2) Footer & Social settings not saving - footer text and Instagram URL not persisting to backend or reflecting on homepage. Backend API confirms these values remain null/default. Form submission or data binding issues in Footer/Social and Homepage Sections tabs need investigation."
+  - agent: "testing"
+    message: "🎯 PICKUP LOCATIONS TESTING INITIATED: Testing new Pickup Locations feature in admin panel. Will verify login, navigation to Pickup Locations tab, seeded location display, edit functionality, and add new location functionality as requested."
