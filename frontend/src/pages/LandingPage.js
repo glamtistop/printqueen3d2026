@@ -96,9 +96,8 @@ const LandingPage = () => {
       <section className="relative w-full overflow-hidden" style={{ backgroundColor: '#d8ecdd' }}>
         {/* Desktop Banner - Carousel with Parallax */}
         <motion.div 
-          style={{ y: heroY, opacity: heroOpacity }}
-          className="hidden md:block relative w-full" 
-          style={{ height: '550px' }}
+          style={{ y: heroY, opacity: heroOpacity, height: '550px' }}
+          className="hidden md:block relative w-full"
         >
           {/* Main Banner Image */}
           <div className="relative flex items-center justify-center h-full">
