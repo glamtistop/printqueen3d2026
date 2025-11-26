@@ -582,6 +582,7 @@ def main():
         tester.test_order_endpoints()
         tester.test_admin_endpoints()
         tester.test_checkout_endpoints()
+        tester.test_email_settings_endpoints()
         
     finally:
         # Always cleanup
