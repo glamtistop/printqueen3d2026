@@ -283,6 +283,46 @@ class StripeSettingsUpdate(BaseModel):
     free_shipping_threshold: Optional[float] = None
     flat_shipping_rate: Optional[float] = None
 
+# ============ PICKUP LOCATION MODELS ============
+
+class PickupLocation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    name: str  # e.g., "Print Queen HQ"
+    address: str
+    city: str
+    state: str
+    zip_code: str
+    phone: Optional[str] = None
+    hours: Optional[str] = None  # e.g., "Mon-Fri 9am-5pm"
+    notes: Optional[str] = None  # Parking instructions, etc.
+    enabled: bool = True
+    order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PickupLocationCreate(BaseModel):
+    name: str
+    address: str
+    city: str
+    state: str
+    zip_code: str
+    phone: Optional[str] = None
+    hours: Optional[str] = None
+    notes: Optional[str] = None
+    enabled: bool = True
+
+class PickupLocationUpdate(BaseModel):
+    name: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
+    phone: Optional[str] = None
+    hours: Optional[str] = None
+    notes: Optional[str] = None
+    enabled: Optional[bool] = None
+    order: Optional[int] = None
+
 # ============ AUTH HELPERS ============
 
 async def get_current_user(request: Request, authorization: Optional[str] = Header(None)) -> Optional[User]:
