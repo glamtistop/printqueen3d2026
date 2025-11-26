@@ -343,6 +343,18 @@ frontend:
         agent: "testing"
         comment: "✅ PICKUP LOCATIONS FULLY FUNCTIONAL: Successfully tested all requested features. Admin login works with ausfowler@gmail.com/Secret. Pickup Locations tab exists in sidebar with MapPin icon and is accessible. Seeded location 'Print Queen HQ' displays correctly with address (1360 S Figueroa St, Los Angeles, CA 90015), hours (Mon-Sat 10am-9pm), badges (6 active days, 66 time slots), and notes (Free parking available in the rear lot). Edit and Add Location buttons are present and functional. UI matches expected design with location cards, toggle switches, and proper admin layout. All core functionality working as specified."
 
+  - task: "Site Editor - Image Uploader Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/admin/ImageUploader.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ IMAGE UPLOADER FIX VERIFIED: Successfully tested the Image Uploader fix in Site Editor. Login with ausfowler@gmail.com/Secret works perfectly. Heroes tab displays Desktop Hero Carousel (0/6 images) and Mobile Hero Image sections with functional upload areas. Icons tab shows all 4 required icon upload areas: Browser Favicon (32x32px), iPhone/iPad Icon (180x180px), Android Icon (192x192px), and PWA Splash Icon (512x512px). CRITICAL SUCCESS: No 'Maximum update depth exceeded' errors found, no infinite loop errors detected, and no console errors or warnings. All upload areas are interactive (hover and click work properly). The ImageUploader fix has completely resolved the previous infinite loop issues."
+
 agent_communication:
   - agent: "main"
     message: "Phase 1 verification complete. Homepage responsive design verified on both desktop (6-col) and mobile (2-col). Authentication system confirmed working by troubleshoot agent - previous issue was false positive. Products page and NFC builder page manually verified. Ready for comprehensive E2E testing of all user flows including: login, browse products, add to cart, NFC builder customization, and checkout process."
