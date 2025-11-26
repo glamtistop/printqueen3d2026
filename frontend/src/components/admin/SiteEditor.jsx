@@ -39,11 +39,49 @@ import {
   Save,
   RefreshCw,
   Image as ImageIcon,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Smartphone,
+  Monitor,
+  X,
+  Plus,
+  Trash2,
+  Globe,
+  Info
 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Image Preview Component with recommendations
+const ImagePreviewWithInfo = ({ url, label, recommendation, onRemove, className = '' }) => (
+  <div className={`relative group ${className}`}>
+    {url ? (
+      <div className="relative">
+        <img
+          src={url}
+          alt={label}
+          className="w-full h-full object-contain rounded-xl border border-slate-200 bg-slate-50"
+        />
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    ) : (
+      <div className="w-full h-full flex items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50">
+        <ImageIcon className="h-8 w-8 text-slate-300" />
+      </div>
+    )}
+    <p className="text-xs text-slate-500 mt-1 text-center">{label}</p>
+    {recommendation && (
+      <p className="text-xs text-blue-500 text-center">{recommendation}</p>
+    )}
+  </div>
+);
 
 // Sortable Section Item Component
 const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandToggle }) => {
@@ -67,7 +105,6 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
       style={style}
       className={`bg-white rounded-xl border ${isDragging ? 'border-blue-500 shadow-lg z-50' : 'border-slate-200'} overflow-hidden`}
     >
-      {/* Section Header */}
       <div className="flex items-center gap-3 p-4">
         <button
           {...attributes}
@@ -84,11 +121,7 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
 
         <button
           onClick={() => onToggle(section.id)}
-          className={`p-2 rounded-lg transition-colors ${
-            section.enabled
-              ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'
-              : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-          }`}
+          className={`p-2 rounded-lg transition-colors ${section.enabled ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
         >
           {section.enabled ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
         </button>
@@ -97,15 +130,10 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
           onClick={() => onExpandToggle(section.id)}
           className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
         >
-          {isExpanded ? (
-            <ChevronUp className="h-5 w-5 text-slate-500" />
-          ) : (
-            <ChevronDown className="h-5 w-5 text-slate-500" />
-          )}
+          {isExpanded ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
         </button>
       </div>
 
-      {/* Section Content Editor (Expandable) */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -117,9 +145,7 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
             <div className="p-4 space-y-4 bg-slate-50">
               {section.content.headline !== undefined && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Headline
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Headline</label>
                   <input
                     type="text"
                     value={section.content.headline || ''}
@@ -129,12 +155,9 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
                   />
                 </div>
               )}
-              
               {section.content.subheadline !== undefined && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Subheadline
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Subheadline</label>
                   <input
                     type="text"
                     value={section.content.subheadline || ''}
@@ -144,12 +167,9 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
                   />
                 </div>
               )}
-              
               {section.content.description !== undefined && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Description
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
                   <textarea
                     value={section.content.description || ''}
                     onChange={(e) => onEdit(section.id, 'description', e.target.value)}
@@ -159,32 +179,25 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
                   />
                 </div>
               )}
-              
               {section.content.button_text !== undefined && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Button Text
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Button Text</label>
                     <input
                       type="text"
                       value={section.content.button_text || ''}
                       onChange={(e) => onEdit(section.id, 'button_text', e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-                      placeholder="Button text"
                     />
                   </div>
                   {section.content.button_link !== undefined && (
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Button Link
-                      </label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Button Link</label>
                       <input
                         type="text"
                         value={section.content.button_link || ''}
                         onChange={(e) => onEdit(section.id, 'button_link', e.target.value)}
                         className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-                        placeholder="/products"
                       />
                     </div>
                   )}
@@ -204,49 +217,24 @@ export const SiteEditor = () => {
   const [saving, setSaving] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
   
-  // Site Settings State
   const [settings, setSettings] = useState({
     logo_url: '',
     site_name: 'Print Queen 3D',
     tagline: 'Custom 3D Printed Creations',
-    brand_colors: {
-      primary: '#3B82F6',
-      secondary: '#10B981',
-      accent: '#F59E0B'
-    },
-    contact_info: {
-      email: '',
-      phone: '',
-      address: ''
-    },
-    social_links: {
-      instagram: '',
-      facebook: '',
-      twitter: '',
-      tiktok: '',
-      youtube: ''
-    },
+    brand_colors: { primary: '#3B82F6', secondary: '#10B981', accent: '#F59E0B' },
+    contact_info: { email: '', phone: '', address: '' },
+    social_links: { instagram: '', facebook: '', twitter: '', tiktok: '', youtube: '' },
+    app_icons: { favicon_32: '', apple_touch_180: '', android_192: '', pwa_512: '' },
+    hero_images: { desktop_images: [], mobile_image: '' },
     footer_text: 'All rights reserved.'
   });
   
-  // Homepage Sections State
   const [sections, setSections] = useState([]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   useEffect(() => {
@@ -259,8 +247,12 @@ export const SiteEditor = () => {
         axios.get(`${BACKEND_URL}/api/admin/site-settings`, { withCredentials: true }),
         axios.get(`${BACKEND_URL}/api/admin/homepage-sections`, { withCredentials: true })
       ]);
-      
-      setSettings(prev => ({ ...prev, ...settingsRes.data }));
+      setSettings(prev => ({
+        ...prev,
+        ...settingsRes.data,
+        app_icons: { ...prev.app_icons, ...settingsRes.data.app_icons },
+        hero_images: { ...prev.hero_images, ...settingsRes.data.hero_images }
+      }));
       setSections(sectionsRes.data.sections || []);
     } catch (error) {
       console.error('Failed to fetch site config:', error);
@@ -286,11 +278,7 @@ export const SiteEditor = () => {
   const handleSaveSections = async () => {
     setSaving(true);
     try {
-      await axios.put(
-        `${BACKEND_URL}/api/admin/homepage-sections`,
-        { sections },
-        { withCredentials: true }
-      );
+      await axios.put(`${BACKEND_URL}/api/admin/homepage-sections`, { sections }, { withCredentials: true });
       toast.success('Homepage sections saved!');
     } catch (error) {
       console.error('Failed to save sections:', error);
@@ -302,48 +290,59 @@ export const SiteEditor = () => {
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    
     if (over && active.id !== over.id) {
       setSections((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
         const newItems = arrayMove(items, oldIndex, newIndex);
-        // Update order numbers
         return newItems.map((item, index) => ({ ...item, order: index + 1 }));
       });
     }
   };
 
   const toggleSection = (sectionId) => {
-    setSections(prev =>
-      prev.map(section =>
-        section.id === sectionId
-          ? { ...section, enabled: !section.enabled }
-          : section
-      )
-    );
+    setSections(prev => prev.map(section =>
+      section.id === sectionId ? { ...section, enabled: !section.enabled } : section
+    ));
   };
 
   const editSectionContent = (sectionId, field, value) => {
-    setSections(prev =>
-      prev.map(section =>
-        section.id === sectionId
-          ? { ...section, content: { ...section.content, [field]: value } }
-          : section
-      )
-    );
+    setSections(prev => prev.map(section =>
+      section.id === sectionId ? { ...section, content: { ...section.content, [field]: value } } : section
+    ));
   };
 
   const toggleExpanded = (sectionId) => {
-    setExpandedSections(prev => ({
+    setExpandedSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
+  };
+
+  // Hero image handlers
+  const addDesktopImage = (urls) => {
+    const currentImages = settings.hero_images.desktop_images || [];
+    if (currentImages.length >= 6) {
+      toast.error('Maximum 6 images allowed for carousel');
+      return;
+    }
+    const newImages = [...currentImages, ...urls].slice(0, 6);
+    setSettings(prev => ({
       ...prev,
-      [sectionId]: !prev[sectionId]
+      hero_images: { ...prev.hero_images, desktop_images: newImages }
+    }));
+  };
+
+  const removeDesktopImage = (index) => {
+    const newImages = settings.hero_images.desktop_images.filter((_, i) => i !== index);
+    setSettings(prev => ({
+      ...prev,
+      hero_images: { ...prev.hero_images, desktop_images: newImages }
     }));
   };
 
   const tabs = [
     { id: 'general', label: 'General', icon: Settings },
-    { id: 'sections', label: 'Homepage Sections', icon: Layout },
+    { id: 'hero', label: 'Hero Images', icon: ImageIcon },
+    { id: 'icons', label: 'Favicon & Icons', icon: Globe },
+    { id: 'sections', label: 'Sections', icon: Layout },
     { id: 'footer', label: 'Footer & Social', icon: LinkIcon }
   ];
 
@@ -353,9 +352,7 @@ export const SiteEditor = () => {
         <div className="h-8 w-32 bg-slate-200 rounded-lg animate-pulse"></div>
         <div className="bg-white rounded-2xl border border-slate-100 p-6 animate-pulse">
           <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-12 bg-slate-100 rounded-xl"></div>
-            ))}
+            {[1, 2, 3].map((i) => <div key={i} className="h-12 bg-slate-100 rounded-xl"></div>)}
           </div>
         </div>
       </div>
@@ -375,28 +372,20 @@ export const SiteEditor = () => {
           disabled={saving}
           className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-emerald-500 text-white font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50"
         >
-          {saving ? (
-            <RefreshCw className="h-5 w-5 animate-spin" />
-          ) : (
-            <Save className="h-5 w-5" />
-          )}
+          {saving ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
           Save Changes
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.id
-                  ? 'bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-md'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}
             >
               <Icon className="h-4 w-4" />
               {tab.label}
@@ -408,35 +397,41 @@ export const SiteEditor = () => {
       {/* Tab Content */}
       <AnimatePresence mode="wait">
         {activeTab === 'general' && (
-          <motion.div
-            key="general"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
-            {/* Branding */}
+          <motion.div key="general" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+            {/* Logo Section */}
             <div className="bg-white rounded-2xl border border-slate-100 p-6">
               <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <Type className="h-5 w-5 text-blue-500" />
-                Branding
+                <Type className="h-5 w-5 text-blue-500" /> Logo & Branding
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Logo
-                  </label>
-                  <ImageUploader
-                    images={settings.logo_url ? [settings.logo_url] : []}
-                    onUpload={(urls) => setSettings(prev => ({ ...prev, logo_url: urls[0] || '' }))}
-                    maxImages={1}
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Site Logo</label>
+                  <div className="flex items-center gap-2 mb-2 text-sm text-slate-500">
+                    <Info className="h-4 w-4" />
+                    <span>Recommended: 400x120px, PNG or SVG, under 500KB</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    {/* Current Logo Preview */}
+                    <div className="w-full sm:w-48 h-24 flex-shrink-0">
+                      <ImagePreviewWithInfo
+                        url={settings.logo_url}
+                        label="Current Logo"
+                        className="h-full"
+                      />
+                    </div>
+                    {/* Upload New */}
+                    <div className="flex-1">
+                      <ImageUploader
+                        images={[]}
+                        onUpload={(urls) => setSettings(prev => ({ ...prev, logo_url: urls[0] || '' }))}
+                        maxImages={1}
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Site Name
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Site Name</label>
                     <input
                       type="text"
                       value={settings.site_name}
@@ -445,9 +440,7 @@ export const SiteEditor = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Tagline
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Tagline</label>
                     <input
                       type="text"
                       value={settings.tagline}
@@ -462,109 +455,37 @@ export const SiteEditor = () => {
             {/* Colors */}
             <div className="bg-white rounded-2xl border border-slate-100 p-6">
               <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <Palette className="h-5 w-5 text-purple-500" />
-                Brand Colors
+                <Palette className="h-5 w-5 text-purple-500" /> Brand Colors
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Primary Color
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={settings.brand_colors.primary}
-                      onChange={(e) => setSettings(prev => ({
-                        ...prev,
-                        brand_colors: { ...prev.brand_colors, primary: e.target.value }
-                      }))}
-                      className="h-12 w-12 rounded-lg cursor-pointer border-0"
-                    />
-                    <input
-                      type="text"
-                      value={settings.brand_colors.primary}
-                      onChange={(e) => setSettings(prev => ({
-                        ...prev,
-                        brand_colors: { ...prev.brand_colors, primary: e.target.value }
-                      }))}
-                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 outline-none font-mono text-sm"
-                    />
+                {[['primary', 'Primary'], ['secondary', 'Secondary'], ['accent', 'Accent']].map(([key, label]) => (
+                  <div key={key}>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">{label} Color</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={settings.brand_colors[key]}
+                        onChange={(e) => setSettings(prev => ({ ...prev, brand_colors: { ...prev.brand_colors, [key]: e.target.value } }))}
+                        className="h-12 w-12 rounded-lg cursor-pointer border-0"
+                      />
+                      <input
+                        type="text"
+                        value={settings.brand_colors[key]}
+                        onChange={(e) => setSettings(prev => ({ ...prev, brand_colors: { ...prev.brand_colors, [key]: e.target.value } }))}
+                        className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 outline-none font-mono text-sm"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Secondary Color
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={settings.brand_colors.secondary}
-                      onChange={(e) => setSettings(prev => ({
-                        ...prev,
-                        brand_colors: { ...prev.brand_colors, secondary: e.target.value }
-                      }))}
-                      className="h-12 w-12 rounded-lg cursor-pointer border-0"
-                    />
-                    <input
-                      type="text"
-                      value={settings.brand_colors.secondary}
-                      onChange={(e) => setSettings(prev => ({
-                        ...prev,
-                        brand_colors: { ...prev.brand_colors, secondary: e.target.value }
-                      }))}
-                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 outline-none font-mono text-sm"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Accent Color
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={settings.brand_colors.accent}
-                      onChange={(e) => setSettings(prev => ({
-                        ...prev,
-                        brand_colors: { ...prev.brand_colors, accent: e.target.value }
-                      }))}
-                      className="h-12 w-12 rounded-lg cursor-pointer border-0"
-                    />
-                    <input
-                      type="text"
-                      value={settings.brand_colors.accent}
-                      onChange={(e) => setSettings(prev => ({
-                        ...prev,
-                        brand_colors: { ...prev.brand_colors, accent: e.target.value }
-                      }))}
-                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-500 outline-none font-mono text-sm"
-                    />
-                  </div>
-                </div>
+                ))}
               </div>
-              
-              {/* Color Preview */}
               <div className="mt-4 p-4 bg-slate-50 rounded-xl">
                 <p className="text-sm text-slate-500 mb-3">Preview:</p>
                 <div className="flex gap-3">
-                  <div
-                    className="h-10 flex-1 rounded-lg shadow-sm flex items-center justify-center text-white text-sm font-medium"
-                    style={{ backgroundColor: settings.brand_colors.primary }}
-                  >
-                    Primary
-                  </div>
-                  <div
-                    className="h-10 flex-1 rounded-lg shadow-sm flex items-center justify-center text-white text-sm font-medium"
-                    style={{ backgroundColor: settings.brand_colors.secondary }}
-                  >
-                    Secondary
-                  </div>
-                  <div
-                    className="h-10 flex-1 rounded-lg shadow-sm flex items-center justify-center text-white text-sm font-medium"
-                    style={{ backgroundColor: settings.brand_colors.accent }}
-                  >
-                    Accent
-                  </div>
+                  {['primary', 'secondary', 'accent'].map((key) => (
+                    <div key={key} className="h-10 flex-1 rounded-lg shadow-sm flex items-center justify-center text-white text-sm font-medium capitalize" style={{ backgroundColor: settings.brand_colors[key] }}>
+                      {key}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -572,51 +493,35 @@ export const SiteEditor = () => {
             {/* Contact Info */}
             <div className="bg-white rounded-2xl border border-slate-100 p-6">
               <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <Mail className="h-5 w-5 text-emerald-500" />
-                Contact Information
+                <Mail className="h-5 w-5 text-emerald-500" /> Contact Information
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    <Mail className="h-4 w-4 inline mr-1" /> Email
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2"><Mail className="h-4 w-4 inline mr-1" /> Email</label>
                   <input
                     type="email"
                     value={settings.contact_info.email || ''}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      contact_info: { ...prev.contact_info, email: e.target.value }
-                    }))}
+                    onChange={(e) => setSettings(prev => ({ ...prev, contact_info: { ...prev.contact_info, email: e.target.value } }))}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
                     placeholder="contact@yoursite.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    <Phone className="h-4 w-4 inline mr-1" /> Phone
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2"><Phone className="h-4 w-4 inline mr-1" /> Phone</label>
                   <input
                     type="tel"
                     value={settings.contact_info.phone || ''}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      contact_info: { ...prev.contact_info, phone: e.target.value }
-                    }))}
+                    onChange={(e) => setSettings(prev => ({ ...prev, contact_info: { ...prev.contact_info, phone: e.target.value } }))}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
                     placeholder="(555) 123-4567"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    <MapPin className="h-4 w-4 inline mr-1" /> Address
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2"><MapPin className="h-4 w-4 inline mr-1" /> Address</label>
                   <input
                     type="text"
                     value={settings.contact_info.address || ''}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      contact_info: { ...prev.contact_info, address: e.target.value }
-                    }))}
+                    onChange={(e) => setSettings(prev => ({ ...prev, contact_info: { ...prev.contact_info, address: e.target.value } }))}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
                     placeholder="City, State"
                   />
@@ -626,30 +531,150 @@ export const SiteEditor = () => {
           </motion.div>
         )}
 
+        {activeTab === 'hero' && (
+          <motion.div key="hero" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+            {/* Desktop Hero Carousel */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                    <Monitor className="h-5 w-5 text-blue-500" /> Desktop Hero Carousel
+                  </h3>
+                  <p className="text-sm text-slate-500">Up to 6 images for the rotating carousel</p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${(settings.hero_images.desktop_images?.length || 0) >= 6 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {settings.hero_images.desktop_images?.length || 0} / 6
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-4 text-sm text-slate-500">
+                <Info className="h-4 w-4" />
+                <span>Recommended: 1920x550px, JPG/PNG, under 1MB each</span>
+              </div>
+
+              {/* Current Images Grid */}
+              {settings.hero_images.desktop_images?.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                  {settings.hero_images.desktop_images.map((url, index) => (
+                    <div key={index} className="relative group aspect-video">
+                      <img src={url} alt={`Banner ${index + 1}`} className="w-full h-full object-cover rounded-xl border border-slate-200" />
+                      <button
+                        onClick={() => removeDesktopImage(index)}
+                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                      <span className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-0.5 rounded">{index + 1}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add New Images */}
+              {(settings.hero_images.desktop_images?.length || 0) < 6 && (
+                <ImageUploader
+                  images={[]}
+                  onUpload={addDesktopImage}
+                  maxImages={6 - (settings.hero_images.desktop_images?.length || 0)}
+                />
+              )}
+            </div>
+
+            {/* Mobile Hero */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <Smartphone className="h-5 w-5 text-purple-500" /> Mobile Hero Image
+              </h3>
+              <div className="flex items-center gap-2 mb-4 text-sm text-slate-500">
+                <Info className="h-4 w-4" />
+                <span>Recommended: 750x600px, JPG/PNG, under 500KB</span>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-48 h-40 flex-shrink-0">
+                  <ImagePreviewWithInfo
+                    url={settings.hero_images.mobile_image}
+                    label="Current Mobile Hero"
+                    className="h-full"
+                    onRemove={settings.hero_images.mobile_image ? () => setSettings(prev => ({ ...prev, hero_images: { ...prev.hero_images, mobile_image: '' } })) : null}
+                  />
+                </div>
+                <div className="flex-1">
+                  <ImageUploader
+                    images={[]}
+                    onUpload={(urls) => setSettings(prev => ({ ...prev, hero_images: { ...prev.hero_images, mobile_image: urls[0] || '' } }))}
+                    maxImages={1}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'icons' && (
+          <motion.div key="icons" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-100 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                <Globe className="h-5 w-5 text-blue-500" /> Favicon & App Icons
+              </h3>
+              <p className="text-sm text-slate-500 mb-6">These icons appear in browser tabs, bookmarks, and when users add your site to their home screen.</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Favicon 32x32 */}
+                <div>
+                  <h4 className="font-medium text-slate-700 mb-2">Browser Favicon</h4>
+                  <div className="w-20 h-20 mx-auto mb-3">
+                    <ImagePreviewWithInfo url={settings.app_icons.favicon_32} label="" recommendation="32x32px" className="h-full" />
+                  </div>
+                  <ImageUploader images={[]} onUpload={(urls) => setSettings(prev => ({ ...prev, app_icons: { ...prev.app_icons, favicon_32: urls[0] || '' } }))} maxImages={1} />
+                </div>
+
+                {/* Apple Touch 180x180 */}
+                <div>
+                  <h4 className="font-medium text-slate-700 mb-2">iPhone/iPad Icon</h4>
+                  <div className="w-20 h-20 mx-auto mb-3">
+                    <ImagePreviewWithInfo url={settings.app_icons.apple_touch_180} label="" recommendation="180x180px" className="h-full" />
+                  </div>
+                  <ImageUploader images={[]} onUpload={(urls) => setSettings(prev => ({ ...prev, app_icons: { ...prev.app_icons, apple_touch_180: urls[0] || '' } }))} maxImages={1} />
+                </div>
+
+                {/* Android 192x192 */}
+                <div>
+                  <h4 className="font-medium text-slate-700 mb-2">Android Icon</h4>
+                  <div className="w-20 h-20 mx-auto mb-3">
+                    <ImagePreviewWithInfo url={settings.app_icons.android_192} label="" recommendation="192x192px" className="h-full" />
+                  </div>
+                  <ImageUploader images={[]} onUpload={(urls) => setSettings(prev => ({ ...prev, app_icons: { ...prev.app_icons, android_192: urls[0] || '' } }))} maxImages={1} />
+                </div>
+
+                {/* PWA 512x512 */}
+                <div>
+                  <h4 className="font-medium text-slate-700 mb-2">PWA Splash Icon</h4>
+                  <div className="w-20 h-20 mx-auto mb-3">
+                    <ImagePreviewWithInfo url={settings.app_icons.pwa_512} label="" recommendation="512x512px" className="h-full" />
+                  </div>
+                  <ImageUploader images={[]} onUpload={(urls) => setSettings(prev => ({ ...prev, app_icons: { ...prev.app_icons, pwa_512: urls[0] || '' } }))} maxImages={1} />
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+                <p className="text-sm text-blue-700">
+                  <strong>Tip:</strong> Upload a square PNG image (512x512px recommended) and we will use it for all icon sizes. You can override individual sizes above if needed.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {activeTab === 'sections' && (
-          <motion.div
-            key="sections"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="bg-white rounded-2xl border border-slate-100 p-6"
-          >
+          <motion.div key="sections" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-white rounded-2xl border border-slate-100 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-800">Homepage Sections</h3>
                 <p className="text-sm text-slate-500">Drag to reorder, toggle visibility, edit content</p>
               </div>
             </div>
-            
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={sections.map(s => s.id)}
-                strategy={verticalListSortingStrategy}
-              >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-3">
                   {sections.map((section) => (
                     <SortableSectionItem
@@ -668,93 +693,34 @@ export const SiteEditor = () => {
         )}
 
         {activeTab === 'footer' && (
-          <motion.div
-            key="footer"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
-            {/* Social Links */}
+          <motion.div key="footer" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
             <div className="bg-white rounded-2xl border border-slate-100 p-6">
               <h3 className="text-lg font-semibold text-slate-800 mb-4">Social Media Links</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    <Instagram className="h-4 w-4 inline mr-2" />Instagram
-                  </label>
-                  <input
-                    type="url"
-                    value={settings.social_links.instagram || ''}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      social_links: { ...prev.social_links, instagram: e.target.value }
-                    }))}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-                    placeholder="https://instagram.com/yourpage"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    <Facebook className="h-4 w-4 inline mr-2" />Facebook
-                  </label>
-                  <input
-                    type="url"
-                    value={settings.social_links.facebook || ''}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      social_links: { ...prev.social_links, facebook: e.target.value }
-                    }))}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-                    placeholder="https://facebook.com/yourpage"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    <Twitter className="h-4 w-4 inline mr-2" />Twitter / X
-                  </label>
-                  <input
-                    type="url"
-                    value={settings.social_links.twitter || ''}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      social_links: { ...prev.social_links, twitter: e.target.value }
-                    }))}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-                    placeholder="https://twitter.com/yourpage"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    <Youtube className="h-4 w-4 inline mr-2" />YouTube
-                  </label>
-                  <input
-                    type="url"
-                    value={settings.social_links.youtube || ''}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      social_links: { ...prev.social_links, youtube: e.target.value }
-                    }))}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-                    placeholder="https://youtube.com/@yourchannel"
-                  />
-                </div>
+                {[['instagram', Instagram, 'Instagram'], ['facebook', Facebook, 'Facebook'], ['twitter', Twitter, 'Twitter / X'], ['youtube', Youtube, 'YouTube']].map(([key, Icon, label]) => (
+                  <div key={key}>
+                    <label className="block text-sm font-medium text-slate-700 mb-2"><Icon className="h-4 w-4 inline mr-2" />{label}</label>
+                    <input
+                      type="url"
+                      value={settings.social_links[key] || ''}
+                      onChange={(e) => setSettings(prev => ({ ...prev, social_links: { ...prev.social_links, [key]: e.target.value } }))}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                      placeholder={`https://${key}.com/yourpage`}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
-
-            {/* Footer Text */}
             <div className="bg-white rounded-2xl border border-slate-100 p-6">
               <h3 className="text-lg font-semibold text-slate-800 mb-4">Footer Settings</h3>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Footer Copyright Text
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Footer Copyright Text</label>
                 <input
                   type="text"
                   value={settings.footer_text}
                   onChange={(e) => setSettings(prev => ({ ...prev, footer_text: e.target.value }))}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-                  placeholder="© 2024 Your Company. All rights reserved."
+                  placeholder="All rights reserved."
                 />
               </div>
             </div>
