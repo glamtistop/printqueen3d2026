@@ -200,13 +200,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Site Editor - Homepage Sections Management"
-    - "Site Editor - Footer & Social Links"
+    - "Admin Dashboard - Pickup Locations Management"
   stuck_tasks:
     - "Site Editor - Homepage Sections Management"
     - "Site Editor - Footer & Social Links"
   test_all: false
-  test_priority: "stuck_first"
+  test_priority: "high_first"
 
 frontend:
   - task: "Admin Dashboard - Main Interface"
