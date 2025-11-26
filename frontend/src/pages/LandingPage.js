@@ -135,7 +135,7 @@ const LandingPage = () => {
         {/* Mobile Banner - Static */}
         <div className="block md:hidden relative w-full">
           <img
-            src="https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/7969hqqc_mobilebanner.png"
+            src={mobileHeroImage}
             alt="Print Queen 3D Mobile Banner"
             className="w-full h-auto object-contain"
           />
