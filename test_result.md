@@ -200,12 +200,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Product Pickup Settings - Admin Form"
-    - "Product Pickup Settings - Product Cards Badges"
     - "Product Pickup Settings - Checkout Flow Filtering"
   stuck_tasks:
     - "Site Editor - Homepage Sections Management"
     - "Site Editor - Footer & Social Links"
+    - "Product Pickup Settings - Admin Form"
+    - "Product Pickup Settings - Product Cards Badges"
   test_all: false
   test_priority: "high_first"
 
