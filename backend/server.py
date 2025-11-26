@@ -1124,16 +1124,21 @@ async def get_site_settings(user: User = Depends(require_admin)):
 @api_router.put("/admin/site-settings")
 async def update_site_settings(settings_update: SiteSettingsUpdate, user: User = Depends(require_admin)):
     """Update site settings (admin only)"""
-    update_data = {k: v for k, v in settings_update.model_dump().items() if v is not None}
-    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update_data = {}
+    settings_dict = settings_update.model_dump()
     
-    # Convert nested models to dict
-    if "brand_colors" in update_data and update_data["brand_colors"]:
-        update_data["brand_colors"] = update_data["brand_colors"].model_dump() if hasattr(update_data["brand_colors"], 'model_dump') else update_data["brand_colors"]
-    if "contact_info" in update_data and update_data["contact_info"]:
-        update_data["contact_info"] = update_data["contact_info"].model_dump() if hasattr(update_data["contact_info"], 'model_dump') else update_data["contact_info"]
-    if "social_links" in update_data and update_data["social_links"]:
-        update_data["social_links"] = update_data["social_links"].model_dump() if hasattr(update_data["social_links"], 'model_dump') else update_data["social_links"]
+    # Process each field, including nested objects
+    for k, v in settings_dict.items():
+        if v is not None:
+            if isinstance(v, dict):
+                # For nested objects, filter out None values but keep empty strings
+                filtered = {nk: nv for nk, nv in v.items() if nv is not None}
+                if filtered:  # Only include if there's at least one non-None value
+                    update_data[k] = filtered
+            else:
+                update_data[k] = v
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
     result = await db.site_settings.update_one(
         {"id": "site_settings"},
