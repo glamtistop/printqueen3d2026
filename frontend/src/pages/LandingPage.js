@@ -137,6 +137,7 @@ const LandingPage = () => {
       </section>
 
       {/* Shop Categories */}
+      {isSectionEnabled('categories') && (
       <motion.section 
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -174,6 +175,7 @@ const LandingPage = () => {
           </div>
         </div>
       </motion.section>
+      )}
 
       {/* Featured Products */}
       <motion.section 
