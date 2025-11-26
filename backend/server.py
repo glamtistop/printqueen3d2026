@@ -80,6 +80,11 @@ class Product(BaseModel):
     available_colors: List[str] = []
     material_details: Optional[str] = None
     custom_builder: Optional[str] = None
+    # Pickup settings
+    available_for_pickup: bool = True  # Whether this product can be picked up
+    pickup_only: bool = False  # If true, shipping is not available
+    pickup_location_ids: List[str] = []  # Specific locations that can fulfill this product (empty = all)
+    estimated_prep_time: Optional[int] = None  # Estimated prep time in hours for pickup orders
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -97,6 +102,11 @@ class ProductCreate(BaseModel):
     available_colors: List[str] = []
     material_details: Optional[str] = None
     custom_builder: Optional[str] = None
+    # Pickup settings
+    available_for_pickup: bool = True
+    pickup_only: bool = False
+    pickup_location_ids: List[str] = []
+    estimated_prep_time: Optional[int] = None
 
 class Category(BaseModel):
     model_config = ConfigDict(extra="ignore")
