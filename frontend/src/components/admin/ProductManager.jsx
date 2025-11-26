@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { 
   Trash2, Edit, Eye, EyeOff, Copy, Plus, Search, 
   Package, Grid3X3, List, MoreVertical, ArrowLeft,
-  Filter
+  Filter, MapPin, Truck
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
