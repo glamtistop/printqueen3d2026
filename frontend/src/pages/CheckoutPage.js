@@ -236,18 +236,49 @@ const CheckoutPage = () => {
     }
   }, [user, cart, navigate]);
 
-  // Fetch pickup locations
+  // Fetch pickup locations based on cart items
   useEffect(() => {
     const fetchLocations = async () => {
+      if (cart.length === 0) return;
+      
+      setLoadingLocations(true);
       try {
-        const response = await axios.get(`${API}/pickup-locations`);
-        setPickupLocations(response.data);
+        // Use the new cart-based location filtering API
+        const cartItems = cart.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity
+        }));
+        
+        const response = await axios.post(`${API}/checkout/available-locations`, cartItems);
+        
+        setPickupLocations(response.data.locations || []);
+        setPickupAvailable(response.data.pickup_available);
+        setShippingAvailable(response.data.shipping_available);
+        setUnavailableProducts(response.data.unavailable_products || []);
+        
+        // If shipping is not available (pickup only products), default to pickup
+        if (!response.data.shipping_available && response.data.pickup_available) {
+          setFulfillmentType('pickup');
+        }
+        // If pickup is not available, default to shipping
+        if (!response.data.pickup_available && response.data.shipping_available) {
+          setFulfillmentType('shipping');
+        }
       } catch (error) {
-        console.error('Error fetching pickup locations:', error);
+        console.error('Error fetching available locations:', error);
+        // Fallback to regular pickup locations endpoint
+        try {
+          const fallbackResponse = await axios.get(`${API}/pickup-locations`);
+          setPickupLocations(fallbackResponse.data);
+        } catch (fallbackError) {
+          console.error('Error fetching fallback locations:', fallbackError);
+        }
+      } finally {
+        setLoadingLocations(false);
       }
     };
     fetchLocations();
-  }, []);
+  }, [cart]);
 
   // Fetch available time slots when date changes
   useEffect(() => {
