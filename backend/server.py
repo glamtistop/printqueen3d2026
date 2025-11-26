@@ -605,13 +605,21 @@ async def email_password_login(login_data: EmailPasswordLogin):
 # ============ PRODUCT ROUTES ============
 
 @api_router.get("/products", response_model=List[Product])
-async def get_products(category: Optional[str] = None):
-    """Get all products"""
+async def get_products(category: Optional[str] = None, published: Optional[bool] = None, search: Optional[str] = None):
+    """Get all products with optional filters"""
     query = {}
     if category:
         query["category"] = category
+    if published is not None:
+        query["published"] = published
     
     products = await db.products.find(query, {"_id": 0}).to_list(1000)
+    
+    # Apply search filter if provided
+    if search:
+        search_lower = search.lower()
+        products = [p for p in products if search_lower in p.get('name', '').lower() or search_lower in p.get('description', '').lower()]
+    
     for product in products:
         if isinstance(product.get('created_at'), str):
             product['created_at'] = datetime.fromisoformat(product['created_at'])
