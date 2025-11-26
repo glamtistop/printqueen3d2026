@@ -1825,11 +1825,28 @@ async def get_email_settings(user: User = Depends(require_admin)):
     if not settings:
         # Return default settings
         default_settings = EmailSettings()
-        return default_settings.model_dump()
-    # Mask API key for security (show only last 4 characters)
+        settings_dict = default_settings.model_dump()
+        settings_dict['updated_at'] = settings_dict['updated_at'].isoformat()
+        return settings_dict
+    
+    # Ensure all default fields are present
+    default_settings = EmailSettings()
+    default_dict = default_settings.model_dump()
+    default_dict['updated_at'] = default_dict['updated_at'].isoformat()
+    
+    # Merge with existing settings
+    for key, value in default_dict.items():
+        if key not in settings:
+            settings[key] = value
+    
+    # Mask API key for security (show only first 3 and last 4 characters)
     if settings.get("api_key"):
         api_key = settings["api_key"]
-        settings["api_key_masked"] = f"{'*' * (len(api_key) - 4)}{api_key[-4:]}" if len(api_key) > 4 else "****"
+        if len(api_key) > 7:
+            settings["api_key"] = f"{api_key[:3]}{'*' * (len(api_key) - 7)}{api_key[-4:]}"
+        else:
+            settings["api_key"] = "****"
+    
     return settings
 
 @api_router.put("/admin/email-settings")
