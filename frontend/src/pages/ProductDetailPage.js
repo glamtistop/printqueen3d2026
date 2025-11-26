@@ -198,9 +198,33 @@ const ProductDetailPage = () => {
             className="space-y-6"
           >
             <div>
-              <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full mb-2">
-                {product.category}
-              </span>
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
+                  {product.category}
+                </span>
+                {/* Fulfillment Badges */}
+                {product.pickup_only ? (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold text-emerald-700 bg-emerald-100 rounded-full">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Pickup Only
+                  </span>
+                ) : product.available_for_pickup === false ? (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
+                    <Truck className="h-3.5 w-3.5" />
+                    Shipping Only
+                  </span>
+                ) : product.available_for_pickup && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold text-emerald-700 bg-emerald-100 rounded-full">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Pickup Available
+                  </span>
+                )}
+                {product.badge && (
+                  <span className="inline-block px-3 py-1 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+                    {product.badge}
+                  </span>
+                )}
+              </div>
               <h1 className="text-4xl font-bold text-gray-900 mb-4" data-testid="product-title">{product.name}</h1>
               <p className="text-3xl font-bold text-green-600" data-testid="product-price">${product.price.toFixed(2)}</p>
             </div>
