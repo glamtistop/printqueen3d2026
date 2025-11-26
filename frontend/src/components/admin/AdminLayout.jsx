@@ -33,6 +33,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
     { id: 'collections', label: 'Collections', icon: FolderOpen },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'customers', label: 'Customers', icon: Users },
+    { id: 'locations', label: 'Pickup Locations', icon: MapPin },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'site-editor', label: 'Site Editor', icon: Palette },
   ];
