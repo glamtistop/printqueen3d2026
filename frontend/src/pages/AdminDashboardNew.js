@@ -9,6 +9,7 @@ import { CollectionManager } from '../components/admin/CollectionManager';
 import { OrderManager } from '../components/admin/OrderManager';
 import { CustomerManager } from '../components/admin/CustomerManager';
 import { SiteEditor } from '../components/admin/SiteEditor';
+import { PaymentSettings } from '../components/admin/PaymentSettings';
 
 const AdminDashboardNew = () => {
   const { user } = useContext(AuthContext);
@@ -34,6 +35,8 @@ const AdminDashboardNew = () => {
         return <OrderManager />;
       case 'customers':
         return <CustomerManager />;
+      case 'payments':
+        return <PaymentSettings />;
       case 'site-editor':
         return <SiteEditor />;
       default:
