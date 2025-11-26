@@ -339,6 +339,38 @@ class StripeSettingsUpdate(BaseModel):
     free_shipping_threshold: Optional[float] = None
     flat_shipping_rate: Optional[float] = None
 
+# ============ EMAIL SETTINGS MODELS ============
+
+class EmailSettings(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = "email_settings"
+    provider: str = "resend"  # Email provider (resend, sendgrid, etc.)
+    api_key: Optional[str] = None  # Resend API key
+    sender_email: str = "noreply@example.com"  # From address
+    sender_name: str = "Print Queen 3D"  # From name
+    enabled: bool = False  # Enable/disable email notifications
+    # Notification toggles
+    send_order_confirmation: bool = True
+    send_status_updates: bool = True
+    send_welcome_emails: bool = True
+    # Admin notification email
+    admin_email: Optional[str] = None  # Where to send admin notifications
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class EmailSettingsUpdate(BaseModel):
+    provider: Optional[str] = None
+    api_key: Optional[str] = None
+    sender_email: Optional[str] = None
+    sender_name: Optional[str] = None
+    enabled: Optional[bool] = None
+    send_order_confirmation: Optional[bool] = None
+    send_status_updates: Optional[bool] = None
+    send_welcome_emails: Optional[bool] = None
+    admin_email: Optional[str] = None
+
+class TestEmailRequest(BaseModel):
+    recipient_email: str
+
 # ============ PICKUP LOCATION MODELS ============
 
 class PickupTimeSlot(BaseModel):
