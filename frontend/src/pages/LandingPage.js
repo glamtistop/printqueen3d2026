@@ -298,8 +298,10 @@ const LandingPage = () => {
           </div>
         </div>
       </motion.section>
+      )}
 
       {/* Newsletter Section */}
+      {isSectionEnabled('newsletter') && (
       <motion.section 
         initial={{ opacity: 0, scale: 0.95 }}
         whileInView={{ opacity: 1, scale: 1 }}
@@ -308,9 +310,11 @@ const LandingPage = () => {
         className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-green-600"
       >
         <div className="max-w-3xl mx-auto text-center text-white">
-          <h2 className="text-4xl font-bold mb-4">Want 10% off?</h2>
+          <h2 className="text-4xl font-bold mb-4">
+            {getSectionContent('newsletter', 'headline', 'Want 10% off?')}
+          </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join the royal list for new drops, exclusive offers, and a 10% welcome coupon. We send good vibes only.
+            {getSectionContent('newsletter', 'description', 'Join the royal list for new drops, exclusive offers, and a 10% welcome coupon. We send good vibes only.')}
           </p>
           <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <input
