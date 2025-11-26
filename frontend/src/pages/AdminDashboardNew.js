@@ -36,6 +36,8 @@ const AdminDashboardNew = () => {
         return <OrderManager />;
       case 'customers':
         return <CustomerManager />;
+      case 'locations':
+        return <PickupLocationManager />;
       case 'payments':
         return <PaymentSettings />;
       case 'site-editor':
