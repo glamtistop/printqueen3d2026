@@ -436,15 +436,18 @@ frontend:
 
   - task: "Payment Settings - Mobile Toggle Switches"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/admin/PaymentSettings.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "New task to test Payment Settings toggle switches on mobile view. Need to verify Apple Pay, Google Pay, and Stripe Link toggles have identical styling and proper mobile responsiveness."
+      - working: true
+        agent: "testing"
+        comment: "✅ PAYMENT SETTINGS MOBILE TESTING COMPLETED SUCCESSFULLY: Comprehensive testing on mobile viewport (390x844) completed with excellent results. Login with ausfowler@gmail.com/Secret works perfectly. Successfully accessed Payment Settings via mobile menu navigation. Found all three payment method toggles (Apple Pay, Google Pay, Stripe Link) in the Payment Methods section. TOGGLE STYLING VERIFICATION: All toggles have IDENTICAL styling - width=48px, height=28px, borderRadius=9999px (perfect pill shape), consistent background colors and smooth transitions. Toggle functionality tested - all switches respond correctly to clicks and change states properly. Mobile responsiveness confirmed - Payment Settings page displays correctly on mobile viewport with proper layout and navigation. All requested verification criteria met: identical styling, rounded pill shapes, smooth transitions, proper positioning, and consistent sizing across all three payment method toggles."
 
 agent_communication:
   - agent: "main"
