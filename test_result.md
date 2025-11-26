@@ -379,6 +379,42 @@ frontend:
         agent: "testing"
         comment: "✅ ENHANCED CHECKOUT PAGE FULLY FUNCTIONAL: Comprehensive testing completed successfully with all requested features working. Login with ausfowler@gmail.com/Secret works perfectly. STEP 1 - FULFILLMENT SELECTION: Multi-step checkout flow with clear step indicator (1. Fulfillment → 2. Details → 3. Review) visible. Both 'Ship to Me' and 'Pickup In-Store' options functional. Print Queen HQ pickup location appears with complete details (1360 S Figueroa St, Los Angeles, CA 90015, Mon-Sat 10am-9pm). Date selector shows next 14 days (Thu Nov 27, Fri Nov 28, etc.) and time slots display hourly availability from 10:00 AM to 9:00 PM for Mon-Sat. STEP 2 - CUSTOMER DETAILS: Form displays with pre-filled name/email from user account. Pickup details summary shows in green box with selected location, date, and time. For shipping, address form appears instead. STEP 3 - REVIEW & PAY: Review section shows contact info, pickup/shipping details, and order items. ORDER SUMMARY SIDEBAR: Displays items list, subtotal ($49.99), tax (9.25% = $4.62), shipping (FREE for pickup, $5.99 for shipping), total ($54.61). Pay button shows correct total. All multi-step checkout functionality, pickup vs shipping selection, location/time selection, and order summary working exactly as specified in review request."
 
+  - task: "Product Pickup Settings - Admin Form"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/admin/ProductForm.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Product pickup settings implemented in admin form with fulfillment mode selection (Ship+Pickup, Ship Only, Pickup Only), location multi-select with Select All/Clear All, and estimated prep time field. Ready for comprehensive testing."
+
+  - task: "Product Pickup Settings - Product Cards Badges"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/admin/ProductManager.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Product cards display pickup/shipping badges (Pickup Only, Ship Only) and location count badges. Ready for testing."
+
+  - task: "Product Pickup Settings - Checkout Flow Filtering"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/CheckoutPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Checkout page dynamically enables/disables fulfillment options based on cart products. Uses /api/checkout/available-locations endpoint to filter pickup locations and disable shipping for pickup-only products. Ready for testing."
+
 agent_communication:
   - agent: "main"
     message: "Phase 1 verification complete. Homepage responsive design verified on both desktop (6-col) and mobile (2-col). Authentication system confirmed working by troubleshoot agent - previous issue was false positive. Products page and NFC builder page manually verified. Ready for comprehensive E2E testing of all user flows including: login, browse products, add to cart, NFC builder customization, and checkout process."
