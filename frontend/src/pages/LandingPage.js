@@ -446,7 +446,7 @@ const LandingPage = () => {
         </div>
 
         <div className="footer-bottom">
-          <p>© 2025 Print Queen 3D. All rights reserved.</p>
+          <p>© 2025 {settings.site_name || 'Print Queen 3D'}. {settings.footer_text || 'All rights reserved.'}</p>
           <p className="text-sm text-gray-400 mt-2">Made to order in Los Angeles · Fast, reliable shipping · Local pickup available</p>
         </div>
       </footer>
