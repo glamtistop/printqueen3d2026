@@ -432,66 +432,122 @@ const CheckoutPage = () => {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
-                  {/* Fulfillment Type Selection */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">How would you like to receive your order?</h2>
-                    
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {/* Shipping Option */}
-                      <button
-                        onClick={() => setFulfillmentType('shipping')}
-                        className={`p-5 rounded-xl border-2 text-left transition-all ${
-                          fulfillmentType === 'shipping'
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className={`p-2 rounded-lg ${fulfillmentType === 'shipping' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                            <Truck className="h-6 w-6" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">Ship to Me</h3>
-                            <p className="text-sm text-gray-500">
-                              {subtotal >= 50 ? 'FREE shipping' : `$5.99 shipping`}
-                            </p>
-                          </div>
-                          {fulfillmentType === 'shipping' && <Check className="h-5 w-5 text-blue-500 ml-auto" />}
-                        </div>
-                        <p className="text-xs text-gray-500">Delivery in 5-7 business days</p>
-                      </button>
-
-                      {/* Pickup Option */}
-                      <button
-                        onClick={() => setFulfillmentType('pickup')}
-                        disabled={pickupLocations.length === 0}
-                        className={`p-5 rounded-xl border-2 text-left transition-all ${
-                          fulfillmentType === 'pickup'
-                            ? 'border-emerald-500 bg-emerald-50'
-                            : pickupLocations.length === 0
-                              ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                              : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className={`p-2 rounded-lg ${fulfillmentType === 'pickup' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                            <MapPin className="h-6 w-6" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">Pickup In-Store</h3>
-                            <p className="text-sm text-emerald-600 font-medium">FREE</p>
-                          </div>
-                          {fulfillmentType === 'pickup' && <Check className="h-5 w-5 text-emerald-500 ml-auto" />}
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          {pickupLocations.length > 0 
-                            ? `${pickupLocations.length} location${pickupLocations.length > 1 ? 's' : ''} available`
-                            : 'No pickup locations available'
-                          }
-                        </p>
-                      </button>
+                  {/* Loading State */}
+                  {loadingLocations ? (
+                    <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                      <div className="h-8 w-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4" />
+                      <p className="text-gray-500">Checking product availability...</p>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      {/* Unavailable Products Warning */}
+                      {unavailableProducts.length > 0 && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                            <div>
+                              <h3 className="font-semibold text-amber-800">Some items not available for pickup</h3>
+                              <ul className="mt-2 space-y-1">
+                                {unavailableProducts.map((item, idx) => (
+                                  <li key={idx} className="text-sm text-amber-700">
+                                    • {item.name}
+                                  </li>
+                                ))}
+                              </ul>
+                              <p className="text-sm text-amber-600 mt-2">
+                                These items must be shipped. Choose shipping or remove them from your cart.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Fulfillment Type Selection */}
+                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">How would you like to receive your order?</h2>
+                        
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          {/* Shipping Option */}
+                          <button
+                            onClick={() => shippingAvailable && setFulfillmentType('shipping')}
+                            disabled={!shippingAvailable}
+                            className={`p-5 rounded-xl border-2 text-left transition-all ${
+                              !shippingAvailable
+                                ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                                : fulfillmentType === 'shipping'
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className={`p-2 rounded-lg ${
+                                !shippingAvailable 
+                                  ? 'bg-gray-200 text-gray-400' 
+                                  : fulfillmentType === 'shipping' 
+                                    ? 'bg-blue-500 text-white' 
+                                    : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                <Truck className="h-6 w-6" />
+                              </div>
+                              <div>
+                                <h3 className={`font-semibold ${!shippingAvailable ? 'text-gray-400' : 'text-gray-900'}`}>Ship to Me</h3>
+                                <p className={`text-sm ${!shippingAvailable ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  {!shippingAvailable 
+                                    ? 'Not available for these items' 
+                                    : subtotal >= 50 
+                                      ? 'FREE shipping' 
+                                      : '$5.99 shipping'
+                                  }
+                                </p>
+                              </div>
+                              {shippingAvailable && fulfillmentType === 'shipping' && <Check className="h-5 w-5 text-blue-500 ml-auto" />}
+                            </div>
+                            {shippingAvailable && <p className="text-xs text-gray-500">Delivery in 5-7 business days</p>}
+                          </button>
+
+                          {/* Pickup Option */}
+                          <button
+                            onClick={() => pickupAvailable && setFulfillmentType('pickup')}
+                            disabled={!pickupAvailable}
+                            className={`p-5 rounded-xl border-2 text-left transition-all ${
+                              !pickupAvailable
+                                ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                                : fulfillmentType === 'pickup'
+                                  ? 'border-emerald-500 bg-emerald-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className={`p-2 rounded-lg ${
+                                !pickupAvailable 
+                                  ? 'bg-gray-200 text-gray-400' 
+                                  : fulfillmentType === 'pickup' 
+                                    ? 'bg-emerald-500 text-white' 
+                                    : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                <MapPin className="h-6 w-6" />
+                              </div>
+                              <div>
+                                <h3 className={`font-semibold ${!pickupAvailable ? 'text-gray-400' : 'text-gray-900'}`}>Pickup In-Store</h3>
+                                <p className={`text-sm font-medium ${!pickupAvailable ? 'text-gray-400' : 'text-emerald-600'}`}>
+                                  {!pickupAvailable ? 'Not available' : 'FREE'}
+                                </p>
+                              </div>
+                              {pickupAvailable && fulfillmentType === 'pickup' && <Check className="h-5 w-5 text-emerald-500 ml-auto" />}
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              {!pickupAvailable 
+                                ? unavailableProducts.length > 0 
+                                  ? 'Some items cannot be picked up'
+                                  : 'No pickup locations available'
+                                : `${pickupLocations.length} location${pickupLocations.length > 1 ? 's' : ''} available`
+                              }
+                            </p>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {/* Pickup Location Selection */}
                   {fulfillmentType === 'pickup' && pickupLocations.length > 0 && (
