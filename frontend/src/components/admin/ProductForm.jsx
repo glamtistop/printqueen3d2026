@@ -95,6 +95,7 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     } catch (error) {
       console.error('Failed to save product:', error);
       alert('Failed to save product');
+      toast.error('Failed to save product');
     } finally {
       setLoading(false);
     }
