@@ -5,6 +5,14 @@ import { Package, Trash2, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
+import { COLORS } from '../components/ColorPicker';
+
+// Helper function to get color name from hex
+const getColorName = (hex) => {
+  if (!hex) return null;
+  const color = COLORS.find(c => c.hex.toLowerCase() === hex.toLowerCase());
+  return color ? color.name : hex;
+};
 
 const CartPage = () => {
   const { user } = useContext(AuthContext);
@@ -20,6 +28,27 @@ const CartPage = () => {
     } else {
       navigate('/checkout');
     }
+  };
+
+  // Render variant value with color swatch if it's a color
+  const renderVariantValue = (key, value) => {
+    // Check if this looks like a color hex code
+    const isColorHex = typeof value === 'string' && /^#[0-9A-Fa-f]{6}$/.test(value);
+    const colorName = isColorHex ? getColorName(value) : null;
+    
+    if (isColorHex) {
+      return (
+        <span className="inline-flex items-center gap-2">
+          {key}: 
+          <span 
+            className="inline-block w-4 h-4 rounded border border-gray-300" 
+            style={{ backgroundColor: value }}
+          />
+          <span>{colorName || value}</span>
+        </span>
+      );
+    }
+    return `${key}: ${value}`;
   };
 
   return (
