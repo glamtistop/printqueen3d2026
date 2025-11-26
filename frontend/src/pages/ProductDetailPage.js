@@ -241,18 +241,39 @@ const ProductDetailPage = () => {
                   </svg>
                   <h3 className="font-semibold text-gray-900">Production Time</h3>
                 </div>
-                <p className="text-sm text-gray-700">1-3 days</p>
+                <p className="text-sm text-gray-700">
+                  {product.estimated_prep_time 
+                    ? `${product.estimated_prep_time} hours` 
+                    : '1-3 days'}
+                </p>
               </div>
 
-              {/* Shipping Info */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              {/* Fulfillment Info */}
+              <div className={`rounded-lg p-4 ${
+                product.pickup_only 
+                  ? 'bg-emerald-50 border border-emerald-200' 
+                  : 'bg-green-50 border border-green-200'
+              }`}>
                 <div className="flex items-center space-x-2 mb-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                  </svg>
-                  <h3 className="font-semibold text-gray-900">Shipping</h3>
+                  {product.pickup_only ? (
+                    <MapPin className="w-5 h-5 text-emerald-600" />
+                  ) : (
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                  )}
+                  <h3 className="font-semibold text-gray-900">
+                    {product.pickup_only ? 'In-Store Pickup' : 'Fulfillment'}
+                  </h3>
                 </div>
-                <p className="text-sm text-gray-700">Ships after print is made and passes quality checks</p>
+                <p className="text-sm text-gray-700">
+                  {product.pickup_only 
+                    ? 'This item is available for in-store pickup only'
+                    : product.available_for_pickup === false
+                      ? 'Ships after print is made and passes quality checks'
+                      : 'Ship to you or pickup in-store'
+                  }
+                </p>
               </div>
             </div>
 
