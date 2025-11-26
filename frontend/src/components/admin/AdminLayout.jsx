@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   Settings,
   Palette,
-  CreditCard
+  CreditCard,
+  MapPin
 } from 'lucide-react';
 
 const AdminLayout = ({ children, activeTab, setActiveTab }) => {
