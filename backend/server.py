@@ -1463,6 +1463,445 @@ async def get_public_stripe_config():
         "flat_shipping_rate": settings.get("flat_shipping_rate", 5.99)
     }
 
+# ============ EMAIL SETTINGS ROUTES ============
+
+async def get_email_settings_from_db() -> Optional[Dict]:
+    """Helper to get email settings from database"""
+    settings = await db.email_settings.find_one({"id": "email_settings"}, {"_id": 0})
+    return settings
+
+async def send_email_via_resend(
+    to_email: str,
+    subject: str,
+    html_content: str,
+    api_key: str,
+    sender_email: str,
+    sender_name: str
+) -> Dict:
+    """Send email using Resend API"""
+    try:
+        resend.api_key = api_key
+        sender = f"{sender_name} <{sender_email}>"
+        
+        params = {
+            "from": sender,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_content,
+        }
+        
+        email_response = resend.Emails.send(params)
+        
+        if email_response and email_response.get("id"):
+            return {"success": True, "email_id": email_response.get("id")}
+        else:
+            return {"success": False, "error": "No email ID returned"}
+    except Exception as e:
+        logging.error(f"Resend email error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+def generate_order_confirmation_email(order: Dict, customer_name: str, site_name: str = "Print Queen 3D") -> str:
+    """Generate HTML for order confirmation email"""
+    items_html = ""
+    for item in order.get("items", []):
+        items_html += f"""
+        <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{item.get('product_name', 'Product')}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">{item.get('quantity', 1)}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${item.get('price', 0):.2f}</td>
+        </tr>
+        """
+    
+    fulfillment_info = ""
+    if order.get("fulfillment_type") == "pickup":
+        pickup = order.get("pickup_details", {})
+        fulfillment_info = f"""
+        <div style="background: #ecfdf5; padding: 16px; border-radius: 8px; margin-top: 20px;">
+            <h3 style="margin: 0 0 8px 0; color: #059669;">Pickup Information</h3>
+            <p style="margin: 0; color: #047857;"><strong>{pickup.get('location_name', 'Store')}</strong></p>
+            <p style="margin: 4px 0 0 0; color: #059669;">{pickup.get('location_address', '')}</p>
+            <p style="margin: 4px 0 0 0; color: #059669;">Date: {pickup.get('pickup_date', '')} at {pickup.get('pickup_time', '')}</p>
+        </div>
+        """
+    else:
+        shipping = order.get("shipping_address", {})
+        if shipping:
+            fulfillment_info = f"""
+            <div style="background: #eff6ff; padding: 16px; border-radius: 8px; margin-top: 20px;">
+                <h3 style="margin: 0 0 8px 0; color: #2563eb;">Shipping Address</h3>
+                <p style="margin: 0; color: #1d4ed8;">{shipping.get('street', '')}</p>
+                <p style="margin: 4px 0 0 0; color: #1d4ed8;">{shipping.get('city', '')}, {shipping.get('state', '')} {shipping.get('zip_code', '')}</p>
+            </div>
+            """
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); padding: 32px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Order Confirmed!</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">Thank you for your order</p>
+            </div>
+            <div style="padding: 32px;">
+                <p style="margin: 0 0 20px 0; color: #374151; font-size: 16px;">Hi {customer_name},</p>
+                <p style="margin: 0 0 20px 0; color: #6b7280;">We've received your order and are getting it ready. Here's a summary:</p>
+                
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">Order Number</p>
+                    <p style="margin: 4px 0 0 0; color: #111827; font-weight: 600; font-size: 18px;">#{order.get('id', '')[:8].upper()}</p>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f9fafb;">
+                            <th style="padding: 12px; text-align: left; color: #6b7280; font-size: 14px;">Item</th>
+                            <th style="padding: 12px; text-align: center; color: #6b7280; font-size: 14px;">Qty</th>
+                            <th style="padding: 12px; text-align: right; color: #6b7280; font-size: 14px;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items_html}
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #6b7280;">Subtotal</span>
+                        <span style="color: #374151;">${order.get('subtotal', order.get('total', 0)):.2f}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #6b7280;">Tax</span>
+                        <span style="color: #374151;">${order.get('tax_amount', 0):.2f}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #6b7280;">Shipping</span>
+                        <span style="color: #374151;">${order.get('shipping_amount', 0):.2f}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 18px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                        <span style="color: #111827;">Total</span>
+                        <span style="color: #10b981;">${order.get('total', 0):.2f}</span>
+                    </div>
+                </div>
+                
+                {fulfillment_info}
+            </div>
+            <div style="background: #f9fafb; padding: 24px; text-align: center;">
+                <p style="margin: 0; color: #6b7280; font-size: 14px;">Questions? Reply to this email or contact us</p>
+                <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 12px;">© {site_name}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+def generate_status_update_email(order: Dict, new_status: str, customer_name: str, site_name: str = "Print Queen 3D") -> str:
+    """Generate HTML for order status update email"""
+    status_messages = {
+        "processing": ("Order Processing", "We're preparing your order", "#f59e0b"),
+        "fulfilled": ("Order Fulfilled", "Your order has been processed and is ready", "#10b981"),
+        "shipped": ("Order Shipped", "Your order is on its way", "#3b82f6"),
+        "picked_up": ("Order Picked Up", "Your order has been picked up", "#10b981"),
+        "completed": ("Order Completed", "Thank you for your order", "#10b981"),
+        "cancelled": ("Order Cancelled", "Your order has been cancelled", "#ef4444"),
+    }
+    
+    title, message, color = status_messages.get(new_status, ("Status Update", f"Your order status is now: {new_status}", "#6b7280"))
+    
+    tracking_info = ""
+    if new_status == "shipped" and order.get("tracking_number"):
+        tracking_info = f"""
+        <div style="background: #eff6ff; padding: 16px; border-radius: 8px; margin-top: 20px;">
+            <h3 style="margin: 0 0 8px 0; color: #2563eb;">Tracking Information</h3>
+            <p style="margin: 0; color: #1d4ed8;"><strong>Carrier:</strong> {order.get('shipping_carrier', 'N/A')}</p>
+            <p style="margin: 4px 0 0 0; color: #1d4ed8;"><strong>Tracking #:</strong> {order.get('tracking_number', 'N/A')}</p>
+        </div>
+        """
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="background: {color}; padding: 32px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">{title}</h1>
+            </div>
+            <div style="padding: 32px;">
+                <p style="margin: 0 0 20px 0; color: #374151; font-size: 16px;">Hi {customer_name},</p>
+                <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 16px;">{message}</p>
+                
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">Order Number</p>
+                    <p style="margin: 4px 0 0 0; color: #111827; font-weight: 600; font-size: 18px;">#{order.get('id', '')[:8].upper()}</p>
+                </div>
+                
+                {tracking_info}
+            </div>
+            <div style="background: #f9fafb; padding: 24px; text-align: center;">
+                <p style="margin: 0; color: #6b7280; font-size: 14px;">Questions? Reply to this email or contact us</p>
+                <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 12px;">© {site_name}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+def generate_welcome_email(user_name: str, user_email: str, site_name: str = "Print Queen 3D") -> str:
+    """Generate HTML for welcome email"""
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); padding: 32px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to {site_name}!</h1>
+            </div>
+            <div style="padding: 32px;">
+                <p style="margin: 0 0 20px 0; color: #374151; font-size: 16px;">Hi {user_name},</p>
+                <p style="margin: 0 0 20px 0; color: #6b7280;">Welcome! We're excited to have you join us. Your account has been created successfully.</p>
+                
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">Your Email</p>
+                    <p style="margin: 4px 0 0 0; color: #111827; font-weight: 600;">{user_email}</p>
+                </div>
+                
+                <p style="margin: 0 0 20px 0; color: #6b7280;">Here's what you can do:</p>
+                <ul style="color: #6b7280; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Browse our collection of unique 3D printed products</li>
+                    <li style="margin-bottom: 8px;">Customize your own NFC stands</li>
+                    <li style="margin-bottom: 8px;">Track your orders in real-time</li>
+                    <li style="margin-bottom: 8px;">Get exclusive deals and updates</li>
+                </ul>
+                
+                <div style="text-align: center; margin-top: 32px;">
+                    <a href="#" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600;">Start Shopping</a>
+                </div>
+            </div>
+            <div style="background: #f9fafb; padding: 24px; text-align: center;">
+                <p style="margin: 0; color: #6b7280; font-size: 14px;">Questions? Reply to this email or contact us</p>
+                <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 12px;">© {site_name}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+async def send_order_confirmation_email_background(order_id: str):
+    """Background task to send order confirmation email"""
+    try:
+        email_settings = await get_email_settings_from_db()
+        if not email_settings or not email_settings.get("enabled") or not email_settings.get("send_order_confirmation"):
+            return
+        
+        order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+        if not order:
+            return
+        
+        customer_info = order.get("customer_info", {})
+        customer_email = customer_info.get("email")
+        customer_name = customer_info.get("name", "Customer")
+        
+        if not customer_email:
+            return
+        
+        site_settings = await db.site_settings.find_one({"id": "site_settings"}, {"_id": 0})
+        site_name = site_settings.get("site_name", "Print Queen 3D") if site_settings else "Print Queen 3D"
+        
+        html_content = generate_order_confirmation_email(order, customer_name, site_name)
+        
+        result = await send_email_via_resend(
+            to_email=customer_email,
+            subject=f"Order Confirmation - #{order_id[:8].upper()}",
+            html_content=html_content,
+            api_key=email_settings.get("api_key"),
+            sender_email=email_settings.get("sender_email"),
+            sender_name=email_settings.get("sender_name")
+        )
+        
+        if result.get("success"):
+            logging.info(f"Order confirmation email sent for order {order_id}")
+        else:
+            logging.error(f"Failed to send order confirmation email: {result.get('error')}")
+    except Exception as e:
+        logging.error(f"Error sending order confirmation email: {str(e)}")
+
+async def send_status_update_email_background(order_id: str, new_status: str):
+    """Background task to send order status update email"""
+    try:
+        email_settings = await get_email_settings_from_db()
+        if not email_settings or not email_settings.get("enabled") or not email_settings.get("send_status_updates"):
+            return
+        
+        order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+        if not order:
+            return
+        
+        customer_info = order.get("customer_info", {})
+        customer_email = customer_info.get("email")
+        customer_name = customer_info.get("name", "Customer")
+        
+        if not customer_email:
+            return
+        
+        site_settings = await db.site_settings.find_one({"id": "site_settings"}, {"_id": 0})
+        site_name = site_settings.get("site_name", "Print Queen 3D") if site_settings else "Print Queen 3D"
+        
+        html_content = generate_status_update_email(order, new_status, customer_name, site_name)
+        
+        status_subjects = {
+            "processing": "Your Order is Being Processed",
+            "fulfilled": "Your Order is Ready",
+            "shipped": "Your Order Has Shipped",
+            "picked_up": "Your Order Has Been Picked Up",
+            "completed": "Order Complete - Thank You!",
+            "cancelled": "Order Cancelled"
+        }
+        subject = status_subjects.get(new_status, f"Order Update - #{order_id[:8].upper()}")
+        
+        result = await send_email_via_resend(
+            to_email=customer_email,
+            subject=subject,
+            html_content=html_content,
+            api_key=email_settings.get("api_key"),
+            sender_email=email_settings.get("sender_email"),
+            sender_name=email_settings.get("sender_name")
+        )
+        
+        if result.get("success"):
+            logging.info(f"Status update email sent for order {order_id}")
+        else:
+            logging.error(f"Failed to send status update email: {result.get('error')}")
+    except Exception as e:
+        logging.error(f"Error sending status update email: {str(e)}")
+
+async def send_welcome_email_background(user_id: str):
+    """Background task to send welcome email"""
+    try:
+        email_settings = await get_email_settings_from_db()
+        if not email_settings or not email_settings.get("enabled") or not email_settings.get("send_welcome_emails"):
+            return
+        
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if not user:
+            return
+        
+        site_settings = await db.site_settings.find_one({"id": "site_settings"}, {"_id": 0})
+        site_name = site_settings.get("site_name", "Print Queen 3D") if site_settings else "Print Queen 3D"
+        
+        html_content = generate_welcome_email(user.get("name", "Friend"), user.get("email"), site_name)
+        
+        result = await send_email_via_resend(
+            to_email=user.get("email"),
+            subject=f"Welcome to {site_name}!",
+            html_content=html_content,
+            api_key=email_settings.get("api_key"),
+            sender_email=email_settings.get("sender_email"),
+            sender_name=email_settings.get("sender_name")
+        )
+        
+        if result.get("success"):
+            logging.info(f"Welcome email sent to user {user_id}")
+        else:
+            logging.error(f"Failed to send welcome email: {result.get('error')}")
+    except Exception as e:
+        logging.error(f"Error sending welcome email: {str(e)}")
+
+@api_router.get("/admin/email-settings")
+async def get_email_settings(user: User = Depends(require_admin)):
+    """Get email configuration (admin only)"""
+    settings = await db.email_settings.find_one({"id": "email_settings"}, {"_id": 0})
+    if not settings:
+        # Return default settings
+        default_settings = EmailSettings()
+        return default_settings.model_dump()
+    # Mask API key for security (show only last 4 characters)
+    if settings.get("api_key"):
+        api_key = settings["api_key"]
+        settings["api_key_masked"] = f"{'*' * (len(api_key) - 4)}{api_key[-4:]}" if len(api_key) > 4 else "****"
+    return settings
+
+@api_router.put("/admin/email-settings")
+async def update_email_settings(settings_update: EmailSettingsUpdate, user: User = Depends(require_admin)):
+    """Update email configuration (admin only)"""
+    update_data = {k: v for k, v in settings_update.model_dump().items() if v is not None}
+    update_data["id"] = "email_settings"
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.email_settings.update_one(
+        {"id": "email_settings"},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Email settings updated successfully"}
+
+@api_router.post("/admin/email-settings/test")
+async def send_test_email(test_request: TestEmailRequest, user: User = Depends(require_admin)):
+    """Send a test email to verify configuration"""
+    settings = await db.email_settings.find_one({"id": "email_settings"}, {"_id": 0})
+    
+    if not settings or not settings.get("api_key"):
+        raise HTTPException(status_code=400, detail="Email settings not configured. Please add your API key first.")
+    
+    site_settings = await db.site_settings.find_one({"id": "site_settings"}, {"_id": 0})
+    site_name = site_settings.get("site_name", "Print Queen 3D") if site_settings else "Print Queen 3D"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); padding: 32px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">Test Email</h1>
+            </div>
+            <div style="padding: 32px;">
+                <p style="margin: 0 0 20px 0; color: #374151; font-size: 16px;">Hello!</p>
+                <p style="margin: 0 0 20px 0; color: #6b7280;">This is a test email from your {site_name} store. If you received this, your email configuration is working correctly!</p>
+                
+                <div style="background: #ecfdf5; padding: 16px; border-radius: 8px;">
+                    <p style="margin: 0; color: #059669; font-weight: 600;">✓ Email Configuration Successful</p>
+                    <p style="margin: 8px 0 0 0; color: #047857; font-size: 14px;">Provider: {settings.get('provider', 'resend').upper()}</p>
+                    <p style="margin: 4px 0 0 0; color: #047857; font-size: 14px;">Sender: {settings.get('sender_name')} &lt;{settings.get('sender_email')}&gt;</p>
+                </div>
+            </div>
+            <div style="background: #f9fafb; padding: 24px; text-align: center;">
+                <p style="margin: 0; color: #9ca3af; font-size: 12px;">© {site_name}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    result = await send_email_via_resend(
+        to_email=test_request.recipient_email,
+        subject=f"Test Email from {site_name}",
+        html_content=html_content,
+        api_key=settings.get("api_key"),
+        sender_email=settings.get("sender_email"),
+        sender_name=settings.get("sender_name")
+    )
+    
+    if result.get("success"):
+        return {"message": f"Test email sent successfully to {test_request.recipient_email}", "email_id": result.get("email_id")}
+    else:
+        raise HTTPException(status_code=400, detail=f"Failed to send test email: {result.get('error')}")
+
 # ============ NFC STAND ROUTES ============
 
 from fastapi import File, UploadFile, Form
