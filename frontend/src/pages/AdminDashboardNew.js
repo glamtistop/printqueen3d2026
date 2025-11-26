@@ -8,6 +8,7 @@ import { CategoryManager } from '../components/admin/CategoryManager';
 import { CollectionManager } from '../components/admin/CollectionManager';
 import { OrderManager } from '../components/admin/OrderManager';
 import { CustomerManager } from '../components/admin/CustomerManager';
+import { SiteEditor } from '../components/admin/SiteEditor';
 
 const AdminDashboardNew = () => {
   const { user } = useContext(AuthContext);
@@ -33,6 +34,8 @@ const AdminDashboardNew = () => {
         return <OrderManager />;
       case 'customers':
         return <CustomerManager />;
+      case 'site-editor':
+        return <SiteEditor />;
       default:
         return <AdminDashboardHome onNavigate={setActiveTab} />;
     }
