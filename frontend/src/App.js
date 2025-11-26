@@ -183,6 +183,7 @@ function App() {
             <AnimatedRoutes user={user} />
           </BrowserRouter>
           <Toaster position="top-right" theme="light" />
+          <AddToHomeScreenPrompt />
         </div>
       </CartContext.Provider>
     </AuthContext.Provider>
