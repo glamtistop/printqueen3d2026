@@ -99,9 +99,13 @@ const CartPage = () => {
                     <h3 className="text-lg font-bold text-gray-900" data-testid={`cart-item-name-${index}`}>{item.name}</h3>
                     <p className="text-sm text-gray-500">{item.category}</p>
                     {item.variant && (
-                      <p className="text-sm text-blue-600">
-                        {Object.entries(item.variant).map(([key, value]) => `${key}: ${value}`).join(', ')}
-                      </p>
+                      <div className="text-sm text-blue-600 space-y-1">
+                        {Object.entries(item.variant).map(([key, value]) => (
+                          <div key={key}>
+                            {renderVariantValue(key, value)}
+                          </div>
+                        ))}
+                      </div>
                     )}
                     <div className="flex items-center space-x-4 mt-4">
                       <div className="flex items-center space-x-2">
