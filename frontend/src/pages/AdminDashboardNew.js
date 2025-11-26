@@ -10,6 +10,7 @@ import { OrderManager } from '../components/admin/OrderManager';
 import { CustomerManager } from '../components/admin/CustomerManager';
 import { SiteEditor } from '../components/admin/SiteEditor';
 import { PaymentSettings } from '../components/admin/PaymentSettings';
+import { EmailSettings } from '../components/admin/EmailSettings';
 import { PickupLocationManager } from '../components/admin/PickupLocationManager';
 
 const AdminDashboardNew = () => {
@@ -40,6 +41,8 @@ const AdminDashboardNew = () => {
         return <PickupLocationManager />;
       case 'payments':
         return <PaymentSettings />;
+      case 'email':
+        return <EmailSettings />;
       case 'site-editor':
         return <SiteEditor />;
       default:
