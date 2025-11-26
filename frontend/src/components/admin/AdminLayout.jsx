@@ -15,7 +15,8 @@ import {
   X,
   ChevronLeft,
   Settings,
-  Palette
+  Palette,
+  CreditCard
 } from 'lucide-react';
 
 const AdminLayout = ({ children, activeTab, setActiveTab }) => {
@@ -31,6 +32,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
     { id: 'collections', label: 'Collections', icon: FolderOpen },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'customers', label: 'Customers', icon: Users },
+    { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'site-editor', label: 'Site Editor', icon: Palette },
   ];
 
