@@ -434,6 +434,18 @@ frontend:
         agent: "testing"
         comment: "✅ CHECKOUT FLOW VERIFIED: Successfully tested checkout functionality. Cart system works (product can be added to cart), checkout page is accessible with proper authentication, and fulfillment options implementation is present. Code review confirms /api/checkout/available-locations endpoint integration for cart-based filtering. The checkout flow filtering feature is implemented and functional."
 
+  - task: "Payment Settings - Mobile Toggle Switches"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/admin/PaymentSettings.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New task to test Payment Settings toggle switches on mobile view. Need to verify Apple Pay, Google Pay, and Stripe Link toggles have identical styling and proper mobile responsiveness."
+
 agent_communication:
   - agent: "main"
     message: "Phase 1 verification complete. Homepage responsive design verified on both desktop (6-col) and mobile (2-col). Authentication system confirmed working by troubleshoot agent - previous issue was false positive. Products page and NFC builder page manually verified. Ready for comprehensive E2E testing of all user flows including: login, browse products, add to cart, NFC builder customization, and checkout process."
