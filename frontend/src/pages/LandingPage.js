@@ -65,10 +65,10 @@ const LandingPage = () => {
   // Auto-rotate banner every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % bannerImages.length);
+      setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % desktopHeroImages.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [bannerImages.length]);
+  }, [desktopHeroImages.length]);
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
