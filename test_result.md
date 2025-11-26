@@ -282,39 +282,48 @@ frontend:
 
   - task: "Site Editor - General Settings"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/admin/SiteEditor.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Site Editor component exists with General, Homepage Sections, and Footer & Social tabs. Backend APIs for site-settings and homepage-sections are implemented. Ready for comprehensive E2E testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ GENERAL SETTINGS WORKING: Successfully accessed Site Editor, updated Site Name to 'Print Queen 3D - Custom Creations' with success toast notification. Site name change confirmed in backend API response. Admin authentication and navigation working correctly."
 
   - task: "Site Editor - Homepage Sections Management"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/admin/SiteEditor.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Homepage sections functionality implemented with drag-and-drop reordering, visibility toggles, and content editing. Default sections include Hero, Marquee, Categories, Featured Products, Why Choose Us, and Newsletter. Ready for E2E testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ HOMEPAGE SECTIONS ISSUE: Why Choose Us section toggle not working properly. Backend API shows 'enabled': true for why_choose_us section despite toggle attempts. Section still visible on homepage. Toggle button interaction needs debugging - visibility toggle functionality not saving correctly."
 
   - task: "Site Editor - Footer & Social Links"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/admin/SiteEditor.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Footer and social links management implemented with Instagram, Facebook, Twitter, YouTube fields and footer text customization. Ready for E2E testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ FOOTER & SOCIAL ISSUES: 1) Footer text update not reflecting on homepage - still shows original 'All rights reserved.' instead of 'Made with love in LA.' 2) Instagram URL not saving - backend API shows 'instagram': null. Form inputs may not be properly connected to save functionality."
 
 agent_communication:
   - agent: "main"
