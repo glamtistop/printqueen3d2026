@@ -200,7 +200,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Payment Settings - Mobile Toggle Switches"
+    []
   stuck_tasks:
     - "Site Editor - Homepage Sections Management"
     - "Site Editor - Footer & Social Links"
