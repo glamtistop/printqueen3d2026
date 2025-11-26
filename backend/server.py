@@ -256,6 +256,33 @@ class HomepageSectionsConfig(BaseModel):
 class HomepageSectionsUpdate(BaseModel):
     sections: List[HomepageSection]
 
+# ============ STRIPE SETTINGS MODELS ============
+
+class StripeSettings(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = "stripe_settings"
+    publishable_key: Optional[str] = None  # pk_test_xxx or pk_live_xxx
+    test_mode: bool = True  # True = test keys, False = live keys
+    currency: str = "usd"
+    enable_apple_pay: bool = True
+    enable_google_pay: bool = True
+    enable_link: bool = True  # Stripe Link one-click checkout
+    tax_rate: float = 0.0  # Tax percentage (e.g., 8.25 for 8.25%)
+    free_shipping_threshold: float = 50.0  # Free shipping above this amount
+    flat_shipping_rate: float = 5.99  # Shipping cost below threshold
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class StripeSettingsUpdate(BaseModel):
+    publishable_key: Optional[str] = None
+    test_mode: Optional[bool] = None
+    currency: Optional[str] = None
+    enable_apple_pay: Optional[bool] = None
+    enable_google_pay: Optional[bool] = None
+    enable_link: Optional[bool] = None
+    tax_rate: Optional[float] = None
+    free_shipping_threshold: Optional[float] = None
+    flat_shipping_rate: Optional[float] = None
+
 # ============ AUTH HELPERS ============
 
 async def get_current_user(request: Request, authorization: Optional[str] = Header(None)) -> Optional[User]:
