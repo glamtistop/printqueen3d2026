@@ -1219,6 +1219,52 @@ async def update_homepage_sections(sections_update: HomepageSectionsUpdate, user
     
     return {"message": "Homepage sections updated successfully"}
 
+# ============ STRIPE SETTINGS ROUTES ============
+
+@api_router.get("/admin/stripe-settings")
+async def get_stripe_settings(user: User = Depends(require_admin)):
+    """Get Stripe configuration (admin only)"""
+    settings = await db.stripe_settings.find_one({"id": "stripe_settings"}, {"_id": 0})
+    if not settings:
+        # Return default settings
+        default_settings = StripeSettings()
+        return default_settings.model_dump()
+    return settings
+
+@api_router.put("/admin/stripe-settings")
+async def update_stripe_settings(settings_update: StripeSettingsUpdate, user: User = Depends(require_admin)):
+    """Update Stripe configuration (admin only)"""
+    update_data = {k: v for k, v in settings_update.model_dump().items() if v is not None}
+    update_data["id"] = "stripe_settings"
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.stripe_settings.update_one(
+        {"id": "stripe_settings"},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Stripe settings updated successfully"}
+
+@api_router.get("/stripe-config")
+async def get_public_stripe_config():
+    """Get public Stripe config (publishable key only - no auth required)"""
+    settings = await db.stripe_settings.find_one({"id": "stripe_settings"}, {"_id": 0})
+    if not settings:
+        settings = StripeSettings().model_dump()
+    
+    # Only return safe, public fields
+    return {
+        "publishable_key": settings.get("publishable_key"),
+        "currency": settings.get("currency", "usd"),
+        "enable_apple_pay": settings.get("enable_apple_pay", True),
+        "enable_google_pay": settings.get("enable_google_pay", True),
+        "enable_link": settings.get("enable_link", True),
+        "tax_rate": settings.get("tax_rate", 0.0),
+        "free_shipping_threshold": settings.get("free_shipping_threshold", 50.0),
+        "flat_shipping_rate": settings.get("flat_shipping_rate", 5.99)
+    }
+
 # ============ NFC STAND ROUTES ============
 
 from fastapi import File, UploadFile, Form
