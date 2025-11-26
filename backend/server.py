@@ -195,6 +195,16 @@ class ContactInfo(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
 
+class AppIcons(BaseModel):
+    favicon_32: Optional[str] = None  # 32x32 browser tab
+    apple_touch_180: Optional[str] = None  # 180x180 iPhone
+    android_192: Optional[str] = None  # 192x192 Android
+    pwa_512: Optional[str] = None  # 512x512 PWA splash
+
+class HeroImages(BaseModel):
+    desktop_images: List[str] = []  # Up to 6 images for carousel
+    mobile_image: Optional[str] = None  # Single mobile hero image
+
 class SiteSettings(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = "site_settings"  # Singleton document
@@ -204,6 +214,8 @@ class SiteSettings(BaseModel):
     brand_colors: BrandColors = Field(default_factory=BrandColors)
     contact_info: ContactInfo = Field(default_factory=ContactInfo)
     social_links: SocialLinks = Field(default_factory=SocialLinks)
+    app_icons: AppIcons = Field(default_factory=AppIcons)
+    hero_images: HeroImages = Field(default_factory=HeroImages)
     footer_text: str = "All rights reserved."
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -214,6 +226,8 @@ class SiteSettingsUpdate(BaseModel):
     brand_colors: Optional[BrandColors] = None
     contact_info: Optional[ContactInfo] = None
     social_links: Optional[SocialLinks] = None
+    app_icons: Optional[AppIcons] = None
+    hero_images: Optional[HeroImages] = None
     footer_text: Optional[str] = None
 
 class SectionContent(BaseModel):
