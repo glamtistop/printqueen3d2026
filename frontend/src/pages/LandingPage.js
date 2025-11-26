@@ -178,6 +178,7 @@ const LandingPage = () => {
       )}
 
       {/* Featured Products */}
+      {isSectionEnabled('featured') && (
       <motion.section 
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -187,8 +188,12 @@ const LandingPage = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-3">Featured Products</h2>
-            <p className="text-lg text-gray-600">Handpicked favorites from our collection</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-3">
+              {getSectionContent('featured', 'headline', 'Featured Products')}
+            </h2>
+            <p className="text-lg text-gray-600">
+              {getSectionContent('featured', 'subheadline', 'Handpicked favorites from our collection')}
+            </p>
           </div>
           
           {loadingProducts ? (
