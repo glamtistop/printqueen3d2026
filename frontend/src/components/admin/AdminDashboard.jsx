@@ -151,7 +151,7 @@ export const AdminDashboardHome = ({ onNavigate }) => {
       >
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-800">Dashboard</h1>
-          <p className="text-slate-500 mt-1">Welcome back! Here's what's happening with your store.</p>
+          <p className="text-slate-500 mt-1">Welcome back! Here is what is happening with your store.</p>
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-500">
           <Clock className="h-4 w-4" />
