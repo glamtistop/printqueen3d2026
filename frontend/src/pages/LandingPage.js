@@ -329,11 +329,12 @@ const LandingPage = () => {
               type="submit"
               className="bg-white text-blue-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors"
             >
-              Get my 10%
+              {getSectionContent('newsletter', 'button_text', 'Get my 10%')}
             </button>
           </form>
         </div>
       </motion.section>
+      )}
 
       {/* About Section */}
       <motion.section 
