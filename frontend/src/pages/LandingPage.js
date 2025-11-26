@@ -255,8 +255,10 @@ const LandingPage = () => {
           </div>
         </div>
       </motion.section>
+      )}
 
       {/* Why Choose Section */}
+      {isSectionEnabled('why_choose_us') && (
       <motion.section 
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -265,7 +267,9 @@ const LandingPage = () => {
         className="py-20 px-4 sm:px-6 lg:px-8"
       >
         <div className="max-w-6xl mx-auto">
-          <h2 className="section-title text-center mb-16">Why Choose Print Queen 3D?</h2>
+          <h2 className="section-title text-center mb-16">
+            {getSectionContent('why_choose_us', 'headline', 'Why Choose Print Queen 3D?')}
+          </h2>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center space-y-4">
