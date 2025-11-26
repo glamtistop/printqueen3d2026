@@ -55,6 +55,13 @@ const LandingPage = () => {
     fetchFeaturedProducts();
   }, []);
 
+  // Get hero images from config or use defaults
+  const heroImages = siteConfig?.settings?.hero_images;
+  const desktopHeroImages = heroImages?.desktop_images?.length > 0 
+    ? heroImages.desktop_images 
+    : bannerImages;
+  const mobileHeroImage = heroImages?.mobile_image || bannerImages[0];
+
   // Auto-rotate banner every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
