@@ -109,7 +109,7 @@ const LandingPage = () => {
           {/* Main Banner Image */}
           <div className="relative flex items-center justify-center h-full">
             <img
-              src={bannerImages[currentBannerIndex]}
+              src={desktopHeroImages[currentBannerIndex]}
               alt="Print Queen 3D Hero"
               className="h-full w-auto object-contain transition-opacity duration-1000"
             />
@@ -117,7 +117,7 @@ const LandingPage = () => {
           
           {/* Carousel Indicators */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-            {bannerImages.map((_, index) => (
+            {desktopHeroImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentBannerIndex(index)}
