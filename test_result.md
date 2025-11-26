@@ -327,15 +327,18 @@ frontend:
 
   - task: "Admin Dashboard - Pickup Locations Management"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/admin/PickupLocationManager.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "New Pickup Locations feature implemented with full CRUD operations, schedule editor with time slots, location cards with badges, and toggle functionality. Backend APIs implemented for admin management and public access. Ready for comprehensive E2E testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ PICKUP LOCATIONS FULLY FUNCTIONAL: Successfully tested all requested features. Admin login works with ausfowler@gmail.com/Secret. Pickup Locations tab exists in sidebar with MapPin icon and is accessible. Seeded location 'Print Queen HQ' displays correctly with address (1360 S Figueroa St, Los Angeles, CA 90015), hours (Mon-Sat 10am-9pm), badges (6 active days, 66 time slots), and notes (Free parking available in the rear lot). Edit and Add Location buttons are present and functional. UI matches expected design with location cards, toggle switches, and proper admin layout. All core functionality working as specified."
 
 agent_communication:
   - agent: "main"
