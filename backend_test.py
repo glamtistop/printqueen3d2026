@@ -333,6 +333,192 @@ class ECommerceAPITester:
             
             self.run_test("Create Checkout Session", "POST", "checkout/session", 200, data=checkout_data)
 
+    def test_email_settings_endpoints(self):
+        """Test email settings endpoints for the new Email Settings feature"""
+        print("\n📧 Testing Email Settings Endpoints...")
+        
+        # Test GET email settings (admin only) - should return default settings
+        success, settings_response = self.run_test(
+            "Get Email Settings (Admin)", 
+            "GET", 
+            "admin/email-settings", 
+            200, 
+            use_admin=True
+        )
+        
+        if success:
+            print(f"   Default settings retrieved: {json.dumps(settings_response, indent=2)}")
+            
+            # Verify default structure
+            expected_fields = ['id', 'provider', 'sender_email', 'sender_name', 'enabled', 
+                             'send_order_confirmation', 'send_status_updates', 'send_welcome_emails']
+            for field in expected_fields:
+                if field not in settings_response:
+                    print(f"❌ Missing field in email settings: {field}")
+                    self.failed_tests.append({
+                        'name': 'Email Settings Structure Check',
+                        'error': f'Missing field: {field}'
+                    })
+        
+        # Test GET email settings without admin (should fail)
+        self.run_test(
+            "Get Email Settings (Non-Admin)", 
+            "GET", 
+            "admin/email-settings", 
+            403
+        )
+        
+        # Test PUT email settings - Update sender information
+        update_data = {
+            "sender_name": "Print Queen 3D Store",
+            "sender_email": "orders@printqueen3d.com",
+            "enabled": True,
+            "send_order_confirmation": True,
+            "send_status_updates": True,
+            "send_welcome_emails": False
+        }
+        
+        success, update_response = self.run_test(
+            "Update Email Settings", 
+            "PUT", 
+            "admin/email-settings", 
+            200, 
+            data=update_data,
+            use_admin=True
+        )
+        
+        if success:
+            print(f"   Settings updated successfully")
+        
+        # Test GET email settings again to verify persistence
+        success, updated_settings = self.run_test(
+            "Get Updated Email Settings", 
+            "GET", 
+            "admin/email-settings", 
+            200, 
+            use_admin=True
+        )
+        
+        if success:
+            # Verify the updates were saved
+            if updated_settings.get('sender_name') == "Print Queen 3D Store":
+                print("✅ Sender name update persisted correctly")
+                self.tests_passed += 1
+            else:
+                print(f"❌ Sender name not persisted. Expected: 'Print Queen 3D Store', Got: {updated_settings.get('sender_name')}")
+                self.failed_tests.append({
+                    'name': 'Email Settings Persistence Check',
+                    'error': f'Sender name not persisted correctly'
+                })
+            
+            if updated_settings.get('enabled') == True:
+                print("✅ Email notifications enabled status persisted correctly")
+                self.tests_passed += 1
+            else:
+                print(f"❌ Email enabled status not persisted. Expected: True, Got: {updated_settings.get('enabled')}")
+                self.failed_tests.append({
+                    'name': 'Email Settings Persistence Check',
+                    'error': f'Email enabled status not persisted correctly'
+                })
+        
+        # Test API key masking functionality
+        api_key_data = {
+            "api_key": "re_test_1234567890abcdef",
+            "sender_name": "Print Queen 3D",
+            "sender_email": "test@printqueen3d.com"
+        }
+        
+        success, masked_response = self.run_test(
+            "Update Email Settings with API Key", 
+            "PUT", 
+            "admin/email-settings", 
+            200, 
+            data=api_key_data,
+            use_admin=True
+        )
+        
+        # Get settings to check if API key is masked
+        success, masked_settings = self.run_test(
+            "Get Email Settings (Check API Key Masking)", 
+            "GET", 
+            "admin/email-settings", 
+            200, 
+            use_admin=True
+        )
+        
+        if success and masked_settings.get('api_key'):
+            api_key = masked_settings.get('api_key')
+            if api_key.startswith('re_') and '*' in api_key:
+                print("✅ API key masking working correctly")
+                self.tests_passed += 1
+            else:
+                print(f"❌ API key not properly masked. Got: {api_key}")
+                self.failed_tests.append({
+                    'name': 'API Key Masking Check',
+                    'error': f'API key not properly masked: {api_key}'
+                })
+        
+        # Test email notification toggles
+        toggle_data = {
+            "send_order_confirmation": False,
+            "send_status_updates": True,
+            "send_welcome_emails": True
+        }
+        
+        success, toggle_response = self.run_test(
+            "Update Email Notification Toggles", 
+            "PUT", 
+            "admin/email-settings", 
+            200, 
+            data=toggle_data,
+            use_admin=True
+        )
+        
+        # Verify toggles were saved
+        success, toggle_settings = self.run_test(
+            "Get Email Settings (Check Toggles)", 
+            "GET", 
+            "admin/email-settings", 
+            200, 
+            use_admin=True
+        )
+        
+        if success:
+            if (toggle_settings.get('send_order_confirmation') == False and 
+                toggle_settings.get('send_status_updates') == True and 
+                toggle_settings.get('send_welcome_emails') == True):
+                print("✅ Email notification toggles working correctly")
+                self.tests_passed += 1
+            else:
+                print(f"❌ Email toggles not saved correctly")
+                print(f"   Order confirmation: {toggle_settings.get('send_order_confirmation')} (expected False)")
+                print(f"   Status updates: {toggle_settings.get('send_status_updates')} (expected True)")
+                print(f"   Welcome emails: {toggle_settings.get('send_welcome_emails')} (expected True)")
+                self.failed_tests.append({
+                    'name': 'Email Notification Toggles Check',
+                    'error': 'Email toggles not saved correctly'
+                })
+        
+        # Test test email endpoint (should work when API key is configured)
+        test_email_data = {
+            "recipient_email": "test@example.com"
+        }
+        
+        # This might fail if no real API key is configured, but we should test the endpoint exists
+        success, test_email_response = self.run_test(
+            "Send Test Email", 
+            "POST", 
+            "admin/email-settings/test", 
+            200,  # Expect 200 even if email fails to send (API should handle gracefully)
+            data=test_email_data,
+            use_admin=True
+        )
+        
+        # Note: We don't expect this to actually send an email without a real Resend API key
+        # But the endpoint should exist and handle the request gracefully
+        
+        print("📧 Email Settings testing completed")
+
     def cleanup_test_data(self):
         """Clean up test data from database"""
         print("\n🧹 Cleaning up test data...")
