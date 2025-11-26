@@ -947,6 +947,13 @@ async def create_order(order_data: OrderCreate, user: User = Depends(require_aut
         user_id=user.id,
         items=order_data.items,
         total=order_data.total,
+        subtotal=order_data.subtotal,
+        tax_amount=order_data.tax_amount,
+        shipping_amount=order_data.shipping_amount,
+        fulfillment_type=order_data.fulfillment_type,
+        customer_info=order_data.customer_info,
+        shipping_address=order_data.shipping_address,
+        pickup_details=order_data.pickup_details,
         status="pending"
     )
     order_dict = order.model_dump()
