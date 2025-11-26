@@ -277,7 +277,7 @@ export const EmailSettings = () => {
                 <p className="font-medium text-amber-800 text-sm">Important: Verify Your Domain</p>
                 <p className="text-amber-700 text-sm mt-1">
                   For production use, verify your domain in Resend to send from your own email address.
-                  Without verification, emails are sent from Resend's test domain.
+                  Without verification, emails are sent from Resend&apos;s test domain.
                 </p>
               </div>
             </div>
@@ -305,7 +305,7 @@ export const EmailSettings = () => {
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
               placeholder="Your Store Name"
             />
-            <p className="text-xs text-slate-500 mt-1">Appears as the "From" name in emails</p>
+            <p className="text-xs text-slate-500 mt-1">Appears as the &quot;From&quot; name in emails</p>
           </div>
 
           {/* Sender Email */}
