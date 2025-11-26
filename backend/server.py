@@ -176,6 +176,72 @@ class CheckoutRequest(BaseModel):
     order_id: str
     origin_url: str
 
+# ============ SITE EDITOR MODELS ============
+
+class SocialLinks(BaseModel):
+    instagram: Optional[str] = None
+    facebook: Optional[str] = None
+    twitter: Optional[str] = None
+    tiktok: Optional[str] = None
+    youtube: Optional[str] = None
+
+class BrandColors(BaseModel):
+    primary: str = "#3B82F6"  # Blue
+    secondary: str = "#10B981"  # Emerald
+    accent: str = "#F59E0B"  # Amber
+
+class ContactInfo(BaseModel):
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+class SiteSettings(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = "site_settings"  # Singleton document
+    logo_url: Optional[str] = None
+    site_name: str = "Print Queen 3D"
+    tagline: str = "Custom 3D Printed Creations"
+    brand_colors: BrandColors = Field(default_factory=BrandColors)
+    contact_info: ContactInfo = Field(default_factory=ContactInfo)
+    social_links: SocialLinks = Field(default_factory=SocialLinks)
+    footer_text: str = "All rights reserved."
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SiteSettingsUpdate(BaseModel):
+    logo_url: Optional[str] = None
+    site_name: Optional[str] = None
+    tagline: Optional[str] = None
+    brand_colors: Optional[BrandColors] = None
+    contact_info: Optional[ContactInfo] = None
+    social_links: Optional[SocialLinks] = None
+    footer_text: Optional[str] = None
+
+class SectionContent(BaseModel):
+    headline: Optional[str] = None
+    subheadline: Optional[str] = None
+    description: Optional[str] = None
+    button_text: Optional[str] = None
+    button_link: Optional[str] = None
+    image_url: Optional[str] = None
+    background_image_url: Optional[str] = None
+
+class HomepageSection(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    enabled: bool = True
+    order: int = 0
+    content: SectionContent = Field(default_factory=SectionContent)
+
+class HomepageSectionsConfig(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = "homepage_sections"
+    sections: List[HomepageSection] = []
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class HomepageSectionsUpdate(BaseModel):
+    sections: List[HomepageSection]
+
 # ============ AUTH HELPERS ============
 
 async def get_current_user(request: Request, authorization: Optional[str] = Header(None)) -> Optional[User]:
