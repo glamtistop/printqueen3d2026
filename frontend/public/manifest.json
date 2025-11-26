@@ -1,0 +1,44 @@
+{
+  "name": "Print Queen 3D",
+  "short_name": "PrintQueen3D",
+  "description": "Custom 3D Printed Creations - Shop unique 3D printed products",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/printqueen-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/printqueen-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Shop Products",
+      "short_name": "Shop",
+      "url": "/products",
+      "icons": [{"src": "/printqueen-logo.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "My Cart",
+      "short_name": "Cart",
+      "url": "/cart",
+      "icons": [{"src": "/printqueen-logo.png", "sizes": "192x192"}]
+    }
+  ]
+}
