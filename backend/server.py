@@ -1100,32 +1100,11 @@ async def get_all_orders(user: User = Depends(require_admin)):
 @api_router.put("/admin/orders/{order_id}/status")
 async def update_order_status(order_id: str, status: str, user: User = Depends(require_admin)):
     """Update order status (admin only)"""
-    result = await db.orders.update_one(
-        {"id": order_id},
-        {"$set": {"status": status}}
-    )
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Order not found")
-    return {"message": "Order status updated"}
-
-class OrderFulfillment(BaseModel):
-    tracking_number: Optional[str] = None
-    shipping_carrier: Optional[str] = None
-    notes: Optional[str] = None
-
-@api_router.put("/admin/orders/{order_id}/fulfill")
-async def fulfill_order(order_id: str, fulfillment: OrderFulfillment, user: User = Depends(require_admin)):
-    """Fulfill order with tracking info"""
-    update_data = {
-        "status": "shipped",
-        "fulfilled_at": datetime.now(timezone.utc).isoformat()
-    }
-    if fulfillment.tracking_number:
-        update_data["tracking_number"] = fulfillment.tracking_number
-    if fulfillment.shipping_carrier:
-        update_data["shipping_carrier"] = fulfillment.shipping_carrier
-    if fulfillment.notes:
-        update_data["notes"] = fulfillment.notes
+    update_data = {"status": status}
+    
+    # Add timestamp based on status
+    if status == "completed":
+        update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
     
     result = await db.orders.update_one(
         {"id": order_id},
@@ -1133,7 +1112,70 @@ async def fulfill_order(order_id: str, fulfillment: OrderFulfillment, user: User
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
-    return {"message": "Order fulfilled successfully"}
+    return {"message": "Order status updated"}
+
+class OrderFulfillment(BaseModel):
+    fulfillment_action: str = "ship"  # "ship", "pickup", "fulfill_only"
+    tracking_number: Optional[str] = None
+    shipping_carrier: Optional[str] = None
+    admin_notes: Optional[str] = None
+
+@api_router.put("/admin/orders/{order_id}/fulfill")
+async def fulfill_order(order_id: str, fulfillment: OrderFulfillment, user: User = Depends(require_admin)):
+    """Fulfill order - mark as shipped or ready for pickup"""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    update_data = {"fulfilled_at": now}
+    
+    if fulfillment.fulfillment_action == "ship":
+        update_data["status"] = "shipped"
+        update_data["shipped_at"] = now
+        if fulfillment.tracking_number:
+            update_data["tracking_number"] = fulfillment.tracking_number
+        if fulfillment.shipping_carrier:
+            update_data["shipping_carrier"] = fulfillment.shipping_carrier
+    elif fulfillment.fulfillment_action == "pickup":
+        update_data["status"] = "picked_up"
+        update_data["picked_up_at"] = now
+    else:  # fulfill_only - mark as fulfilled but not yet shipped/picked up
+        update_data["status"] = "fulfilled"
+    
+    if fulfillment.admin_notes:
+        update_data["admin_notes"] = fulfillment.admin_notes
+    
+    result = await db.orders.update_one(
+        {"id": order_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": f"Order {fulfillment.fulfillment_action} successfully", "status": update_data["status"]}
+
+@api_router.get("/admin/orders/{order_id}")
+async def get_order_details(order_id: str, user: User = Depends(require_admin)):
+    """Get detailed order info (admin only)"""
+    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Get user info
+    user_doc = await db.users.find_one({"id": order.get("user_id")}, {"_id": 0, "hashed_password": 0})
+    
+    # If pickup order, get location details
+    pickup_location = None
+    if order.get("pickup_details") and order["pickup_details"].get("location_id"):
+        pickup_location = await db.pickup_locations.find_one(
+            {"id": order["pickup_details"]["location_id"]}, 
+            {"_id": 0}
+        )
+    
+    return {
+        "order": order,
+        "user": user_doc,
+        "pickup_location": pickup_location
+    }
 
 @api_router.get("/admin/customers")
 async def get_all_customers(user: User = Depends(require_admin)):
