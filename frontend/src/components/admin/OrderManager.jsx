@@ -393,7 +393,7 @@ const OrderDetailsModal = ({ order, onClose, onFulfill, onStatusChange }) => {
                         {item.customization.customText && (
                           <div className="flex items-center gap-2 text-sm">
                             <span className="text-slate-500">Custom Text:</span>
-                            <span className="text-slate-700 font-medium">"{item.customization.customText}"</span>
+                            <span className="text-slate-700 font-medium">&ldquo;{item.customization.customText}&rdquo;</span>
                           </div>
                         )}
                       </div>
