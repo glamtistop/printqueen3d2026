@@ -189,6 +189,12 @@ const CheckoutPage = () => {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+  
+  // Pickup availability state
+  const [pickupAvailable, setPickupAvailable] = useState(true);
+  const [shippingAvailable, setShippingAvailable] = useState(true);
+  const [unavailableProducts, setUnavailableProducts] = useState([]);
   
   // Customer info state
   const [customerInfo, setCustomerInfo] = useState({
