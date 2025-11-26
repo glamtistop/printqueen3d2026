@@ -200,13 +200,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin Dashboard comprehensive testing completed"
-    - "All 5 admin tabs fully functional"
-    - "Product/Category/Collection/Order/Customer management working"
-    - "Admin authentication and responsive design verified"
+    - "Site Editor - General Settings"
+    - "Site Editor - Homepage Sections Management"
+    - "Site Editor - Footer & Social Links"
   stuck_tasks: []
-  test_all: true
-  test_priority: "completed"
+  test_all: false
+  test_priority: "high_first"
 
 frontend:
   - task: "Admin Dashboard - Main Interface"
