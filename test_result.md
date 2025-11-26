@@ -382,28 +382,34 @@ frontend:
         comment: "✅ ENHANCED CHECKOUT PAGE FULLY FUNCTIONAL: Comprehensive testing completed successfully with all requested features working. Login with ausfowler@gmail.com/Secret works perfectly. STEP 1 - FULFILLMENT SELECTION: Multi-step checkout flow with clear step indicator (1. Fulfillment → 2. Details → 3. Review) visible. Both 'Ship to Me' and 'Pickup In-Store' options functional. Print Queen HQ pickup location appears with complete details (1360 S Figueroa St, Los Angeles, CA 90015, Mon-Sat 10am-9pm). Date selector shows next 14 days (Thu Nov 27, Fri Nov 28, etc.) and time slots display hourly availability from 10:00 AM to 9:00 PM for Mon-Sat. STEP 2 - CUSTOMER DETAILS: Form displays with pre-filled name/email from user account. Pickup details summary shows in green box with selected location, date, and time. For shipping, address form appears instead. STEP 3 - REVIEW & PAY: Review section shows contact info, pickup/shipping details, and order items. ORDER SUMMARY SIDEBAR: Displays items list, subtotal ($49.99), tax (9.25% = $4.62), shipping (FREE for pickup, $5.99 for shipping), total ($54.61). Pay button shows correct total. All multi-step checkout functionality, pickup vs shipping selection, location/time selection, and order summary working exactly as specified in review request."
 
   - task: "Product Pickup Settings - Admin Form"
-    implemented: true
-    working: "NA"
+    implemented: false
+    working: false
     file: "/app/frontend/src/components/admin/ProductForm.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Product pickup settings implemented in admin form with fulfillment mode selection (Ship+Pickup, Ship Only, Pickup Only), location multi-select with Select All/Clear All, and estimated prep time field. Ready for comprehensive testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: Pickup & Fulfillment Settings section NOT FOUND in product edit form. Despite code review showing implementation in ProductForm.jsx, the UI elements are not rendering. No fulfillment mode buttons (Ship+Pickup, Ship Only, Pickup Only), no pickup location selection, no estimated prep time field found. The pickup settings feature appears to be implemented in code but not functioning in the UI."
 
   - task: "Product Pickup Settings - Product Cards Badges"
-    implemented: true
-    working: "NA"
+    implemented: false
+    working: false
     file: "/app/frontend/src/components/admin/ProductManager.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Product cards display pickup/shipping badges (Pickup Only, Ship Only) and location count badges. Ready for testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ PICKUP BADGES NOT FOUND: No pickup/shipping badges found on product cards. Expected 'Pickup Only', 'Ship Only' badges and location count badges are not displaying. Product cards show only basic information without fulfillment type indicators."
 
   - task: "Product Pickup Settings - Checkout Flow Filtering"
     implemented: true
@@ -416,6 +422,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Checkout page dynamically enables/disables fulfillment options based on cart products. Uses /api/checkout/available-locations endpoint to filter pickup locations and disable shipping for pickup-only products. Ready for testing."
+      - working: "NA"
+        agent: "testing"
+        comment: "❌ UNABLE TO TEST CHECKOUT FLOW: Could not test checkout flow filtering because Add to Cart buttons were not found on products page. However, checkout page code review shows proper implementation with /api/checkout/available-locations endpoint integration. Backend API endpoints are implemented correctly."
 
 agent_communication:
   - agent: "main"
