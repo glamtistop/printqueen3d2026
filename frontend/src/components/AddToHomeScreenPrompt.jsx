@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Share, Smartphone } from 'lucide-react';
 
 const AddToHomeScreenPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isAndroid, setIsAndroid] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  // Detect device type on mount (static - won't change)
+  const deviceInfo = useMemo(() => {
+    if (typeof window === 'undefined') return { isIOS: false, isAndroid: false };
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return {
+      isIOS: /iphone|ipad|ipod/.test(userAgent) && !window.MSStream,
+      isAndroid: /android/.test(userAgent)
+    };
+  }, []);
 
   useEffect(() => {
     // Check if already installed or dismissed
@@ -16,14 +24,6 @@ const AddToHomeScreenPrompt = () => {
     if (dismissed || isStandalone) {
       return;
     }
-
-    // Detect device type
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent) && !window.MSStream;
-    const isAndroidDevice = /android/.test(userAgent);
-    
-    setIsIOS(isIOSDevice);
-    setIsAndroid(isAndroidDevice);
 
     // For Android/Chrome - capture the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e) => {
@@ -36,14 +36,14 @@ const AddToHomeScreenPrompt = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     // For iOS - show manual instructions after delay
-    if (isIOSDevice) {
+    if (deviceInfo.isIOS) {
       setTimeout(() => setShowPrompt(true), 5000);
     }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+  }, [deviceInfo.isIOS]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
