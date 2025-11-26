@@ -200,12 +200,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Site Editor - General Settings"
     - "Site Editor - Homepage Sections Management"
     - "Site Editor - Footer & Social Links"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Site Editor - Homepage Sections Management"
+    - "Site Editor - Footer & Social Links"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "stuck_first"
 
 frontend:
   - task: "Admin Dashboard - Main Interface"
