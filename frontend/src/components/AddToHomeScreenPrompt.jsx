@@ -62,7 +62,7 @@ const AddToHomeScreenPrompt = () => {
   };
 
   // Only show on mobile devices
-  if (!isIOS && !isAndroid && !deferredPrompt) {
+  if (!deviceInfo.isIOS && !deviceInfo.isAndroid && !deferredPrompt) {
     return null;
   }
 
@@ -100,7 +100,7 @@ const AddToHomeScreenPrompt = () => {
                 Install our app for quick access and a better shopping experience!
               </p>
 
-              {isIOS ? (
+              {deviceInfo.isIOS ? (
                 // iOS Instructions
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
