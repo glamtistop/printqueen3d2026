@@ -278,7 +278,7 @@ export const AdminDashboardHome = ({ onNavigate }) => {
             </div>
             <div>
               <h3 className="text-lg font-semibold">Store Status: Active</h3>
-              <p className="text-white/80">All systems operational</p>
+              <p className="text-slate-500">All systems operational</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
