@@ -1593,6 +1593,95 @@ async def get_public_stripe_config():
         "flat_shipping_rate": settings.get("flat_shipping_rate", 5.99)
     }
 
+# ============ SHIPPING SETTINGS ROUTES ============
+
+@api_router.get("/admin/shipping-settings")
+async def get_shipping_settings(user: User = Depends(require_admin)):
+    """Get shipping configuration (admin only)"""
+    settings = await db.shipping_settings.find_one({"id": "shipping_settings"}, {"_id": 0})
+    if not settings:
+        # Return default settings with standard shipping option
+        default_settings = ShippingSettings(
+            shipping_options=[
+                ShippingOption(
+                    name="Standard Shipping",
+                    description="5-7 business days",
+                    price=5.99,
+                    estimated_days_min=5,
+                    estimated_days_max=7,
+                    enabled=True,
+                    order=0
+                ).model_dump()
+            ]
+        )
+        return default_settings.model_dump()
+    return settings
+
+@api_router.put("/admin/shipping-settings")
+async def update_shipping_settings(settings_update: ShippingSettingsUpdate, user: User = Depends(require_admin)):
+    """Update shipping configuration (admin only)"""
+    update_data = {k: v for k, v in settings_update.model_dump().items() if v is not None}
+    update_data["id"] = "shipping_settings"
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # Convert nested models to dicts
+    if "shipping_options" in update_data:
+        update_data["shipping_options"] = [
+            opt.model_dump() if hasattr(opt, 'model_dump') else opt 
+            for opt in update_data["shipping_options"]
+        ]
+    
+    await db.shipping_settings.update_one(
+        {"id": "shipping_settings"},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Shipping settings updated successfully"}
+
+@api_router.get("/shipping-settings")
+async def get_public_shipping_settings():
+    """Get shipping settings for checkout (public)"""
+    settings = await db.shipping_settings.find_one({"id": "shipping_settings"}, {"_id": 0})
+    
+    if not settings:
+        # Return defaults
+        return {
+            "shipping_options": [
+                {
+                    "id": "standard",
+                    "name": "Standard Shipping",
+                    "description": "5-7 business days",
+                    "price": 5.99,
+                    "estimated_days_min": 5,
+                    "estimated_days_max": 7
+                }
+            ],
+            "free_shipping_enabled": True,
+            "free_shipping_threshold": 50.0,
+            "rush_order_enabled": True,
+            "rush_order_price": 25.0,
+            "rush_order_days_min": 1,
+            "rush_order_days_max": 3,
+            "rush_order_label": "Rush Order",
+            "rush_order_description": "Expedite your order for faster processing"
+        }
+    
+    # Filter to only enabled shipping options
+    enabled_options = [opt for opt in settings.get("shipping_options", []) if opt.get("enabled", True)]
+    
+    return {
+        "shipping_options": enabled_options,
+        "free_shipping_enabled": settings.get("free_shipping_enabled", True),
+        "free_shipping_threshold": settings.get("free_shipping_threshold", 50.0),
+        "rush_order_enabled": settings.get("rush_order_enabled", True),
+        "rush_order_price": settings.get("rush_order_price", 25.0),
+        "rush_order_days_min": settings.get("rush_order_days_min", 1),
+        "rush_order_days_max": settings.get("rush_order_days_max", 3),
+        "rush_order_label": settings.get("rush_order_label", "Rush Order"),
+        "rush_order_description": settings.get("rush_order_description", "Expedite your order for faster processing")
+    }
+
 # ============ EMAIL SETTINGS ROUTES ============
 
 async def get_email_settings_from_db() -> Optional[Dict]:
