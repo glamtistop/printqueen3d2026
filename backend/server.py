@@ -2004,6 +2004,222 @@ async def send_test_email(test_request: TestEmailRequest, user: User = Depends(r
     else:
         raise HTTPException(status_code=400, detail=f"Failed to send test email: {result.get('error')}")
 
+# ============ CUSTOM BUILDER ROUTES ============
+
+@api_router.get("/admin/custom-builders")
+async def get_custom_builders(user: User = Depends(require_admin)):
+    """Get all custom builders (admin only)"""
+    builders = await db.custom_builders.find({}, {"_id": 0}).to_list(100)
+    # Sort by name
+    builders.sort(key=lambda x: x.get("name", ""))
+    return builders
+
+@api_router.get("/admin/custom-builders/{builder_id}")
+async def get_custom_builder(builder_id: str, user: User = Depends(require_admin)):
+    """Get single custom builder (admin only)"""
+    builder = await db.custom_builders.find_one({"id": builder_id}, {"_id": 0})
+    if not builder:
+        raise HTTPException(status_code=404, detail="Custom builder not found")
+    return builder
+
+@api_router.post("/admin/custom-builders")
+async def create_custom_builder(builder: CustomBuilderCreate, user: User = Depends(require_admin)):
+    """Create a new custom builder"""
+    # Check if slug already exists
+    existing = await db.custom_builders.find_one({"slug": builder.slug})
+    if existing:
+        raise HTTPException(status_code=400, detail="A builder with this slug already exists")
+    
+    # Create builder document
+    builder_doc = CustomBuilder(
+        name=builder.name,
+        slug=builder.slug,
+        description=builder.description,
+        fields=[field.model_dump() for field in builder.fields],
+        base_options=[opt.model_dump() for opt in builder.base_options],
+        base_option_label=builder.base_option_label,
+        show_base_options=builder.show_base_options,
+        accent_color=builder.accent_color,
+        enabled=builder.enabled,
+        show_price_calculator=builder.show_price_calculator,
+        submit_button_text=builder.submit_button_text,
+        success_message=builder.success_message
+    )
+    
+    builder_dict = builder_doc.model_dump()
+    builder_dict['created_at'] = builder_dict['created_at'].isoformat()
+    builder_dict['updated_at'] = builder_dict['updated_at'].isoformat()
+    
+    await db.custom_builders.insert_one(builder_dict)
+    
+    return {"message": "Custom builder created successfully", "id": builder_doc.id}
+
+@api_router.put("/admin/custom-builders/{builder_id}")
+async def update_custom_builder(builder_id: str, builder_update: CustomBuilderUpdate, user: User = Depends(require_admin)):
+    """Update a custom builder"""
+    existing = await db.custom_builders.find_one({"id": builder_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Custom builder not found")
+    
+    # Check slug uniqueness if being updated
+    if builder_update.slug and builder_update.slug != existing.get("slug"):
+        slug_exists = await db.custom_builders.find_one({"slug": builder_update.slug, "id": {"$ne": builder_id}})
+        if slug_exists:
+            raise HTTPException(status_code=400, detail="A builder with this slug already exists")
+    
+    update_data = {k: v for k, v in builder_update.model_dump().items() if v is not None}
+    
+    # Convert nested models to dicts
+    if "fields" in update_data:
+        update_data["fields"] = [f.model_dump() if hasattr(f, 'model_dump') else f for f in update_data["fields"]]
+    if "base_options" in update_data:
+        update_data["base_options"] = [o.model_dump() if hasattr(o, 'model_dump') else o for o in update_data["base_options"]]
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.custom_builders.update_one(
+        {"id": builder_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Custom builder updated successfully"}
+
+@api_router.delete("/admin/custom-builders/{builder_id}")
+async def delete_custom_builder(builder_id: str, user: User = Depends(require_admin)):
+    """Delete a custom builder"""
+    result = await db.custom_builders.delete_one({"id": builder_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Custom builder not found")
+    
+    # Optionally: Remove builder reference from products
+    await db.products.update_many(
+        {"custom_builder": builder_id},
+        {"$set": {"custom_builder": None}}
+    )
+    
+    return {"message": "Custom builder deleted successfully"}
+
+@api_router.get("/custom-builders/{slug}")
+async def get_public_custom_builder(slug: str):
+    """Get custom builder by slug (public - for rendering on product pages)"""
+    builder = await db.custom_builders.find_one({"slug": slug, "enabled": True}, {"_id": 0})
+    if not builder:
+        raise HTTPException(status_code=404, detail="Custom builder not found")
+    return builder
+
+@api_router.get("/custom-builders")
+async def list_public_custom_builders():
+    """List all enabled custom builders (public)"""
+    builders = await db.custom_builders.find({"enabled": True}, {"_id": 0, "id": 1, "name": 1, "slug": 1, "description": 1}).to_list(100)
+    return builders
+
+# Seed the NFC Stand Builder if it doesn't exist
+async def seed_nfc_builder():
+    """Seed the default NFC Stand Builder"""
+    existing = await db.custom_builders.find_one({"slug": "nfc-stand-builder"})
+    if existing:
+        return
+    
+    nfc_builder = {
+        "id": str(uuid.uuid4()),
+        "name": "NFC Stand Builder",
+        "slug": "nfc-stand-builder",
+        "description": "Customize your NFC payment stand with colors, logo, and links",
+        "fields": [
+            {
+                "id": str(uuid.uuid4()),
+                "type": "color_dual",
+                "label": "Choose Your Colors",
+                "name": "colors",
+                "description": "Select primary and secondary colors for your stand",
+                "required": True,
+                "order": 1,
+                "options": [],
+                "color_options": [
+                    "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FFA500",
+                    "#FFD700", "#FFFF00", "#ADFF2F", "#7FFF00", "#00FF00",
+                    "#00FA9A", "#00FFFF", "#00CED1", "#1E90FF", "#0000FF",
+                    "#8A2BE2", "#9400D3", "#FF00FF", "#FF1493", "#FF69B4",
+                    "#FFC0CB", "#FFFFFF", "#C0C0C0", "#808080", "#000000",
+                    "#8B4513", "#D2691E", "#F4A460", "#DEB887", "#F5F5DC",
+                    "#FFE4C4", "#FFDAB9"
+                ],
+                "allow_custom_color": True
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "type": "image",
+                "label": "Upload Your Logo",
+                "name": "logo",
+                "description": "Upload your business logo (PNG, JPG, or SVG)",
+                "required": True,
+                "order": 2,
+                "options": []
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "type": "icon_select",
+                "label": "NFC Link Icons",
+                "name": "nfc_icons",
+                "description": "Choose icons for each NFC chip",
+                "required": True,
+                "order": 3,
+                "options": [
+                    {"id": "ig", "label": "Instagram", "value": "instagram"},
+                    {"id": "fb", "label": "Facebook", "value": "facebook"},
+                    {"id": "tw", "label": "Twitter/X", "value": "twitter"},
+                    {"id": "tt", "label": "TikTok", "value": "tiktok"},
+                    {"id": "li", "label": "LinkedIn", "value": "linkedin"},
+                    {"id": "yt", "label": "YouTube", "value": "youtube"},
+                    {"id": "ws", "label": "Website", "value": "website"},
+                    {"id": "em", "label": "Email", "value": "email"},
+                    {"id": "ph", "label": "Phone", "value": "phone"},
+                    {"id": "wa", "label": "WhatsApp", "value": "whatsapp"},
+                    {"id": "vm", "label": "Venmo", "value": "venmo"},
+                    {"id": "ca", "label": "Cash App", "value": "cashapp"},
+                    {"id": "pp", "label": "PayPal", "value": "paypal"},
+                    {"id": "ap", "label": "Apple Pay", "value": "applepay"},
+                    {"id": "gp", "label": "Google Pay", "value": "googlepay"},
+                    {"id": "zl", "label": "Zelle", "value": "zelle"},
+                    {"id": "mn", "label": "Menu", "value": "menu"},
+                    {"id": "rv", "label": "Reviews", "value": "reviews"},
+                    {"id": "cu", "label": "Custom", "value": "custom"}
+                ]
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "type": "text",
+                "label": "NFC Links",
+                "name": "nfc_links",
+                "placeholder": "Enter URL for each NFC chip",
+                "description": "Enter the URL each NFC chip should link to",
+                "required": True,
+                "order": 4,
+                "options": []
+            }
+        ],
+        "base_options": [
+            {"id": "2nfc", "label": "2 NFC Chips", "value": "2nfc", "price_adjustment": 45.00, "description": "Perfect for dual functionality"},
+            {"id": "3nfc", "label": "3 NFC Chips", "value": "3nfc", "price_adjustment": 55.00, "description": "Maximum versatility"},
+            {"id": "2nfc-card", "label": "2 NFC + Business Card Holder", "value": "2nfc-card", "price_adjustment": 60.00, "description": "Professional networking solution"},
+            {"id": "2nfc-square", "label": "2 NFC + Square Reader", "value": "2nfc-square", "price_adjustment": 65.00, "description": "Accept payments on the go"},
+            {"id": "3nfc-card", "label": "3 NFC + Business Card Holder", "value": "3nfc-card", "price_adjustment": 70.00, "description": "Complete business solution"},
+            {"id": "3nfc-square", "label": "3 NFC + Square Reader", "value": "3nfc-square", "price_adjustment": 75.00, "description": "Complete payment solution"}
+        ],
+        "base_option_label": "Select Your Base",
+        "show_base_options": True,
+        "accent_color": "#3B82F6",
+        "enabled": True,
+        "show_price_calculator": True,
+        "submit_button_text": "Add to Cart",
+        "success_message": "Your custom NFC stand has been added to cart!",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.custom_builders.insert_one(nfc_builder)
+    logging.info("Seeded NFC Stand Builder")
+
 # ============ NFC STAND ROUTES ============
 
 from fastapi import File, UploadFile, Form
