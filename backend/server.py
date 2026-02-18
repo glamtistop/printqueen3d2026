@@ -372,6 +372,91 @@ class EmailSettingsUpdate(BaseModel):
 class TestEmailRequest(BaseModel):
     recipient_email: str
 
+# ============ CUSTOM BUILDER MODELS ============
+
+class BuilderFieldOption(BaseModel):
+    """Option for select/radio/checkbox fields"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    label: str
+    value: str
+    price_adjustment: float = 0.0  # Add/subtract from base price
+    image_url: Optional[str] = None  # Optional image for the option
+    description: Optional[str] = None
+
+class BuilderField(BaseModel):
+    """Individual field in a custom builder"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    type: str  # text, textarea, select, color, color_dual, image, checkbox, number, radio, icon_select
+    label: str
+    name: str  # Field name for form data
+    placeholder: Optional[str] = None
+    description: Optional[str] = None
+    required: bool = False
+    order: int = 0
+    # Field-specific settings
+    options: List[BuilderFieldOption] = []  # For select, radio, checkbox, icon_select
+    min_value: Optional[float] = None  # For number fields
+    max_value: Optional[float] = None  # For number fields
+    default_value: Optional[str] = None
+    # Color picker specific
+    color_options: List[str] = []  # Predefined color options (hex codes)
+    allow_custom_color: bool = True
+    # Conditional display
+    show_if_field: Optional[str] = None  # Field name to check
+    show_if_value: Optional[str] = None  # Value that triggers display
+
+class CustomBuilder(BaseModel):
+    """Custom product builder configuration"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # e.g., "NFC Stand Builder"
+    slug: str  # e.g., "nfc-stand-builder" - URL friendly
+    description: Optional[str] = None
+    # Builder configuration
+    fields: List[BuilderField] = []
+    # Base product options (like the stand variants)
+    base_options: List[BuilderFieldOption] = []
+    base_option_label: str = "Select Your Base"  # Label for base selection
+    show_base_options: bool = True
+    # Styling
+    accent_color: str = "#3B82F6"  # Primary accent color
+    # Settings
+    enabled: bool = True
+    show_price_calculator: bool = True
+    submit_button_text: str = "Add to Cart"
+    success_message: str = "Your custom product has been added to cart!"
+    # Timestamps
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CustomBuilderCreate(BaseModel):
+    name: str
+    slug: str
+    description: Optional[str] = None
+    fields: List[BuilderField] = []
+    base_options: List[BuilderFieldOption] = []
+    base_option_label: str = "Select Your Base"
+    show_base_options: bool = True
+    accent_color: str = "#3B82F6"
+    enabled: bool = True
+    show_price_calculator: bool = True
+    submit_button_text: str = "Add to Cart"
+    success_message: str = "Your custom product has been added to cart!"
+
+class CustomBuilderUpdate(BaseModel):
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    description: Optional[str] = None
+    fields: Optional[List[BuilderField]] = None
+    base_options: Optional[List[BuilderFieldOption]] = None
+    base_option_label: Optional[str] = None
+    show_base_options: Optional[bool] = None
+    accent_color: Optional[str] = None
+    enabled: Optional[bool] = None
+    show_price_calculator: Optional[bool] = None
+    submit_button_text: Optional[str] = None
+    success_message: Optional[str] = None
+
 # ============ PICKUP LOCATION MODELS ============
 
 class PickupTimeSlot(BaseModel):
