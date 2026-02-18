@@ -591,6 +591,107 @@ const CheckoutPage = () => {
                     </>
                   )}
 
+                  {/* Rush Order Option */}
+                  {shippingSettings?.rush_order_enabled && (
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-orange-500" />
+                        Rush Order
+                      </h2>
+                      <button
+                        onClick={() => setRushOrder(!rushOrder)}
+                        className={`w-full p-5 rounded-xl border-2 text-left transition-all ${
+                          rushOrder
+                            ? 'border-orange-500 bg-orange-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            rushOrder
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            <Zap className="h-6 w-6" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">
+                              {shippingSettings.rush_order_label || 'Rush Order'}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              {shippingSettings.rush_order_description || 'Expedite your order for faster processing'}
+                            </p>
+                            <p className="text-sm font-medium text-orange-600 mt-1">
+                              {shippingSettings.rush_order_days_min}-{shippingSettings.rush_order_days_max} business days
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-orange-600">
+                              +${(shippingSettings.rush_order_price || 25).toFixed(2)}
+                            </p>
+                            {rushOrder && <Check className="h-5 w-5 text-orange-500 ml-auto mt-1" />}
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Shipping Method Selection (only for shipping fulfillment) */}
+                  {fulfillmentType === 'shipping' && shippingSettings?.shipping_options?.length > 0 && (
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Truck className="h-5 w-5 text-blue-500" />
+                        Shipping Method
+                      </h2>
+                      <div className="space-y-3">
+                        {shippingSettings.shipping_options.map(option => {
+                          const isFree = shippingSettings.free_shipping_enabled && 
+                                        subtotal >= shippingSettings.free_shipping_threshold;
+                          return (
+                            <button
+                              key={option.id}
+                              onClick={() => setSelectedShippingOption(option)}
+                              className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                                selectedShippingOption?.id === option.id
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h3 className="font-semibold text-gray-900">{option.name}</h3>
+                                  {option.description && (
+                                    <p className="text-sm text-gray-500">{option.description}</p>
+                                  )}
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    {option.estimated_days_min}-{option.estimated_days_max} business days
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  {isFree ? (
+                                    <span className="font-semibold text-emerald-600">FREE</span>
+                                  ) : (
+                                    <span className="font-semibold text-gray-900">
+                                      ${option.price.toFixed(2)}
+                                    </span>
+                                  )}
+                                  {selectedShippingOption?.id === option.id && (
+                                    <Check className="h-5 w-5 text-blue-500 ml-auto mt-1" />
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                        {shippingSettings.free_shipping_enabled && subtotal < shippingSettings.free_shipping_threshold && (
+                          <p className="text-sm text-emerald-600 bg-emerald-50 p-3 rounded-lg">
+                            💡 Add ${(shippingSettings.free_shipping_threshold - subtotal).toFixed(2)} more for FREE shipping!
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Pickup Location Selection */}
                   {fulfillmentType === 'pickup' && pickupLocations.length > 0 && (
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
