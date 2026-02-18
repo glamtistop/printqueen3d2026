@@ -19,7 +19,8 @@ import {
   CreditCard,
   MapPin,
   Mail,
-  Wand2
+  Wand2,
+  Truck
 } from 'lucide-react';
 
 const AdminLayout = ({ children, activeTab, setActiveTab }) => {
@@ -37,6 +38,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'locations', label: 'Pickup Locations', icon: MapPin },
     { id: 'builders', label: 'Custom Builders', icon: Wand2 },
+    { id: 'shipping', label: 'Shipping', icon: Truck },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'email', label: 'Email', icon: Mail },
     { id: 'site-editor', label: 'Site Editor', icon: Palette },
