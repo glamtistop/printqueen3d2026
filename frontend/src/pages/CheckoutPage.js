@@ -252,6 +252,23 @@ const CheckoutPage = () => {
     }
   }, [user, cart, navigate]);
 
+  // Fetch shipping settings
+  useEffect(() => {
+    const fetchShippingSettings = async () => {
+      try {
+        const response = await axios.get(`${API}/shipping-settings`);
+        setShippingSettings(response.data);
+        // Set default shipping option
+        if (response.data.shipping_options?.length > 0) {
+          setSelectedShippingOption(response.data.shipping_options[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching shipping settings:', error);
+      }
+    };
+    fetchShippingSettings();
+  }, []);
+
   // Fetch pickup locations based on cart items
   useEffect(() => {
     const fetchLocations = async () => {
