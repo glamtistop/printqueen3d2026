@@ -1062,11 +1062,24 @@ const CheckoutPage = () => {
                   <span className="font-medium">${taxAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-600">
+                    {fulfillmentType === 'shipping' && selectedShippingOption 
+                      ? selectedShippingOption.name 
+                      : 'Shipping'}
+                  </span>
                   <span className={`font-medium ${shippingAmount === 0 ? 'text-emerald-600' : ''}`}>
                     {shippingAmount === 0 ? 'FREE' : `$${shippingAmount.toFixed(2)}`}
                   </span>
                 </div>
+                {rushOrder && rushOrderAmount > 0 && (
+                  <div className="flex justify-between text-orange-600">
+                    <span className="flex items-center gap-1">
+                      <Zap className="h-3 w-3" />
+                      {shippingSettings?.rush_order_label || 'Rush Order'}
+                    </span>
+                    <span className="font-medium">+${rushOrderAmount.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between text-xl font-bold text-gray-900 mt-4 pt-4 border-t border-gray-200">
