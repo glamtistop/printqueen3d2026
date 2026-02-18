@@ -142,6 +142,19 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Scrolling Marquee */}
+      {isSectionEnabled('marquee') && (
+        <div className="bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 py-3 overflow-hidden">
+          <div className="animate-marquee whitespace-nowrap flex">
+            {[...Array(4)].map((_, i) => (
+              <span key={i} className="mx-8 text-white font-semibold text-sm md:text-base tracking-wide">
+                {getSectionContent('marquee', 'headline', 'FREE SHIPPING ON ORDERS OVER $50 • NEW ARRIVALS WEEKLY • CUSTOM ORDERS WELCOME')}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Shop Categories */}
       {isSectionEnabled('categories') && (
       <motion.section 
