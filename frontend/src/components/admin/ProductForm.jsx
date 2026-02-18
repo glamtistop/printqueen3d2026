@@ -41,6 +41,7 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
   const [pickupLocations, setPickupLocations] = useState([]);
+  const [customBuilders, setCustomBuilders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showPickupSettings, setShowPickupSettings] = useState(false);
 
@@ -74,6 +75,7 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     fetchCategories();
     fetchCollections();
     fetchPickupLocations();
+    fetchCustomBuilders();
   }, [product]);
 
   const fetchCategories = async () => {
@@ -102,6 +104,15 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
       setPickupLocations(response.data);
     } catch (error) {
       console.error('Failed to fetch pickup locations:', error);
+    }
+  };
+
+  const fetchCustomBuilders = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/custom-builders`);
+      setCustomBuilders(response.data);
+    } catch (error) {
+      console.error('Failed to fetch custom builders:', error);
     }
   };
 
