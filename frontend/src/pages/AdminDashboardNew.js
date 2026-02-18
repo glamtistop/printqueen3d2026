@@ -12,6 +12,7 @@ import { SiteEditor } from '../components/admin/SiteEditor';
 import { PaymentSettings } from '../components/admin/PaymentSettings';
 import { EmailSettings } from '../components/admin/EmailSettings';
 import { PickupLocationManager } from '../components/admin/PickupLocationManager';
+import { CustomBuilderManager } from '../components/admin/CustomBuilderManager';
 
 const AdminDashboardNew = () => {
   const { user } = useContext(AuthContext);
@@ -39,6 +40,8 @@ const AdminDashboardNew = () => {
         return <CustomerManager />;
       case 'locations':
         return <PickupLocationManager />;
+      case 'builders':
+        return <CustomBuilderManager />;
       case 'payments':
         return <PaymentSettings />;
       case 'email':
