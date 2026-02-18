@@ -340,6 +340,51 @@ class StripeSettingsUpdate(BaseModel):
     free_shipping_threshold: Optional[float] = None
     flat_shipping_rate: Optional[float] = None
 
+# ============ SHIPPING SETTINGS MODELS ============
+
+class ShippingOption(BaseModel):
+    """Individual shipping option"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # e.g., "Standard Shipping", "Express Shipping"
+    description: Optional[str] = None  # e.g., "5-7 business days"
+    price: float  # Shipping cost
+    estimated_days_min: int = 5  # Minimum delivery days
+    estimated_days_max: int = 7  # Maximum delivery days
+    enabled: bool = True
+    order: int = 0  # Display order
+
+class ShippingSettings(BaseModel):
+    """Shipping configuration"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = "shipping_settings"
+    # Default shipping location (for ship-from address)
+    default_location_id: Optional[str] = None
+    # Shipping options
+    shipping_options: List[ShippingOption] = []
+    # Free shipping threshold
+    free_shipping_enabled: bool = True
+    free_shipping_threshold: float = 50.0
+    # Rush order settings
+    rush_order_enabled: bool = True
+    rush_order_price: float = 25.0
+    rush_order_days_min: int = 1
+    rush_order_days_max: int = 3
+    rush_order_label: str = "Rush Order"
+    rush_order_description: str = "Expedite your order for faster processing"
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ShippingSettingsUpdate(BaseModel):
+    default_location_id: Optional[str] = None
+    shipping_options: Optional[List[ShippingOption]] = None
+    free_shipping_enabled: Optional[bool] = None
+    free_shipping_threshold: Optional[float] = None
+    rush_order_enabled: Optional[bool] = None
+    rush_order_price: Optional[float] = None
+    rush_order_days_min: Optional[int] = None
+    rush_order_days_max: Optional[int] = None
+    rush_order_label: Optional[str] = None
+    rush_order_description: Optional[str] = None
+
 # ============ EMAIL SETTINGS MODELS ============
 
 class EmailSettings(BaseModel):
