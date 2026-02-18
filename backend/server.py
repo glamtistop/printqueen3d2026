@@ -2748,6 +2748,186 @@ async def get_product_pickup_locations(product_id: str):
         "pickup_only": product.get("pickup_only", False)
     }
 
+# ============ DATABASE EXPORT/IMPORT ROUTES ============
+
+import json
+from fastapi.responses import Response
+
+@api_router.get("/admin/export-database")
+async def export_database(user: User = Depends(require_admin)):
+    """Export all database collections to JSON (admin only)"""
+    try:
+        export_data = {
+            "export_version": "1.0",
+            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "collections": {}
+        }
+        
+        # List of collections to export
+        collections_to_export = [
+            "users",
+            "products", 
+            "categories",
+            "collections",
+            "orders",
+            "site_settings",
+            "stripe_settings",
+            "email_settings",
+            "shipping_settings",
+            "pickup_locations",
+            "custom_builders",
+            "homepage_sections"
+        ]
+        
+        for collection_name in collections_to_export:
+            try:
+                collection = db[collection_name]
+                documents = await collection.find({}, {"_id": 0}).to_list(10000)
+                export_data["collections"][collection_name] = documents
+                logging.info(f"Exported {len(documents)} documents from {collection_name}")
+            except Exception as e:
+                logging.warning(f"Could not export {collection_name}: {str(e)}")
+                export_data["collections"][collection_name] = []
+        
+        # Convert to JSON string
+        json_str = json.dumps(export_data, indent=2, default=str)
+        
+        # Return as downloadable file
+        return Response(
+            content=json_str,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": "attachment; filename=printqueen3d_database_export.json"
+            }
+        )
+    except Exception as e:
+        logging.error(f"Database export error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+class ImportRequest(BaseModel):
+    data: Dict
+    overwrite: bool = False  # If true, clear existing data before import
+
+@api_router.post("/admin/import-database")
+async def import_database(import_request: ImportRequest, user: User = Depends(require_admin)):
+    """Import database from JSON export (admin only)"""
+    try:
+        data = import_request.data
+        overwrite = import_request.overwrite
+        
+        if "collections" not in data:
+            raise HTTPException(status_code=400, detail="Invalid export format: missing 'collections' key")
+        
+        import_results = {}
+        
+        for collection_name, documents in data["collections"].items():
+            if not documents:
+                import_results[collection_name] = {"status": "skipped", "count": 0, "reason": "empty"}
+                continue
+            
+            try:
+                collection = db[collection_name]
+                
+                # Special handling for users - don't overwrite existing admin
+                if collection_name == "users":
+                    for doc in documents:
+                        # Check if user already exists
+                        existing = await collection.find_one({"email": doc.get("email")})
+                        if existing:
+                            # Update existing user (but preserve their password if they have one)
+                            if existing.get("hashed_password") and not doc.get("hashed_password"):
+                                doc["hashed_password"] = existing["hashed_password"]
+                            await collection.update_one(
+                                {"email": doc.get("email")},
+                                {"$set": doc}
+                            )
+                        else:
+                            await collection.insert_one(doc)
+                    import_results[collection_name] = {"status": "merged", "count": len(documents)}
+                    continue
+                
+                # For settings collections (single document), use upsert
+                if collection_name in ["site_settings", "stripe_settings", "email_settings", "shipping_settings"]:
+                    for doc in documents:
+                        doc_id = doc.get("id", collection_name)
+                        await collection.update_one(
+                            {"id": doc_id},
+                            {"$set": doc},
+                            upsert=True
+                        )
+                    import_results[collection_name] = {"status": "upserted", "count": len(documents)}
+                    continue
+                
+                # For other collections
+                if overwrite:
+                    # Clear existing data
+                    await collection.delete_many({})
+                    
+                # Insert documents (skip duplicates based on 'id' field)
+                inserted = 0
+                updated = 0
+                for doc in documents:
+                    doc_id = doc.get("id")
+                    if doc_id:
+                        existing = await collection.find_one({"id": doc_id})
+                        if existing:
+                            if overwrite:
+                                await collection.update_one({"id": doc_id}, {"$set": doc})
+                                updated += 1
+                        else:
+                            await collection.insert_one(doc)
+                            inserted += 1
+                    else:
+                        await collection.insert_one(doc)
+                        inserted += 1
+                
+                import_results[collection_name] = {
+                    "status": "success", 
+                    "inserted": inserted, 
+                    "updated": updated
+                }
+                
+            except Exception as e:
+                logging.error(f"Error importing {collection_name}: {str(e)}")
+                import_results[collection_name] = {"status": "error", "error": str(e)}
+        
+        return {
+            "message": "Import completed",
+            "results": import_results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Database import error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+@api_router.get("/admin/export-database-info")
+async def get_export_info(user: User = Depends(require_admin)):
+    """Get info about what will be exported (admin only)"""
+    try:
+        collections_info = {}
+        
+        collections_to_check = [
+            "users", "products", "categories", "collections", "orders",
+            "site_settings", "stripe_settings", "email_settings", 
+            "shipping_settings", "pickup_locations", "custom_builders",
+            "homepage_sections"
+        ]
+        
+        for collection_name in collections_to_check:
+            try:
+                count = await db[collection_name].count_documents({})
+                collections_info[collection_name] = count
+            except:
+                collections_info[collection_name] = 0
+        
+        return {
+            "collections": collections_info,
+            "total_documents": sum(collections_info.values())
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
