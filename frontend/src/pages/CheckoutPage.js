@@ -213,6 +213,11 @@ const CheckoutPage = () => {
     country: 'US'
   });
 
+  // Shipping settings state
+  const [shippingSettings, setShippingSettings] = useState(null);
+  const [selectedShippingOption, setSelectedShippingOption] = useState(null);
+  const [rushOrder, setRushOrder] = useState(false);
+
   const steps = [
     { id: 'fulfillment', label: 'Fulfillment' },
     { id: 'details', label: 'Details' },
@@ -221,12 +226,22 @@ const CheckoutPage = () => {
 
   const availableDates = getAvailableDates();
   
-  // Calculate totals
+  // Calculate totals with dynamic shipping and rush order
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const taxRate = 0.0925; // 9.25% CA tax
   const taxAmount = subtotal * taxRate;
-  const shippingAmount = fulfillmentType === 'shipping' ? (subtotal >= 50 ? 0 : 5.99) : 0;
-  const total = subtotal + taxAmount + shippingAmount;
+  
+  // Determine shipping cost
+  const getShippingCost = () => {
+    if (fulfillmentType !== 'shipping') return 0;
+    if (shippingSettings?.free_shipping_enabled && subtotal >= shippingSettings.free_shipping_threshold) return 0;
+    if (selectedShippingOption) return selectedShippingOption.price;
+    return 5.99; // Default fallback
+  };
+  
+  const shippingAmount = getShippingCost();
+  const rushOrderAmount = rushOrder && shippingSettings?.rush_order_enabled ? (shippingSettings.rush_order_price || 25) : 0;
+  const total = subtotal + taxAmount + shippingAmount + rushOrderAmount;
 
   // Redirect if no user or empty cart
   useEffect(() => {
