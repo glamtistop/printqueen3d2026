@@ -11,6 +11,7 @@ import { CustomerManager } from '../components/admin/CustomerManager';
 import { SiteEditor } from '../components/admin/SiteEditor';
 import { PaymentSettings } from '../components/admin/PaymentSettings';
 import { EmailSettings } from '../components/admin/EmailSettings';
+import { ShippingSettings } from '../components/admin/ShippingSettings';
 import { PickupLocationManager } from '../components/admin/PickupLocationManager';
 import { CustomBuilderManager } from '../components/admin/CustomBuilderManager';
 
@@ -42,6 +43,8 @@ const AdminDashboardNew = () => {
         return <PickupLocationManager />;
       case 'builders':
         return <CustomBuilderManager />;
+      case 'shipping':
+        return <ShippingSettings />;
       case 'payments':
         return <PaymentSettings />;
       case 'email':
