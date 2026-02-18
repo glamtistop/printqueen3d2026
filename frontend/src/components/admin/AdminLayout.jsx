@@ -20,7 +20,8 @@ import {
   MapPin,
   Mail,
   Wand2,
-  Truck
+  Truck,
+  Database
 } from 'lucide-react';
 
 const AdminLayout = ({ children, activeTab, setActiveTab }) => {
@@ -42,6 +43,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'email', label: 'Email', icon: Mail },
     { id: 'site-editor', label: 'Site Editor', icon: Palette },
+    { id: 'database', label: 'Database', icon: Database },
   ];
 
   const handleNavClick = (id) => {
