@@ -305,7 +305,8 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
           <p className="text-xs text-gray-500 -mt-2 pl-4">Customers can choose from 32 premium colors when this is enabled</p>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              <Wand2 className="h-4 w-4 text-purple-500" />
               Custom Builder (Optional)
             </label>
             <select
@@ -314,7 +315,11 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">None - Standard Product Page</option>
-              <option value="nfc-stand-builder">NFC Stand Builder</option>
+              {customBuilders.map((builder) => (
+                <option key={builder.id} value={builder.slug}>
+                  {builder.name}
+                </option>
+              ))}
             </select>
             <p className="text-xs text-gray-500 mt-1">Add custom builder component for product customization</p>
           </div>
