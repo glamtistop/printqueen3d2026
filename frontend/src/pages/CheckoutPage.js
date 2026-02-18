@@ -380,7 +380,16 @@ const CheckoutPage = () => {
           name: customerInfo.name,
           email: customerInfo.email,
           phone: customerInfo.phone || null
-        }
+        },
+        // Rush order data
+        rush_order: rushOrder,
+        rush_order_amount: rushOrderAmount,
+        // Shipping option data
+        shipping_option: fulfillmentType === 'shipping' && selectedShippingOption ? {
+          id: selectedShippingOption.id,
+          name: selectedShippingOption.name,
+          price: selectedShippingOption.price
+        } : null
       };
 
       // Add fulfillment-specific data
