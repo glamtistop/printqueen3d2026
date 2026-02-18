@@ -20,7 +20,8 @@ import {
   AlertCircle,
   Palette,
   ShoppingBag,
-  ArrowLeft
+  ArrowLeft,
+  Zap
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
