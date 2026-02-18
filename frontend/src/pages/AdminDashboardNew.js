@@ -14,6 +14,7 @@ import { EmailSettings } from '../components/admin/EmailSettings';
 import { ShippingSettings } from '../components/admin/ShippingSettings';
 import { PickupLocationManager } from '../components/admin/PickupLocationManager';
 import { CustomBuilderManager } from '../components/admin/CustomBuilderManager';
+import { DatabaseManager } from '../components/admin/DatabaseManager';
 
 const AdminDashboardNew = () => {
   const { user } = useContext(AuthContext);
@@ -51,6 +52,8 @@ const AdminDashboardNew = () => {
         return <EmailSettings />;
       case 'site-editor':
         return <SiteEditor />;
+      case 'database':
+        return <DatabaseManager />;
       default:
         return <AdminDashboardHome onNavigate={setActiveTab} />;
     }
