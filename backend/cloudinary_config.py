@@ -24,14 +24,18 @@ if cloudinary_url:
         )
     else:
         raise ValueError(f"Invalid CLOUDINARY_URL format: {cloudinary_url}")
-else:
-    raise ValueError("CLOUDINARY_URL environment variable not set")
 
 class CloudinaryService:
+    @staticmethod
+    def _require_configured():
+        if not cloudinary_url:
+            raise Exception("Cloudinary is not configured. Add CLOUDINARY_URL to the backend environment.")
+
     @staticmethod
     def upload_image(file_content: bytes, folder: str = "products", public_id: str = None) -> dict:
         """Upload image to Cloudinary with optimization"""
         try:
+            CloudinaryService._require_configured()
             upload_options = {
                 "folder": folder,
                 "resource_type": "image",
@@ -66,6 +70,7 @@ class CloudinaryService:
     def delete_image(public_id: str) -> dict:
         """Delete image from Cloudinary"""
         try:
+            CloudinaryService._require_configured()
             result = cloudinary.uploader.destroy(public_id)
             return {"result": result.get("result"), "public_id": public_id}
         except Exception as e:
@@ -75,6 +80,7 @@ class CloudinaryService:
     def delete_multiple_images(public_ids: list) -> dict:
         """Delete multiple images from Cloudinary"""
         try:
+            CloudinaryService._require_configured()
             result = cloudinary.api.delete_resources(public_ids)
             return result
         except Exception as e:

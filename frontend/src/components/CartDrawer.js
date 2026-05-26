@@ -27,8 +27,7 @@ const CartDrawer = ({ children }) => {
     setIsOpen(false);
     if (!user) {
       toast.error('Please sign in to checkout');
-      const redirectUrl = `${window.location.origin}/checkout`;
-      window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+      navigate('/login?redirect=/checkout');
     } else {
       navigate('/checkout');
     }

@@ -364,8 +364,8 @@ export const DatabaseManager = () => {
         </h3>
         <ol className="list-decimal list-inside space-y-2 text-blue-700">
           <li>Click "Export Database" above to download your data</li>
-          <li>Clone this repository to your new Emergent account</li>
-          <li>Go to Admin → Database in the new account</li>
+          <li>Clone this repository to your new hosting account</li>
+          <li>Go to Admin → Database in the new deployment</li>
           <li>Upload the exported JSON file and click "Import Database"</li>
           <li>Your products, settings, and configurations will be restored</li>
         </ol>

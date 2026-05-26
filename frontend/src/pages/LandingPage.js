@@ -20,9 +20,9 @@ const LandingPage = () => {
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.5]);
 
   const bannerImages = [
-    'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/3gxh6aog_custom3dprints.PNG',
-    'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/gzhz9uee_paymentstands.PNG',
-    'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/cmhra1j0_nfckeychain.png'
+    '/assets/homepage/custom-3d-prints.png',
+    '/assets/homepage/payment-stands.png',
+    '/assets/homepage/nfc-keychain.png'
   ];
 
   // Fetch site configuration
@@ -167,12 +167,12 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { name: 'Payment Stands', link: '/products?category=Payment Stands', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/1x9anwex_Payment%20Stands.JPEG' },
-              { name: 'Keychains', link: '/products?category=Keychains', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/lv917wjw_Keychains.JPEG' },
-              { name: 'Home Decor', link: '/products?category=Home Decor', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/qet0lf5s_Home%20Decor.JPEG' },
-              { name: 'Incense Holders', link: '/products?category=Incense Holders', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/00hi9ssm_Insense%20Holder.JPEG' },
-              { name: 'Toys & Fidgets', link: '/products?category=Toys & Fidgets', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/tnhixlyx_Toys%20and%20Fidgets.JPEG' },
-              { name: 'Custom 3D Prints', link: '/products?category=Custom 3D Prints', image: 'https://customer-assets.emergentagent.com/job_inspiring-curie/artifacts/j7ob4q4t_Custom%203d%20Prints.JPEG' }
+              { name: 'Payment Stands', link: '/products?category=Payment Stands', image: '/assets/homepage/category-payment-stands.jpg' },
+              { name: 'Keychains', link: '/products?category=Keychains', image: '/assets/homepage/category-keychains.jpg' },
+              { name: 'Home Decor', link: '/products?category=Home Decor', image: '/assets/homepage/category-home-decor.jpg' },
+              { name: 'Incense Holders', link: '/products?category=Incense Holders', image: '/assets/homepage/category-incense-holders.jpg' },
+              { name: 'Toys & Fidgets', link: '/products?category=Toys & Fidgets', image: '/assets/homepage/category-toys-fidgets.jpg' },
+              { name: 'Custom 3D Prints', link: '/products?category=Custom 3D Prints', image: '/assets/homepage/category-custom-3d-prints.jpg' }
             ].map((category) => (
               <Link
                 key={category.name}

@@ -5,13 +5,13 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import json
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone, timedelta
-import requests
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+import stripe
 from cloudinary_config import CloudinaryService
 import bcrypt
 import resend
@@ -26,6 +26,7 @@ db = client[os.environ['DB_NAME']]
 
 # Stripe setup
 stripe_api_key = os.environ.get('STRIPE_API_KEY')
+stripe_webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
 # Create the main app
 app = FastAPI()
@@ -46,6 +47,11 @@ class User(BaseModel):
 class EmailPasswordLogin(BaseModel):
     email: str
     password: str
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    name: str
 
 class SetPassword(BaseModel):
     password: str
@@ -232,6 +238,28 @@ class SessionDataRequest(BaseModel):
 class CheckoutRequest(BaseModel):
     order_id: str
     origin_url: str
+
+def require_stripe_key() -> str:
+    if not stripe_api_key:
+        raise HTTPException(status_code=500, detail="Stripe is not configured. Add STRIPE_API_KEY to the backend environment.")
+    return stripe_api_key
+
+def amount_to_cents(amount: float) -> int:
+    return int(round(float(amount) * 100))
+
+async def mark_checkout_paid(session_id: str, payment_status: str = "paid"):
+    await db.payment_transactions.update_one(
+        {"session_id": session_id},
+        {"$set": {"payment_status": payment_status}}
+    )
+
+    transaction = await db.payment_transactions.find_one({"session_id": session_id})
+    order_id = transaction.get("metadata", {}).get("order_id") if transaction else None
+    if order_id and payment_status == "paid":
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": {"status": "processing"}}
+        )
 
 # ============ SITE EDITOR MODELS ============
 
@@ -556,6 +584,24 @@ class PickupLocationUpdate(BaseModel):
 
 # ============ AUTH HELPERS ============
 
+def should_use_secure_cookie(request: Request) -> bool:
+    cookie_secure = os.environ.get("COOKIE_SECURE")
+    if cookie_secure is not None:
+        return cookie_secure.lower() == "true"
+    return request.url.scheme == "https"
+
+def set_session_cookie(response: Response, request: Request, session_token: str):
+    secure_cookie = should_use_secure_cookie(request)
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=secure_cookie,
+        samesite="none" if secure_cookie else "lax",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+
 async def get_current_user(request: Request, authorization: Optional[str] = Header(None)) -> Optional[User]:
     """Get current user from session token in cookie or Authorization header"""
     session_token = None
@@ -615,74 +661,20 @@ async def require_admin(request: Request, authorization: Optional[str] = Header(
 
 @api_router.post("/auth/session")
 async def process_session(request: Request, x_session_id: str = Header(..., alias="X-Session-ID")):
-    """Process Emergent Auth session ID and create user session"""
-    try:
-        # Call Emergent Auth API to get session data (use GET not POST!)
-        response = requests.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-            headers={"X-Session-ID": x_session_id}
-        )
-        response.raise_for_status()
-        session_data = response.json()
-        
-        # Check if user exists
-        existing_user = await db.users.find_one({"email": session_data["email"]})
-        
-        if existing_user:
-            user_id = existing_user["id"]
-        else:
-            # Create new user
-            user = User(
-                email=session_data["email"],
-                name=session_data["name"],
-                picture=session_data["picture"],
-                is_admin=False
-            )
-            user_dict = user.model_dump()
-            user_dict['created_at'] = user_dict['created_at'].isoformat()
-            await db.users.insert_one(user_dict)
-            user_id = user.id
-        
-        # Create session
-        session_token = session_data["session_token"]
-        expires_at = datetime.now(timezone.utc) + timedelta(days=7)
-        
-        user_session = UserSession(
-            user_id=user_id,
-            session_token=session_token,
-            expires_at=expires_at
-        )
-        session_dict = user_session.model_dump()
-        session_dict['expires_at'] = session_dict['expires_at'].isoformat()
-        session_dict['created_at'] = session_dict['created_at'].isoformat()
-        await db.user_sessions.insert_one(session_dict)
-        
-        # Create response with cookie
-        response = JSONResponse(content={
-            "id": user_id,
-            "email": session_data["email"],
-            "name": session_data["name"],
-            "picture": session_data["picture"]
-        })
-        response.set_cookie(
-            key="session_token",
-            value=session_token,
-            httponly=True,
-            secure=True,
-            samesite="none",
-            path="/",
-            max_age=7*24*60*60
-        )
-        return response
-        
-    except Exception as e:
-        logging.error(f"Session processing error: {e}")
-        raise HTTPException(status_code=400, detail="Failed to process session")
+    """Legacy social-login callback is no longer available."""
+    raise HTTPException(status_code=410, detail="Social login is no longer configured. Please use email and password login.")
 
 @api_router.get("/auth/me")
 async def get_me(user: User = Depends(require_auth)):
     """Get current user info"""
-    return user
+    return {
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "picture": user.picture,
+        "is_admin": user.is_admin,
+        "created_at": user.created_at
+    }
 
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
@@ -721,11 +713,61 @@ async def set_password(password_data: SetPassword, user: User = Depends(require_
     
     return {"message": "Password set successfully"}
 
+@api_router.post("/auth/register")
+async def register_user(register_data: RegisterRequest, request: Request, background_tasks: BackgroundTasks):
+    """Create a customer account with email and password"""
+    email = register_data.email.strip().lower()
+    name = register_data.name.strip()
+
+    if len(register_data.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required")
+
+    existing_user = await db.users.find_one({"email": email})
+    if existing_user:
+        raise HTTPException(status_code=409, detail="An account already exists for this email")
+
+    user = User(
+        email=email,
+        name=name,
+        hashed_password=hash_password(register_data.password),
+        is_admin=False
+    )
+    user_dict = user.model_dump()
+    user_dict['created_at'] = user_dict['created_at'].isoformat()
+    await db.users.insert_one(user_dict)
+
+    session_token = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    user_session = UserSession(
+        user_id=user.id,
+        session_token=session_token,
+        expires_at=expires_at
+    )
+    session_dict = user_session.model_dump()
+    session_dict['expires_at'] = session_dict['expires_at'].isoformat()
+    session_dict['created_at'] = session_dict['created_at'].isoformat()
+    await db.user_sessions.insert_one(session_dict)
+
+    response = JSONResponse(content={
+        "message": "Account created",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "is_admin": user.is_admin
+        }
+    })
+    set_session_cookie(response, request, session_token)
+    background_tasks.add_task(send_welcome_email_background, user.id)
+    return response
+
 @api_router.post("/auth/login")
-async def email_password_login(login_data: EmailPasswordLogin):
+async def email_password_login(login_data: EmailPasswordLogin, request: Request):
     """Login with email and password (backup authentication method)"""
     # Find user by email
-    user_doc = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+    user_doc = await db.users.find_one({"email": login_data.email.strip().lower()}, {"_id": 0})
     
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -763,17 +805,89 @@ async def email_password_login(login_data: EmailPasswordLogin):
         }
     })
     
-    response.set_cookie(
-        key="session_token",
-        value=session_token,
-        httponly=True,
-        secure=True,
-        samesite="none",
-        path="/",
-        max_age=7 * 24 * 60 * 60
-    )
+    set_session_cookie(response, request, session_token)
     
     return response
+
+async def seed_admin_user():
+    admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
+    admin_password = os.environ.get("ADMIN_PASSWORD", "")
+    admin_name = os.environ.get("ADMIN_NAME", "Print Queen Admin").strip()
+
+    if not admin_email or not admin_password:
+        return
+    if len(admin_password) < 8:
+        logging.warning("ADMIN_PASSWORD must be at least 8 characters; admin user was not created.")
+        return
+
+    existing_user = await db.users.find_one({"email": admin_email})
+    if existing_user:
+        update_data = {"is_admin": True}
+        if not existing_user.get("hashed_password"):
+            update_data["hashed_password"] = hash_password(admin_password)
+        await db.users.update_one({"email": admin_email}, {"$set": update_data})
+        return
+
+    user = User(
+        email=admin_email,
+        name=admin_name or "Print Queen Admin",
+        hashed_password=hash_password(admin_password),
+        is_admin=True
+    )
+    user_dict = user.model_dump()
+    user_dict['created_at'] = user_dict['created_at'].isoformat()
+    await db.users.insert_one(user_dict)
+
+async def seed_email_settings():
+    resend_api_key = os.environ.get("RESEND_API_KEY", "").strip()
+    if not resend_api_key:
+        return
+
+    update_data = {
+        "id": "email_settings",
+        "provider": "resend",
+        "api_key": resend_api_key,
+        "sender_name": os.environ.get("EMAIL_SENDER_NAME", "Print Queen 3D").strip() or "Print Queen 3D",
+        "sender_email": os.environ.get("EMAIL_SENDER_EMAIL", "noreply@example.com").strip() or "noreply@example.com",
+        "enabled": True,
+        "send_order_confirmation": True,
+        "send_status_updates": True,
+        "send_welcome_emails": True,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+    admin_email = os.environ.get("EMAIL_ADMIN_EMAIL", "").strip()
+    if admin_email:
+        update_data["admin_email"] = admin_email
+
+    await db.email_settings.update_one(
+        {"id": "email_settings"},
+        {"$set": update_data},
+        upsert=True
+    )
+
+async def seed_stripe_settings():
+    publishable_key = os.environ.get("STRIPE_PUBLISHABLE_KEY", "").strip()
+    if not publishable_key:
+        return
+
+    await db.stripe_settings.update_one(
+        {"id": "stripe_settings"},
+        {"$set": {
+            "id": "stripe_settings",
+            "publishable_key": publishable_key,
+            "test_mode": not publishable_key.startswith("pk_live_"),
+            "currency": "usd",
+            "enable_apple_pay": True,
+            "enable_google_pay": True,
+            "enable_link": True,
+            "tax_rate": 0.0,
+            "free_shipping_threshold": 50.0,
+            "flat_shipping_rate": 5.99,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
 
 # ============ PRODUCT ROUTES ============
 
@@ -1122,7 +1236,7 @@ async def get_orders(user: User = Depends(require_auth)):
     return orders
 
 @api_router.post("/orders", response_model=Order)
-async def create_order(order_data: OrderCreate, user: User = Depends(require_auth)):
+async def create_order(order_data: OrderCreate, background_tasks: BackgroundTasks, user: User = Depends(require_auth)):
     """Create new order"""
     order = Order(
         user_id=user.id,
@@ -1140,6 +1254,7 @@ async def create_order(order_data: OrderCreate, user: User = Depends(require_aut
     order_dict = order.model_dump()
     order_dict['created_at'] = order_dict['created_at'].isoformat()
     await db.orders.insert_one(order_dict)
+    background_tasks.add_task(send_order_confirmation_email_background, order.id)
     return order
 
 @api_router.get("/orders/{order_id}", response_model=Order)
@@ -1162,20 +1277,29 @@ async def create_checkout_session(checkout_req: CheckoutRequest, user: User = De
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
-    # Initialize Stripe
-    webhook_url = f"{checkout_req.origin_url}/api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
-    
     # Create success and cancel URLs
-    success_url = f"{checkout_req.origin_url}/order-success?session_id={{{{CHECKOUT_SESSION_ID}}}}"
+    success_url = f"{checkout_req.origin_url}/order-success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{checkout_req.origin_url}/checkout"
     
     # Create checkout session
-    checkout_request = CheckoutSessionRequest(
-        amount=float(order["total"]),
-        currency="usd",
+    stripe.api_key = require_stripe_key()
+    session = stripe.checkout.Session.create(
+        mode="payment",
         success_url=success_url,
         cancel_url=cancel_url,
+        customer_email=user.email,
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": f"Print Queen 3D order {order['id'][:8]}",
+                    },
+                    "unit_amount": amount_to_cents(order["total"]),
+                },
+                "quantity": 1,
+            }
+        ],
         metadata={
             "order_id": order["id"],
             "user_id": user.id,
@@ -1183,11 +1307,9 @@ async def create_checkout_session(checkout_req: CheckoutRequest, user: User = De
         }
     )
     
-    session = await stripe_checkout.create_checkout_session(checkout_request)
-    
     # Create payment transaction record
     transaction = PaymentTransaction(
-        session_id=session.session_id,
+        session_id=session.id,
         user_id=user.id,
         amount=float(order["total"]),
         currency="usd",
@@ -1203,10 +1325,10 @@ async def create_checkout_session(checkout_req: CheckoutRequest, user: User = De
     # Update order with payment session ID
     await db.orders.update_one(
         {"id": order["id"]},
-        {"$set": {"payment_session_id": session.session_id}}
+        {"$set": {"payment_session_id": session.id}}
     )
     
-    return {"url": session.url, "session_id": session.session_id}
+    return {"url": session.url, "session_id": session.id}
 
 @api_router.get("/checkout/status/{session_id}")
 async def get_checkout_status(session_id: str, user: User = Depends(require_auth)):
@@ -1225,24 +1347,12 @@ async def get_checkout_status(session_id: str, user: User = Depends(require_auth
         }
     
     # Check with Stripe
-    webhook_url = f"{os.environ.get('REACT_APP_BACKEND_URL', '')}/api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
-    
-    checkout_status = await stripe_checkout.get_checkout_status(session_id)
+    stripe.api_key = require_stripe_key()
+    checkout_status = stripe.checkout.Session.retrieve(session_id)
     
     # Update transaction status
     if checkout_status.payment_status == "paid" and transaction["payment_status"] != "paid":
-        await db.payment_transactions.update_one(
-            {"session_id": session_id},
-            {"$set": {"payment_status": "paid"}}
-        )
-        
-        # Update order status
-        if transaction.get("metadata") and transaction["metadata"].get("order_id"):
-            await db.orders.update_one(
-                {"id": transaction["metadata"]["order_id"]},
-                {"$set": {"status": "processing"}}
-            )
+        await mark_checkout_paid(session_id, "paid")
     
     return {
         "status": checkout_status.status,
@@ -1255,21 +1365,30 @@ async def stripe_webhook(request: Request):
     """Handle Stripe webhooks"""
     body = await request.body()
     signature = request.headers.get("Stripe-Signature")
-    
-    webhook_url = f"{os.environ.get('REACT_APP_BACKEND_URL', '')}/api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
+
+    stripe.api_key = require_stripe_key()
     
     try:
-        webhook_response = await stripe_checkout.handle_webhook(body, signature)
-        
-        # Update transaction
-        if webhook_response.session_id:
+        if stripe_webhook_secret:
+            event = stripe.Webhook.construct_event(body, signature, stripe_webhook_secret)
+        else:
+            event = json.loads(body.decode("utf-8"))
+
+        if event["type"] in ["checkout.session.completed", "checkout.session.async_payment_succeeded"]:
+            session = event["data"]["object"]
+            await mark_checkout_paid(session["id"], session.get("payment_status", "paid"))
+        elif event["type"] in ["checkout.session.expired", "checkout.session.async_payment_failed"]:
+            session = event["data"]["object"]
             await db.payment_transactions.update_one(
-                {"session_id": webhook_response.session_id},
-                {"$set": {"payment_status": webhook_response.payment_status}}
+                {"session_id": session["id"]},
+                {"$set": {"payment_status": session.get("payment_status", "failed")}}
             )
         
         return {"status": "success"}
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Stripe webhook payload")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid Stripe webhook signature")
     except Exception as e:
         logging.error(f"Webhook error: {e}")
         raise HTTPException(status_code=400, detail="Webhook processing failed")
@@ -1286,7 +1405,7 @@ async def get_all_orders(user: User = Depends(require_admin)):
     return orders
 
 @api_router.put("/admin/orders/{order_id}/status")
-async def update_order_status(order_id: str, status: str, user: User = Depends(require_admin)):
+async def update_order_status(order_id: str, status: str, background_tasks: BackgroundTasks, user: User = Depends(require_admin)):
     """Update order status (admin only)"""
     update_data = {"status": status}
     
@@ -1300,6 +1419,7 @@ async def update_order_status(order_id: str, status: str, user: User = Depends(r
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
+    background_tasks.add_task(send_status_update_email_background, order_id, status)
     return {"message": "Order status updated"}
 
 class OrderFulfillment(BaseModel):
@@ -2937,7 +3057,7 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -2952,6 +3072,9 @@ logger = logging.getLogger(__name__)
 @app.on_event("startup")
 async def startup_event():
     """Run startup tasks"""
+    await seed_admin_user()
+    await seed_email_settings()
+    await seed_stripe_settings()
     await seed_nfc_builder()
 
 @app.on_event("shutdown")
