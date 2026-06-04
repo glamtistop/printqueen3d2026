@@ -44,7 +44,7 @@ https://YOUR-BACKEND-DOMAIN.vercel.app
 Stripe webhook endpoint:
 
 ```text
-https://YOUR-BACKEND-DOMAIN.vercel.app/api/webhook/stripe
+https://www.printqueen3d.com/api/webhook/stripe
 ```
 
 ## Frontend Project
