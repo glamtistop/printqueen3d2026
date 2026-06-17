@@ -323,6 +323,7 @@ class SectionContent(BaseModel):
     button_link: Optional[str] = None
     image_url: Optional[str] = None
     background_image_url: Optional[str] = None
+    categories: Optional[List[Dict[str, str]]] = None
 
 class HomepageSection(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -1546,7 +1547,15 @@ DEFAULT_SECTIONS = [
         "order": 3,
         "content": {
             "headline": "Shop by Category",
-            "subheadline": "Find exactly what you're looking for"
+            "subheadline": "Find exactly what you're looking for",
+            "categories": [
+                {"name": "Payment Stands", "link": "/products?category=Payment%20Stands", "image": "/assets/homepage/category-payment-stands.jpg"},
+                {"name": "Keychains", "link": "/products?category=Keychains", "image": "/assets/homepage/category-keychains.jpg"},
+                {"name": "Home Decor", "link": "/products?category=Home%20Decor", "image": "/assets/homepage/category-home-decor.jpg"},
+                {"name": "Incense Holders", "link": "/products?category=Incense%20Holders", "image": "/assets/homepage/category-incense-holders.jpg"},
+                {"name": "Toys & Fidgets", "link": "/products?category=Toys%20%26%20Fidgets", "image": "/assets/homepage/category-toys-fidgets.jpg"},
+                {"name": "Custom 3D Prints", "link": "/products?category=Custom%203D%20Prints", "image": "/assets/homepage/category-custom-3d-prints.jpg"}
+            ]
         }
     },
     {

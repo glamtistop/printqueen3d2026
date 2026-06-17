@@ -52,6 +52,20 @@ import { ImageUploader } from './ImageUploader';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
+const DEFAULT_HOMEPAGE_CATEGORIES = [
+  { name: 'Payment Stands', link: '/products?category=Payment%20Stands', image: '/assets/homepage/category-payment-stands.jpg' },
+  { name: 'Keychains', link: '/products?category=Keychains', image: '/assets/homepage/category-keychains.jpg' },
+  { name: 'Home Decor', link: '/products?category=Home%20Decor', image: '/assets/homepage/category-home-decor.jpg' },
+  { name: 'Incense Holders', link: '/products?category=Incense%20Holders', image: '/assets/homepage/category-incense-holders.jpg' },
+  { name: 'Toys & Fidgets', link: '/products?category=Toys%20%26%20Fidgets', image: '/assets/homepage/category-toys-fidgets.jpg' },
+  { name: 'Custom 3D Prints', link: '/products?category=Custom%203D%20Prints', image: '/assets/homepage/category-custom-3d-prints.jpg' }
+];
+
+const getHomepageCategoryTiles = (section) => {
+  const categories = section?.content?.categories;
+  return Array.isArray(categories) ? categories : DEFAULT_HOMEPAGE_CATEGORIES;
+};
+
 // Image Preview Component with recommendations
 const ImagePreviewWithInfo = ({ url, label, recommendation, onRemove, className = '' }) => (
   <div className={`relative group ${className}`}>
@@ -84,7 +98,16 @@ const ImagePreviewWithInfo = ({ url, label, recommendation, onRemove, className 
 );
 
 // Sortable Section Item Component
-const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandToggle }) => {
+const SortableSectionItem = ({
+  section,
+  onToggle,
+  onEdit,
+  isExpanded,
+  onExpandToggle,
+  availableCategories,
+  onCategoryAdd,
+  onCategoryRemove
+}) => {
   const {
     attributes,
     listeners,
@@ -98,6 +121,11 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  const homepageCategories = getHomepageCategoryTiles(section);
+  const addableCategories = availableCategories.filter((category) =>
+    !homepageCategories.some((tile) => tile.name === category.name)
+  );
 
   return (
     <div
@@ -203,6 +231,64 @@ const SortableSectionItem = ({ section, onToggle, onEdit, isExpanded, onExpandTo
                   )}
                 </div>
               )}
+              {section.id === 'categories' && (
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                      <h5 className="font-medium text-slate-800">Homepage Categories</h5>
+                      <p className="text-sm text-slate-500">{homepageCategories.length} visible</p>
+                    </div>
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          onCategoryAdd(section.id, e.target.value);
+                        }
+                      }}
+                      className="max-w-56 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                    >
+                      <option value="">Add category</option>
+                      {addableCategories.map((category) => (
+                        <option key={category.id} value={category.id}>{category.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {homepageCategories.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                      No homepage categories selected.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {homepageCategories.map((category, index) => (
+                        <div key={`${category.name}-${index}`} className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-2">
+                          <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-blue-50 to-emerald-50">
+                            {category.image ? (
+                              <img src={category.image} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-400">
+                                {category.name?.charAt(0) || '?'}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-slate-800">{category.name}</p>
+                            <p className="truncate text-xs text-slate-500">{category.link || `/products?category=${encodeURIComponent(category.name)}`}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => onCategoryRemove(section.id, index)}
+                            className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                            aria-label={`Remove ${category.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -230,6 +316,7 @@ export const SiteEditor = () => {
   });
   
   const [sections, setSections] = useState([]);
+  const [availableCategories, setAvailableCategories] = useState([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -243,9 +330,10 @@ export const SiteEditor = () => {
 
   const fetchData = async () => {
     try {
-      const [settingsRes, sectionsRes] = await Promise.all([
+      const [settingsRes, sectionsRes, categoriesRes] = await Promise.all([
         axios.get(`${BACKEND_URL}/api/admin/site-settings`, { withCredentials: true }),
-        axios.get(`${BACKEND_URL}/api/admin/homepage-sections`, { withCredentials: true })
+        axios.get(`${BACKEND_URL}/api/admin/homepage-sections`, { withCredentials: true }),
+        axios.get(`${BACKEND_URL}/api/categories`)
       ]);
       setSettings(prev => ({
         ...prev,
@@ -254,6 +342,7 @@ export const SiteEditor = () => {
         hero_images: { ...prev.hero_images, ...settingsRes.data.hero_images }
       }));
       setSections(sectionsRes.data.sections || []);
+      setAvailableCategories(categoriesRes.data || []);
     } catch (error) {
       console.error('Failed to fetch site config:', error);
       toast.error('Failed to load site configuration');
@@ -310,6 +399,49 @@ export const SiteEditor = () => {
     setSections(prev => prev.map(section =>
       section.id === sectionId ? { ...section, content: { ...section.content, [field]: value } } : section
     ));
+  };
+
+  const addHomepageCategory = (sectionId, categoryId) => {
+    const category = availableCategories.find((item) => item.id === categoryId);
+    if (!category) return;
+
+    setSections(prev => prev.map(section => {
+      if (section.id !== sectionId) return section;
+
+      const currentCategories = getHomepageCategoryTiles(section);
+      if (currentCategories.some((tile) => tile.name === category.name)) {
+        return section;
+      }
+
+      const nextCategory = {
+        name: category.name,
+        link: `/products?category=${encodeURIComponent(category.name)}`,
+        image: category.image_url || ''
+      };
+
+      return {
+        ...section,
+        content: {
+          ...section.content,
+          categories: [...currentCategories, nextCategory]
+        }
+      };
+    }));
+  };
+
+  const removeHomepageCategory = (sectionId, indexToRemove) => {
+    setSections(prev => prev.map(section => {
+      if (section.id !== sectionId) return section;
+
+      const currentCategories = getHomepageCategoryTiles(section);
+      return {
+        ...section,
+        content: {
+          ...section.content,
+          categories: currentCategories.filter((_, index) => index !== indexToRemove)
+        }
+      };
+    }));
   };
 
   const toggleExpanded = (sectionId) => {
@@ -684,6 +816,9 @@ export const SiteEditor = () => {
                       onEdit={editSectionContent}
                       isExpanded={expandedSections[section.id]}
                       onExpandToggle={toggleExpanded}
+                      availableCategories={availableCategories}
+                      onCategoryAdd={addHomepageCategory}
+                      onCategoryRemove={removeHomepageCategory}
                     />
                   ))}
                 </div>

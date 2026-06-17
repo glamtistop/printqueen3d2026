@@ -5,6 +5,15 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import { Skeleton } from '../components/ui/skeleton';
 
+const DEFAULT_HOMEPAGE_CATEGORIES = [
+  { name: 'Payment Stands', link: '/products?category=Payment%20Stands', image: '/assets/homepage/category-payment-stands.jpg' },
+  { name: 'Keychains', link: '/products?category=Keychains', image: '/assets/homepage/category-keychains.jpg' },
+  { name: 'Home Decor', link: '/products?category=Home%20Decor', image: '/assets/homepage/category-home-decor.jpg' },
+  { name: 'Incense Holders', link: '/products?category=Incense%20Holders', image: '/assets/homepage/category-incense-holders.jpg' },
+  { name: 'Toys & Fidgets', link: '/products?category=Toys%20%26%20Fidgets', image: '/assets/homepage/category-toys-fidgets.jpg' },
+  { name: 'Custom 3D Prints', link: '/products?category=Custom%203D%20Prints', image: '/assets/homepage/category-custom-3d-prints.jpg' }
+];
+
 const LandingPage = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -90,6 +99,12 @@ const LandingPage = () => {
     return section?.content?.[field] || defaultValue;
   };
 
+  const getHomepageCategories = () => {
+    const categoriesSection = siteConfig?.homepage_sections?.find(s => s.id === 'categories');
+    const categories = categoriesSection?.content?.categories;
+    return Array.isArray(categories) ? categories : DEFAULT_HOMEPAGE_CATEGORIES;
+  };
+
   // Get site settings
   const settings = siteConfig?.settings || {};
   const contactInfo = settings.contact_info || {};
@@ -166,22 +181,15 @@ const LandingPage = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[
-              { name: 'Payment Stands', link: '/products?category=Payment Stands', image: '/assets/homepage/category-payment-stands.jpg' },
-              { name: 'Keychains', link: '/products?category=Keychains', image: '/assets/homepage/category-keychains.jpg' },
-              { name: 'Home Decor', link: '/products?category=Home Decor', image: '/assets/homepage/category-home-decor.jpg' },
-              { name: 'Incense Holders', link: '/products?category=Incense Holders', image: '/assets/homepage/category-incense-holders.jpg' },
-              { name: 'Toys & Fidgets', link: '/products?category=Toys & Fidgets', image: '/assets/homepage/category-toys-fidgets.jpg' },
-              { name: 'Custom 3D Prints', link: '/products?category=Custom 3D Prints', image: '/assets/homepage/category-custom-3d-prints.jpg' }
-            ].map((category) => (
+            {getHomepageCategories().map((category) => (
               <Link
                 key={category.name}
-                to={category.link}
+                to={category.link || `/products?category=${encodeURIComponent(category.name)}`}
                 className="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-white"
               >
                 <div className="aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
                   <img
-                    src={category.image}
+                    src={category.image || '/assets/homepage/category-custom-3d-prints.jpg'}
                     alt={category.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
