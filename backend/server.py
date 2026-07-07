@@ -6,6 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 import json
+import asyncio
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict
@@ -376,6 +377,88 @@ def require_stripe_key() -> str:
 
 def amount_to_cents(amount: float) -> int:
     return int(round(float(amount) * 100))
+
+# ============ CHECKOUT PRICE VERIFICATION ============
+
+CHECKOUT_TAX_RATE = 0.0925  # must match the rate in frontend CheckoutPage.js
+MAX_ADDON_SURCHARGE_PER_ITEM = 200.0  # max customization upcharge accepted above DB base price
+
+def to_cents(amount) -> int:
+    return int(round(float(amount or 0) * 100))
+
+async def verify_order_pricing(order_data) -> Optional[str]:
+    """Verify client-submitted order pricing against the database.
+
+    Returns an error message string when the order should be rejected, or
+    None when pricing is valid. Customized items may legitimately cost MORE
+    than the DB base price (frontend folds add-on charges into item.price),
+    so per-item checks are floor + cap, not equality.
+    """
+    items = order_data.items or []
+    if not items:
+        return "Order has no items"
+
+    product_ids = [item.product_id for item in items]
+    products = await db.products.find({"id": {"$in": product_ids}}, {"_id": 0}).to_list(1000)
+    product_map = {product["id"]: product for product in products}
+
+    subtotal_cents = 0
+    for item in items:
+        product = product_map.get(item.product_id)
+        if not product or not product.get("published", False):
+            return f"Product {item.product_id} is not available"
+        if not isinstance(item.quantity, int) or item.quantity < 1 or item.quantity > 100:
+            return f"Invalid quantity for {product.get('name', item.product_id)}"
+        item_cents = to_cents(item.price)
+        base_cents = to_cents(product.get("price", 0))
+        if item_cents < base_cents:
+            return f"Price for {product.get('name', item.product_id)} is below the current price"
+        if item_cents - base_cents > to_cents(MAX_ADDON_SURCHARGE_PER_ITEM):
+            return f"Customization charge for {product.get('name', item.product_id)} is not valid"
+        subtotal_cents += item_cents * item.quantity
+
+    if abs(subtotal_cents - to_cents(order_data.subtotal)) > 2:
+        return "Order subtotal does not match item prices"
+
+    tax_cents = round(subtotal_cents * CHECKOUT_TAX_RATE)
+    if abs(tax_cents - to_cents(order_data.tax_amount)) > 2:
+        return "Order tax does not match the expected tax amount"
+
+    settings = await db.shipping_settings.find_one({"id": "shipping_settings"}, {"_id": 0}) or {}
+    free_enabled = settings.get("free_shipping_enabled", True)
+    free_threshold_cents = to_cents(settings.get("free_shipping_threshold", 150.0))
+    enabled_options = [
+        opt for opt in settings.get("shipping_options", [])
+        if opt.get("enabled", True)
+    ]
+
+    shipping_cents = to_cents(order_data.shipping_amount)
+    if order_data.fulfillment_type == "pickup":
+        if shipping_cents != 0:
+            return "Pickup orders cannot include shipping charges"
+    elif free_enabled and subtotal_cents >= free_threshold_cents:
+        if shipping_cents != 0:
+            return "Order qualifies for free shipping"
+    else:
+        allowed_shipping = [to_cents(opt.get("price", 0)) for opt in enabled_options] or [to_cents(12.95)]
+        if not any(abs(shipping_cents - allowed) <= 2 for allowed in allowed_shipping):
+            return "Shipping charge does not match an available shipping option"
+
+    rush_cents = 0
+    if getattr(order_data, "rush_order", False):
+        if not settings.get("rush_order_enabled", True):
+            return "Rush orders are not currently available"
+        rush_cents = to_cents(settings.get("rush_order_price", 25.0))
+        if abs(to_cents(getattr(order_data, "rush_order_amount", 0)) - rush_cents) > 2:
+            return "Rush order charge does not match the current rush price"
+    elif abs(to_cents(getattr(order_data, "rush_order_amount", 0))) > 2:
+        return "Rush order charge cannot be included unless rush production is selected"
+
+    expected_total_cents = subtotal_cents + tax_cents + shipping_cents + rush_cents
+    if abs(expected_total_cents - to_cents(order_data.total)) > 5:
+        return "Order total does not match the expected amount"
+
+    return None
 
 async def mark_checkout_paid(session_id: str, payment_status: str = "paid"):
     await db.payment_transactions.update_one(
@@ -1082,6 +1165,7 @@ async def email_password_login(login_data: EmailPasswordLogin, request: Request)
     user_doc = await db.users.find_one({"email": login_data.email.strip().lower()}, {"_id": 0})
     
     if not user_doc:
+        await asyncio.sleep(1)
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     # Check if user has a password set
@@ -1090,6 +1174,7 @@ async def email_password_login(login_data: EmailPasswordLogin, request: Request)
     
     # Verify password
     if not verify_password(login_data.password, user_doc["hashed_password"]):
+        await asyncio.sleep(1)
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     # Create session
@@ -2820,6 +2905,11 @@ async def get_orders(user: User = Depends(require_auth)):
 @api_router.post("/orders", response_model=Order)
 async def create_order(order_data: OrderCreate, background_tasks: BackgroundTasks, user: User = Depends(require_auth)):
     """Create new order"""
+    pricing_error = await verify_order_pricing(order_data)
+    if pricing_error:
+        logging.warning(f"Order price verification failed for user {user.id}: {pricing_error}")
+        raise HTTPException(status_code=400, detail=pricing_error)
+
     order = Order(
         user_id=user.id,
         items=order_data.items,
@@ -2861,7 +2951,25 @@ async def create_checkout_session(checkout_req: CheckoutRequest, user: User = De
     order = await db.orders.find_one({"id": checkout_req.order_id, "user_id": user.id})
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    
+
+    if to_cents(order.get("total", 0)) <= 0:
+        pricing_error = "Order total is not valid for payment"
+        logging.warning(f"Order price verification failed for user {user.id}: {pricing_error}")
+        raise HTTPException(status_code=400, detail=pricing_error)
+
+    # Warn (but do not block) if admin price changes since order creation
+    # would make stored item prices lower than current base prices.
+    order_product_ids = [item.get("product_id") for item in order.get("items", [])]
+    current_products = await db.products.find({"id": {"$in": order_product_ids}}, {"_id": 0, "id": 1, "price": 1}).to_list(1000)
+    current_price_map = {product["id"]: product.get("price", 0) for product in current_products}
+    for item in order.get("items", []):
+        current_base = current_price_map.get(item.get("product_id"))
+        if current_base is not None and to_cents(item.get("price")) < to_cents(current_base) - 2:
+            logging.warning(
+                f"Order {order['id']}: item {item.get('product_id')} priced below current base "
+                f"({item.get('price')} < {current_base}); allowing (price changed after order creation)"
+            )
+
     # Create success and cancel URLs
     success_url = f"{checkout_req.origin_url}/order-success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{checkout_req.origin_url}/checkout"
@@ -2922,6 +3030,8 @@ async def get_checkout_status(session_id: str, user: User = Depends(require_auth
     transaction = await db.payment_transactions.find_one({"session_id": session_id})
     if not transaction:
         raise HTTPException(status_code=404, detail="Payment transaction not found")
+    if transaction.get("user_id") and transaction["user_id"] != user.id and not user.is_admin:
+        raise HTTPException(status_code=404, detail="Payment transaction not found")
     
     # If already paid, return existing status
     if transaction["payment_status"] == "paid":
@@ -2962,7 +3072,8 @@ async def stripe_webhook(request: Request):
                 )
             event = stripe.Webhook.construct_event(body, signature, stripe_webhook_secret)
         else:
-            event = json.loads(body.decode("utf-8"))
+            logging.error("STRIPE_WEBHOOK_SECRET is not configured; rejecting unsigned webhook")
+            raise HTTPException(status_code=400, detail="Webhook signing is not configured")
 
         if event["type"] in ["checkout.session.completed", "checkout.session.async_payment_succeeded"]:
             session = event["data"]["object"]
@@ -5129,7 +5240,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=get_allowed_origins(),
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https://printqueen3d2026-(frontend|backend)-[a-z0-9]+-nandis-projects-cc28225b\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )

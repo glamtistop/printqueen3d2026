@@ -35,6 +35,8 @@ EMAIL_SENDER_EMAIL=noreply@printqueen3d.com
 EMAIL_ADMIN_EMAIL=printqueen3d@gmail.com
 ```
 
+`STRIPE_WEBHOOK_SECRET` is now required. Unsigned Stripe webhooks are rejected.
+
 After deployment, the API base URL will be:
 
 ```text
