@@ -769,8 +769,8 @@ const NFCStandPage = () => {
               If You Can Dream It, We Can Print It.
             </p>
             <p className="text-gray-400 text-sm mb-4">
-              <strong>Local Pickup Available In These Cities:</strong><br />
-              Los Angeles, Altadena, Long Beach, Hawthorne, West Covina<br />
+              <strong>Local Pickup Available In:</strong><br />
+              Los Angeles, California<br />
               <strong>Shipping Everywhere</strong>
             </p>
             <p className="text-gray-300">

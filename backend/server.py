@@ -24,6 +24,87 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+HOME_DECOR_LITHOPHANES_DESCRIPTION = "Transform your space with custom 3D-printed home décor designed to reflect your unique style. Discover personalized lithophane night lights, photo lamps, vases, nameplates, wall décor, incense holders, and decorative accents, all professionally 3D printed with precision and expert finishing. Upload your favorite photo, logo, or inspiration—or simply share your idea, and we'll work with you to create a one-of-a-kind piece made just for you."
+HOME_DECOR_LITHOPHANES_COLLECTION_ID = "home-decor-lithophanes"
+TOYS_FIDGETS_COLLECTION_ID = "toys-fidgets"
+TOYS_FIDGETS_DESCRIPTION = "Shop professionally 3D printed toys, fidgets, articulated animals, dragons, puzzles, and custom character pieces made to order with your selected filament colors."
+GIFTS_KEEPSAKES_CELEBRATIONS_COLLECTION_ID = "gifts-keepsakes-celebrations"
+GIFTS_KEEPSAKES_CELEBRATIONS_DESCRIPTION = "Shop professionally 3D printed gifts, keepsakes, celebration displays, personalized name art, graduation pieces, couple gifts, and made-to-order display pieces."
+FILAMENT_COLOR_OPTIONS = [
+    "Original Printed Color",
+    "Single Color Request",
+    "Silky Triple-Color Red • Blue • Green",
+    "Silky Triple-Color Purple • Blue • Pink",
+    "Silky Triple-Color Black Cherry",
+    "Silky Triple-Color Blackberry",
+    "Silky Triple-Color Bright Blue • Raspberry",
+    "Silky Triple-Color Rainbow",
+    "Silky Triple-Color Rainbow 2",
+    "Silky Triple-Color Pastel Rainbow",
+    "Silky Triple-Color Gold • Copper • Bronze",
+    "Silky Triple-Color Blue • Green • Purple",
+    "Silky Triple-Color Sunset (Orange • Gold • Red)"
+]
+
+NFC_BUSINESS_STANDS_COLLECTION_ID = "nfc-business-stands"
+NFC_BUSINESS_STANDS_DESCRIPTION = "Transform the way customers connect with your business using custom 3D-printed NFC stands. Whether you're accepting payments, sharing your social media, website, reviews, menus, booking links, or contact information, each stand is professionally designed and 3D printed to make networking fast, easy, and memorable. Every stand is made to order and can be personalized with your logo, business colors, QR codes, branding, and the platforms that matter most to your business."
+NFC_PLATFORM_OPTIONS = [
+    "Cash App", "Venmo", "PayPal", "Zelle", "Apple Pay", "Instagram", "TikTok",
+    "Facebook", "YouTube", "LinkedIn", "X", "Website", "Online Store",
+    "Google Reviews", "Booking Page", "Restaurant Menu", "Contact Card",
+    "Wi-Fi Sharing", "Music or Streaming Link", "Portfolio Link", "Custom URL"
+]
+NFC_ADD_ON_OPTIONS = [
+    {"name": "NFC programming", "price": 0, "label": "Included"},
+    {"name": "Custom logo", "price": 0, "label": "Included"},
+    {"name": "QR code", "price": 0, "label": "Included"},
+    {"name": "Business card slot", "price": 10},
+    {"name": "Square Reader holder", "price": 15},
+    {"name": "Glitter finish", "price": 8},
+    {"name": "Matching NFC keychain", "price": 10},
+    {"name": "Rush production", "price": 25, "label": "$25+"}
+]
+NFC_BUNDLE_OPTIONS = [
+    {"name": "Starter Business Bundle", "price": 84.99, "includes": ["NFC Connect Duo", "1 matching NFC keychain"]},
+    {"name": "Vendor Essentials Bundle", "price": 109.99, "includes": ["NFC Connect Trio", "2 NFC keychains", "Business card holder"]},
+    {"name": "Business Pro Bundle", "price": 149.99, "includes": ["NFC Business Hub", "3 matching NFC keychains", "Custom logo", "QR code", "Business card holder"]},
+]
+NFC_PRODUCT_SECTION_TITLE = "Customize Your NFC Stand"
+NFC_PRODUCT_SECTION_TEXT = "Choose the platforms that fit your business. Your stand can be programmed to connect customers to payment apps, social media pages, websites, reviews, booking links, menus, contact cards, music links, portfolios, Wi-Fi sharing, or any custom URL."
+NFC_PRODUCT_PAGE_NOTE = "Don’t see what you need? We can program your stand with almost any NFC-compatible link or digital destination."
+KEYCHAINS_CHARMS_COLLECTION_ID = "keychains-charms"
+SOCIAL_MEDIA_KEYCHAIN_OPTIONS = [
+    "Instagram", "TikTok", "Facebook", "YouTube", "X", "WhatsApp", "Cash App",
+    "Venmo", "PayPal", "Zelle", "Website", "Google Reviews", "Phone", "Email",
+    "Discord", "Messenger", "Amazon", "eBay", "Booking", "Custom Icon"
+]
+
+def is_home_decor_lithophanes_collection(collection):
+    collection_text = f"{collection.get('name', '')} {collection.get('description', '')}".lower()
+    normalized_text = collection_text.replace("decor", "décor")
+    return (
+        "home décor" in normalized_text or
+        "lithophane" in normalized_text or
+        collection.get("id") == HOME_DECOR_LITHOPHANES_COLLECTION_ID
+    )
+
+def is_toys_fidgets_collection(collection):
+    collection_text = f"{collection.get('name', '')} {collection.get('description', '')}".lower()
+    return (
+        collection.get("id") == TOYS_FIDGETS_COLLECTION_ID or
+        ("toy" in collection_text and "fidget" in collection_text) or
+        "fidgets & fun" in collection_text or
+        "toys & fidgets" in collection_text
+    )
+
+def is_gifts_keepsakes_celebrations_collection(collection):
+    collection_text = f"{collection.get('name', '')} {collection.get('description', '')}".lower()
+    return (
+        collection.get("id") == GIFTS_KEEPSAKES_CELEBRATIONS_COLLECTION_ID or
+        ("gift" in collection_text and "keepsake" in collection_text) or
+        ("celebration" in collection_text and "keepsake" in collection_text)
+    )
+
 # Stripe setup
 stripe_api_key = os.environ.get('STRIPE_API_KEY')
 stripe_webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
@@ -73,10 +154,15 @@ class Product(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
+    subtitle: Optional[str] = None
     description: str
     price: float
+    price_prefix: Optional[str] = None
+    compare_at_price: Optional[float] = None
+    compare_at_price_prefix: Optional[str] = None
     category: str
     images: List[str]
+    image_alt: Optional[str] = None
     variants: List[ProductVariant] = []
     stock: int = 0
     is_custom: bool = False
@@ -84,9 +170,18 @@ class Product(BaseModel):
     published: bool = True
     collection_ids: List[str] = []
     badge: Optional[str] = None
+    badge_color: Optional[str] = None
+    sale_badge_enabled: bool = True
     available_colors: List[str] = []
     material_details: Optional[str] = None
     custom_builder: Optional[str] = None
+    platform_options: List[str] = []
+    add_on_options: List[Dict] = []
+    bundle_options: List[Dict] = []
+    customization_fields: List[Dict] = []
+    product_page_section_title: Optional[str] = None
+    product_page_section_text: Optional[str] = None
+    product_page_note: Optional[str] = None
     # Pickup settings
     available_for_pickup: bool = True  # Whether this product can be picked up
     pickup_only: bool = False  # If true, shipping is not available
@@ -97,18 +192,32 @@ class Product(BaseModel):
 
 class ProductCreate(BaseModel):
     name: str
+    subtitle: Optional[str] = None
     description: str
     price: float
+    price_prefix: Optional[str] = None
+    compare_at_price: Optional[float] = None
+    compare_at_price_prefix: Optional[str] = None
     category: str
     images: List[str]
+    image_alt: Optional[str] = None
     variants: List[ProductVariant] = []
     stock: int = 0
     published: bool = True
     collection_ids: List[str] = []
     badge: Optional[str] = None
+    badge_color: Optional[str] = None
+    sale_badge_enabled: bool = True
     available_colors: List[str] = []
     material_details: Optional[str] = None
     custom_builder: Optional[str] = None
+    platform_options: List[str] = []
+    add_on_options: List[Dict] = []
+    bundle_options: List[Dict] = []
+    customization_fields: List[Dict] = []
+    product_page_section_title: Optional[str] = None
+    product_page_section_text: Optional[str] = None
+    product_page_note: Optional[str] = None
     # Pickup settings
     available_for_pickup: bool = True
     pickup_only: bool = False
@@ -138,17 +247,31 @@ class Collection(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     description: Optional[str] = None
+    image_url: Optional[str] = None
+    image_alt: Optional[str] = None
+    cover_image_url: Optional[str] = None
+    image: Optional[str] = None
+    link_url: Optional[str] = None
+    url: Optional[str] = None
     type: str = "manual"  # manual or automated
     product_ids: List[str] = []
     rules: List[CollectionRule] = []
+    sort_order: Optional[int] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CollectionCreate(BaseModel):
     name: str
     description: Optional[str] = None
+    image_url: Optional[str] = None
+    image_alt: Optional[str] = None
+    cover_image_url: Optional[str] = None
+    image: Optional[str] = None
+    link_url: Optional[str] = None
+    url: Optional[str] = None
     type: str = "manual"
     product_ids: List[str] = []
     rules: List[CollectionRule] = []
+    sort_order: Optional[int] = None
 
 class OrderItem(BaseModel):
     product_id: str
@@ -205,6 +328,10 @@ class Order(BaseModel):
     shipped_at: Optional[datetime] = None
     picked_up_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    # Rush order and shipping method chosen at checkout
+    rush_order: bool = False
+    rush_order_amount: float = 0.0
+    shipping_option: Optional[Dict] = None
     # Notes
     notes: Optional[str] = None
     admin_notes: Optional[str] = None
@@ -220,6 +347,9 @@ class OrderCreate(BaseModel):
     customer_info: Optional[CustomerInfo] = None
     shipping_address: Optional[ShippingAddress] = None
     pickup_details: Optional[PickupDetails] = None
+    rush_order: bool = False
+    rush_order_amount: float = 0.0
+    shipping_option: Optional[Dict] = None
 
 class PaymentTransaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -264,10 +394,10 @@ async def mark_checkout_paid(session_id: str, payment_status: str = "paid"):
 # ============ SITE EDITOR MODELS ============
 
 class SocialLinks(BaseModel):
-    instagram: Optional[str] = None
+    instagram: Optional[str] = "https://instagram.com/printqueen3d"
     facebook: Optional[str] = None
-    twitter: Optional[str] = None
-    tiktok: Optional[str] = None
+    twitter: Optional[str] = "https://x.com/printqueen3d"
+    tiktok: Optional[str] = "https://www.tiktok.com/@printqueen3d"
     youtube: Optional[str] = None
 
 class BrandColors(BaseModel):
@@ -276,9 +406,9 @@ class BrandColors(BaseModel):
     accent: str = "#F59E0B"  # Amber
 
 class ContactInfo(BaseModel):
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
+    email: Optional[str] = "printqueen3d@gmail.com"
+    phone: Optional[str] = "(310) 936-1893"
+    address: Optional[str] = "Los Angeles, California"
 
 class AppIcons(BaseModel):
     favicon_32: Optional[str] = None  # 32x32 browser tab
@@ -287,8 +417,20 @@ class AppIcons(BaseModel):
     pwa_512: Optional[str] = None  # 512x512 PWA splash
 
 class HeroImages(BaseModel):
-    desktop_images: List[str] = []  # Up to 6 images for carousel
+    desktop_images: List[str] = []  # Single desktop hero image stored first for backwards compatibility
     mobile_image: Optional[str] = None  # Single mobile hero image
+
+class NavigationItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    label: str
+    link: str
+    enabled: bool = True
+    show_desktop: bool = True
+    show_mobile: bool = True
+    show_footer: bool = False
+    featured: bool = False
+    footer_group: Optional[str] = None
+    order: int = 0
 
 class SiteSettings(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -301,6 +443,27 @@ class SiteSettings(BaseModel):
     social_links: SocialLinks = Field(default_factory=SocialLinks)
     app_icons: AppIcons = Field(default_factory=AppIcons)
     hero_images: HeroImages = Field(default_factory=HeroImages)
+    navigation_items: List[NavigationItem] = []
+    footer_shop_title: str = "Shop"
+    footer_company_title: str = "Company"
+    footer_support_title: str = "Support"
+    footer_contact_title: str = "Contact"
+    footer_links_title: str = "Company"
+    footer_policies_title: str = "Support"
+    footer_partner_title: str = ""
+    footer_partner_text: str = ""
+    footer_partner_link_text: str = "Send a partner inquiry"
+    footer_partner_link: str = "/contact"
+    footer_description: str = "Professionally 3D printed custom creations made to order with precision and care."
+    footer_location_text: str = "Los Angeles, California"
+    footer_pickup_text: str = "Los Angeles, California"
+    footer_instagram_label: str = "Instagram: @printqueen3d"
+    footer_tiktok_label: str = "TikTok: @printqueen3d"
+    footer_x_label: str = "X: @printqueen3d"
+    footer_background_color: str = ""
+    footer_text_color: str = ""
+    footer_text_size: str = ""
+    footer_padding_y: Optional[int] = None
     footer_text: str = "All rights reserved."
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -313,17 +476,72 @@ class SiteSettingsUpdate(BaseModel):
     social_links: Optional[SocialLinks] = None
     app_icons: Optional[AppIcons] = None
     hero_images: Optional[HeroImages] = None
+    navigation_items: Optional[List[NavigationItem]] = None
+    footer_shop_title: Optional[str] = None
+    footer_company_title: Optional[str] = None
+    footer_support_title: Optional[str] = None
+    footer_contact_title: Optional[str] = None
+    footer_links_title: Optional[str] = None
+    footer_policies_title: Optional[str] = None
+    footer_partner_title: Optional[str] = None
+    footer_partner_text: Optional[str] = None
+    footer_partner_link_text: Optional[str] = None
+    footer_partner_link: Optional[str] = None
+    footer_description: Optional[str] = None
+    footer_location_text: Optional[str] = None
+    footer_pickup_text: Optional[str] = None
+    footer_instagram_label: Optional[str] = None
+    footer_tiktok_label: Optional[str] = None
+    footer_x_label: Optional[str] = None
+    footer_background_color: Optional[str] = None
+    footer_text_color: Optional[str] = None
+    footer_text_size: Optional[str] = None
+    footer_padding_y: Optional[int] = None
     footer_text: Optional[str] = None
 
 class SectionContent(BaseModel):
+    badge_label: Optional[str] = None
     headline: Optional[str] = None
     subheadline: Optional[str] = None
     description: Optional[str] = None
     button_text: Optional[str] = None
     button_link: Optional[str] = None
+    secondary_button_text: Optional[str] = None
+    secondary_button_link: Optional[str] = None
+    overlay_opacity: Optional[float] = None
+    overlay_color: Optional[str] = None
+    hero_height_desktop: Optional[int] = None
+    hero_height_mobile: Optional[int] = None
+    hero_image_position: Optional[str] = None
+    mobile_image_url: Optional[str] = None
+    image_position: Optional[str] = None
+    image_alt: Optional[str] = None
+    text_size: Optional[str] = None
+    button_size: Optional[str] = None
+    section_padding_y: Optional[int] = None
+    background_color: Optional[str] = None
     image_url: Optional[str] = None
     background_image_url: Optional[str] = None
     categories: Optional[List[Dict[str, str]]] = None
+    hidden_category_ids: Optional[List[str]] = None
+    homepage_category_ids: Optional[List[str]] = None
+    marquee_messages: Optional[List[str]] = None
+    marquee_speed: Optional[int] = None
+    marquee_direction: Optional[str] = None
+    marquee_background_color: Optional[str] = None
+    marquee_background_image_url: Optional[str] = None
+    marquee_images: Optional[List[str]] = None
+    marquee_show_images: Optional[bool] = None
+    marquee_text_color: Optional[str] = None
+    marquee_padding_y: Optional[int] = None
+    marquee_gap: Optional[int] = None
+    product_limit: Optional[int] = None
+    gallery_images: Optional[List[str]] = None
+    gallery_captions: Optional[List[str]] = None
+    reviews: Optional[List[Dict[str, str]]] = None
+    steps: Optional[List[Dict[str, str]]] = None
+    faq_items: Optional[List[Dict[str, str]]] = None
+    info_cards: Optional[List[Dict[str, str]]] = None
 
 class HomepageSection(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -354,8 +572,8 @@ class StripeSettings(BaseModel):
     enable_google_pay: bool = True
     enable_link: bool = True  # Stripe Link one-click checkout
     tax_rate: float = 0.0  # Tax percentage (e.g., 8.25 for 8.25%)
-    free_shipping_threshold: float = 50.0  # Free shipping above this amount
-    flat_shipping_rate: float = 5.99  # Shipping cost below threshold
+    free_shipping_threshold: float = 150.0  # Free shipping above this amount
+    flat_shipping_rate: float = 12.95  # Shipping cost below threshold
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class StripeSettingsUpdate(BaseModel):
@@ -392,7 +610,7 @@ class ShippingSettings(BaseModel):
     shipping_options: List[ShippingOption] = []
     # Free shipping threshold
     free_shipping_enabled: bool = True
-    free_shipping_threshold: float = 50.0
+    free_shipping_threshold: float = 150.0
     # Rush order settings
     rush_order_enabled: bool = True
     rush_order_price: float = 25.0
@@ -400,6 +618,16 @@ class ShippingSettings(BaseModel):
     rush_order_days_max: int = 3
     rush_order_label: str = "Rush Order"
     rush_order_description: str = "Expedite your order for faster processing"
+    fulfillment_heading: str = "How would you like to receive your order?"
+    shipping_card_title: str = "Ship to Me"
+    shipping_unavailable_text: str = "Not available for these items"
+    pickup_card_title: str = "Local Pickup"
+    pickup_price_label: str = "FREE"
+    pickup_unavailable_text: str = "Not available"
+    pickup_location_heading: str = "Select Pickup Location"
+    pickup_datetime_heading: str = "Select Pickup Date & Time"
+    pickup_details_heading: str = "Pickup Details"
+    pickup_confirmation_note: str = "Local pickup is available in Los Angeles, California. Once your order is complete and ready for pickup, you will receive an email notification with pickup instructions."
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ShippingSettingsUpdate(BaseModel):
@@ -413,6 +641,16 @@ class ShippingSettingsUpdate(BaseModel):
     rush_order_days_max: Optional[int] = None
     rush_order_label: Optional[str] = None
     rush_order_description: Optional[str] = None
+    fulfillment_heading: Optional[str] = None
+    shipping_card_title: Optional[str] = None
+    shipping_unavailable_text: Optional[str] = None
+    pickup_card_title: Optional[str] = None
+    pickup_price_label: Optional[str] = None
+    pickup_unavailable_text: Optional[str] = None
+    pickup_location_heading: Optional[str] = None
+    pickup_datetime_heading: Optional[str] = None
+    pickup_details_heading: Optional[str] = None
+    pickup_confirmation_note: Optional[str] = None
 
 # ============ EMAIL SETTINGS MODELS ============
 
@@ -445,6 +683,79 @@ class EmailSettingsUpdate(BaseModel):
 
 class TestEmailRequest(BaseModel):
     recipient_email: str
+
+# ============ INQUIRY MODELS ============
+
+class CustomQuoteRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    full_name: str
+    email: str
+    phone: Optional[str] = None
+    use_type: Optional[str] = None
+    product_id: Optional[str] = None
+    product_name: Optional[str] = None
+    creation_type: Optional[str] = None
+    personalization: List[str] = []
+    quantity_needed: Optional[str] = None
+    preferred_colors: Optional[str] = None
+    preferred_finish: Optional[str] = None
+    size_needed: Optional[str] = None
+    need_by_date: Optional[str] = None
+    budget_range: Optional[str] = None
+    nfc_link: Optional[str] = None
+    nfc_links: List[str] = []
+    material_request: Optional[str] = None
+    resin_overlay: bool = False
+    qr_code_note: Optional[str] = None
+    project_details: str = ""
+    special_ideas: Optional[str] = None
+    delivery_method: Optional[str] = None
+    delivery_fee: Optional[float] = None
+    attachment_image_url: Optional[str] = None
+    attachment_public_id: Optional[str] = None
+    status: str = "new"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PartnerInquiry(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    email: str
+    instagram: Optional[str] = None
+    tiktok: Optional[str] = None
+    website: Optional[str] = None
+    collaboration_idea: str
+    status: str = "new"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class InquiryStatusUpdate(BaseModel):
+    status: str
+
+class NewsletterSignup(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str
+    source: str = "homepage"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CustomerReview(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    rating: int
+    review: str
+    status: str = "pending"
+    featured: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: Optional[datetime] = None
+
+class CustomerReviewUpdate(BaseModel):
+    name: Optional[str] = None
+    rating: Optional[int] = None
+    review: Optional[str] = None
+    status: Optional[str] = None
+    featured: Optional[bool] = None
 
 # ============ CUSTOM BUILDER MODELS ============
 
@@ -883,8 +1194,8 @@ async def seed_stripe_settings():
             "enable_google_pay": True,
             "enable_link": True,
             "tax_rate": 0.0,
-            "free_shipping_threshold": 50.0,
-            "flat_shipping_rate": 5.99,
+            "free_shipping_threshold": 150.0,
+            "flat_shipping_rate": 12.95,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }},
         upsert=True
@@ -892,16 +1203,1088 @@ async def seed_stripe_settings():
 
 # ============ PRODUCT ROUTES ============
 
+def nfc_product_payloads(collection_id: str = NFC_BUSINESS_STANDS_COLLECTION_ID):
+    common = {
+        "category": "NFC Business Stands",
+        "collection_ids": [collection_id],
+        "badge": "SALE",
+        "badge_color": "#dc2626",
+        "sale_badge_enabled": True,
+        "stock": 0,
+        "published": True,
+        "is_custom": True,
+        "available_colors": ["enabled"],
+        "material_details": "Professionally 3D printed and made to order with PLA or PETG filament, NFC programming included, and finished with care.",
+        "platform_options": NFC_PLATFORM_OPTIONS,
+        "add_on_options": NFC_ADD_ON_OPTIONS,
+        "bundle_options": NFC_BUNDLE_OPTIONS,
+        "product_page_section_title": NFC_PRODUCT_SECTION_TITLE,
+        "product_page_section_text": NFC_PRODUCT_SECTION_TEXT,
+        "product_page_note": NFC_PRODUCT_PAGE_NOTE,
+        "custom_builder": ""
+    }
+    products = [
+        {
+            "id": "nfc-connect-duo",
+            "name": "NFC Connect Duo",
+            "subtitle": "2 Icon NFC Stand",
+            "compare_at_price": 39.99,
+            "price": 29.99,
+            "images": [
+                "/assets/products/nfc-stands/nfc-connect-duo-black-white.jpg"
+            ],
+            "image_alt": "Black and white two icon NFC payment stand",
+            "description": "A clean and modern custom 3D-printed NFC stand featuring two customizable icons, perfect for sharing your most important business links with a single tap. Use it for payments, social media, websites, reviews, booking pages, contact cards, menus, or custom links. Personalize it with your logo, business colors, and branding to create a professional counter display for your business, event table, vendor booth, salon, shop, or pop-up."
+        },
+        {
+            "id": "nfc-connect-trio",
+            "name": "NFC Connect Trio",
+            "subtitle": "3 Icon NFC Stand",
+            "compare_at_price": 49.99,
+            "price": 39.99,
+            "images": ["/assets/products/nfc-stands/nfc-connect-trio-pink-white.jpg"],
+            "image_alt": "Pink and white three icon NFC stand",
+            "description": "Give customers more ways to connect with your business using a custom 3D-printed NFC stand with three customizable icons. The NFC Connect Trio is perfect for combining payments, social media, websites, reviews, booking links, menus, QR codes, contact cards, and more in one polished display. Each stand is made to order and personalized with your brand colors, logo, and preferred platforms."
+        },
+        {
+            "id": "nfc-business-hub",
+            "name": "NFC Business Hub",
+            "subtitle": "Logo, QR & Multi-Link NFC Display",
+            "compare_at_price": 69.99,
+            "price": 59.99,
+            "images": [
+                "/assets/products/nfc-stands/nfc-business-hub-pink-white.jpg",
+                "/assets/products/nfc-stands/nfc-business-hub-neeta-tees.jpg"
+            ],
+            "image_alt": "Custom branded NFC business hub display stand",
+            "description": "Your all-in-one custom 3D-printed business display. The NFC Business Hub combines branding, QR code access, NFC technology, and multiple connection options into one professional countertop stand. Add your business logo, payment apps, social media, website, booking page, reviews, menu, contact card, or custom links to create a complete customer connection station. Perfect for storefronts, salons, barbershops, restaurants, vendors, photographers, trade shows, markets, and service-based businesses."
+        },
+        {
+            "id": "industry-nfc-stand",
+            "name": "Industry NFC Stand",
+            "subtitle": "Custom Business-Themed NFC Stand",
+            "compare_at_price": 59.99,
+            "compare_at_price_prefix": "Starting at",
+            "price": 49.99,
+            "price_prefix": "Starting at",
+            "images": [
+                "/assets/products/nfc-stands/industry-barber-nfc-stand.jpg",
+                "/assets/products/nfc-stands/custom-shape-mouse-ear-stand.jpg"
+            ],
+            "image_alt": "Custom industry themed barber NFC stand",
+            "description": "A custom 3D-printed NFC stand designed around your industry, brand, or business theme. Perfect for barbers, nail techs, hairstylists, bakeries, boutiques, realtors, vendors, creators, restaurants, and service providers. Add your logo, colors, business name, payment links, booking page, website, social media, reviews, QR code, or custom NFC destination to create a stand that fits your brand and helps customers connect instantly."
+        },
+        {
+            "id": "custom-shape-nfc-stand",
+            "name": "Custom Shape NFC Stand",
+            "subtitle": "Personalized Shape + NFC Display",
+            "compare_at_price": 64.99,
+            "compare_at_price_prefix": "Starting at",
+            "price": 54.99,
+            "price_prefix": "Starting at",
+            "images": [
+                "/assets/products/nfc-stands/custom-shape-mouse-ear-stand.jpg",
+                "/assets/products/nfc-stands/industry-barber-nfc-stand.jpg"
+            ],
+            "image_alt": "Custom shaped mouse ear QR and NFC stand",
+            "description": "Create an NFC stand that matches your brand personality. This custom 3D-printed stand can be shaped around your logo, theme, industry, character, product, or creative idea while still including NFC tap functionality. Send your inspiration, logo, sketch, or concept, and we’ll work together to create a unique stand designed just for you."
+        },
+        {
+            "id": "fully-custom-logo-nfc-stand",
+            "name": "Fully Custom Logo NFC Stand",
+            "subtitle": "Branded NFC Business Display",
+            "compare_at_price": 79.99,
+            "compare_at_price_prefix": "Starting at",
+            "price": 69.99,
+            "price_prefix": "Starting at",
+            "images": [
+                "/assets/products/nfc-stands/nfc-business-hub-neeta-tees.jpg",
+                "/assets/products/nfc-stands/nfc-business-hub-pink-white.jpg"
+            ],
+            "image_alt": "Fully custom logo NFC business display",
+            "description": "A fully customized 3D-printed NFC stand made around your business logo, colors, and brand identity. This option is perfect for businesses that want a standout display for payments, social media, websites, booking links, reviews, menus, or customer engagement. Send your logo or idea, and we’ll work with you to create a professional branded NFC display made specifically for your business."
+        }
+    ]
+    return [{**common, **product} for product in products]
+
+def is_nfc_stands_collection(collection):
+    name = (collection.get("name") or "").strip().lower()
+    if not name:
+        return False
+    exact_matches = {
+        "nfc business stands",
+        "nfc stands",
+        "nfc stand",
+        "nfc products",
+        "nfc & business solutions",
+        "nfc and business solutions",
+        "business solutions",
+    }
+    if name in exact_matches:
+        return True
+    return "nfc" in name and ("stand" in name or "business" in name or "solution" in name)
+
+def is_keychains_charms_collection(collection):
+    name = (collection.get("name") or "").strip().lower()
+    if not name:
+        return False
+    exact_matches = {
+        "keychains & charms",
+        "keychains and charms",
+        "keychain & charms",
+        "keychain and charms",
+        "custom keychains",
+        "keychains",
+    }
+    if name in exact_matches:
+        return True
+    return "keychain" in name and ("charm" in name or "charms" in name)
+
+def nfc_keychain_product_payloads(collection_id: str = KEYCHAINS_CHARMS_COLLECTION_ID):
+    default_keychain_fields = [
+        filament_color_field("primary_color", "Primary Color"),
+        filament_color_field("secondary_color", "Secondary Color"),
+        {"id": "icon", "label": "Icon", "type": "select", "required": True, "options": SOCIAL_MEDIA_KEYCHAIN_OPTIONS},
+        {"id": "nfc_link", "label": "NFC Link to Program", "type": "url", "required": True, "placeholder": "Paste your website, payment link, social media link, booking page, review page, or custom URL"},
+        {"id": "logo_or_qr_upload", "label": "Upload Logo or QR Code, optional", "type": "file", "required": False, "helper": "Upload a high-quality PNG if this keychain needs a logo, artwork, or QR code."},
+        {"id": "keychain_notes", "label": "Additional Notes", "type": "textarea", "required": False, "placeholder": "Tell us anything else you want included on your NFC keychain."}
+    ]
+    vinyl_record_fields = [
+        filament_color_field("primary_color", "Primary Color"),
+        filament_color_field("secondary_color", "Secondary Color"),
+        {"id": "chain_color", "label": "Chain Color", "type": "text", "required": True, "placeholder": "Example: silver or gold"},
+        {"id": "nfc_link", "label": "NFC Link to Program", "type": "url", "required": True, "placeholder": "Paste Spotify, Apple Music, website, booking, or custom link"}
+    ]
+    mini_cd_fields = [
+        {"id": "front_cover_logo", "label": "Upload Front Cover Logo or Artwork", "type": "file", "required": True, "helper": "Upload a high-quality image for the front cover."},
+        filament_color_field("primary_color", "Primary Color"),
+        filament_color_field("keychain_color", "Keychain Color"),
+        {"id": "nfc_link", "label": "NFC Link to Program", "type": "url", "required": True, "placeholder": "Paste the link customers should tap to open"}
+    ]
+    social_keychain_fields = [
+        {"id": "social_platform", "label": "Social Media Platform", "type": "select", "required": True, "options": SOCIAL_MEDIA_KEYCHAIN_OPTIONS},
+        filament_color_field("primary_color", "Primary Color"),
+        filament_color_field("secondary_color", "Secondary Color"),
+        {"id": "chain_color", "label": "Chain Color", "type": "text", "required": True, "placeholder": "Example: silver or gold"},
+        {"id": "nfc_link", "label": "NFC Link to Program", "type": "url", "required": True, "placeholder": "Paste your social media, payment, website, or custom link"}
+    ]
+    emergency_keychain_fields = [
+        {"id": "name", "label": "Name for Keychain", "type": "text", "required": True, "placeholder": "Enter the name to add"},
+        filament_color_field("keychain_color", "Keychain Color")
+    ]
+    common = {
+        "category": "Keychains & Charms",
+        "collection_ids": [collection_id],
+        "badge": "Customizable",
+        "badge_color": "#2563eb",
+        "sale_badge_enabled": True,
+        "stock": 0,
+        "published": True,
+        "is_custom": True,
+        "available_colors": ["enabled"],
+        "price": 14.99,
+        "price_prefix": "Starting at",
+        "material_details": "Professionally 3D printed NFC keychain made to order with PLA or PETG filament, NFC programming included, and finished with care.",
+        "platform_options": NFC_PLATFORM_OPTIONS,
+        "add_on_options": [
+            {"name": "NFC programming", "price": 0, "label": "Included"},
+            {"name": "QR code setup", "price": 0, "label": "Included"},
+            {"name": "Resin finish", "price": 5}
+        ],
+        "product_page_section_title": "Customize Your NFC Keychain",
+        "product_page_section_text": "Choose your keychain style, color, icon, and URL. Your keychain can be programmed to connect to a website, social profile, payment link, review page, emergency contact, booking page, or custom URL.",
+        "product_page_note": "NFC will be programmed to the exact link you provide. Please double-check the URL before checkout.",
+        "custom_builder": "",
+        "customization_fields": default_keychain_fields
+    }
+    products = [
+        {
+            "id": "nfc-keychain-nail-tech",
+            "name": "Nail Tech NFC Keychain",
+            "subtitle": "Tap-to-Connect Nail Tech Keychain",
+            "images": ["/assets/products/nfc-keychains/nail-tech-nfc-keychain.jpg"],
+            "image_alt": "Pink and black nail tech NFC keychain",
+            "description": "A custom 3D-printed NFC keychain designed for nail techs, beauty pros, and service providers. Program it with your booking link, social profile, payment link, website, or custom URL so customers can tap to connect instantly."
+        },
+        {
+            "id": "nfc-keychain-social-payment",
+            "name": "Social & Payment NFC Keychain",
+            "subtitle": "Website, Social, Payment or Custom Link Keychain",
+            "images": ["/assets/products/nfc-keychains/social-payment-nfc-keychains.jpg"],
+            "image_alt": "Custom social and payment NFC keychains",
+            "description": "A clean custom NFC keychain for social profiles, websites, payment links, stores, menus, reviews, booking pages, or any tap-to-connect destination. Choose your icon, color, and URL before checkout."
+        },
+        {
+            "id": "nfc-keychain-emergency-contact",
+            "name": "Emergency Contact NFC Keychain",
+            "subtitle": "Tap-for-Emergency-Contact Keychain",
+            "images": ["/assets/products/nfc-keychains/emergency-contact-nfc-keychain.jpg"],
+            "image_alt": "Backpack style emergency contact NFC keychain",
+            "description": "A custom 3D-printed emergency contact NFC keychain for backpacks, bags, kids, caregivers, or daily carry. This design comes as shown and can be personalized with a name and keychain color.",
+            "customization_fields": emergency_keychain_fields
+        },
+        {
+            "id": "nfc-keychain-barber-pole",
+            "name": "Barber Pole NFC Keychain",
+            "subtitle": "Tap-to-Book Barber Keychain",
+            "images": ["/assets/products/nfc-keychains/barber-pole-nfc-keychain.jpg"],
+            "image_alt": "Barber pole NFC keychain",
+            "description": "A barber-themed custom NFC keychain that can link customers to booking, payments, social media, reviews, contact information, or a custom business page. Made to order and personalized with your colors and link."
+        },
+        {
+            "id": "nfc-keychain-vinyl-record",
+            "name": "Vinyl Record NFC Keychain",
+            "subtitle": "Tap-to-Stream Music Keychain",
+            "images": ["/assets/products/nfc-keychains/music-mini-cd-vinyl-nfc-keychains.jpg"],
+            "image_alt": "Vinyl record NFC keychains for musicians",
+            "description": "A custom 3D-printed vinyl record style NFC keychain made for musicians, creators, DJs, artists, and brands. Choose two colors, chain color, and the NFC link you want programmed so fans or customers can tap to stream, follow, book, or connect.",
+            "customization_fields": vinyl_record_fields
+        },
+        {
+            "id": "nfc-keychain-mini-cd",
+            "name": "Mini CD NFC Keychain",
+            "subtitle": "Custom Cover Art Tap-to-Connect Keychain",
+            "images": ["/assets/products/nfc-keychains/music-mini-cd-vinyl-nfc-keychains.jpg"],
+            "image_alt": "Mini CD NFC keychain with custom cover artwork",
+            "description": "A mini CD style NFC keychain with custom front cover artwork. Upload a logo, image, or cover design, choose your colors and keychain color, and provide the NFC link you want programmed.",
+            "customization_fields": mini_cd_fields
+        },
+        {
+            "id": "nfc-keychain-social-media-icon",
+            "name": "Social Media NFC Keychain",
+            "subtitle": "Choose Your Platform Tap-to-Connect Keychain",
+            "images": ["/assets/products/nfc-keychains/social-media-nfc-keychain-photo.jpg"],
+            "image_alt": "Instagram Facebook TikTok WhatsApp NFC keychains",
+            "description": "A custom NFC keychain for social media, payment, website, booking, review, or custom links. Choose your platform from the dropdown, pick two colors and chain color, and provide the NFC link to program.",
+            "customization_fields": social_keychain_fields
+        }
+    ]
+    return [{**common, **product} for product in products]
+
+def home_decor_lithophanes_product_payloads(collection_id: str = HOME_DECOR_LITHOPHANES_COLLECTION_ID):
+    color_field = [
+        filament_color_field("requested_color", "Product Color")
+    ]
+    lithophane_fields = [
+        *color_field,
+        {
+            "id": "lithophane_photo",
+            "label": "Upload Photo for Lithophane",
+            "type": "file",
+            "required": True,
+            "helper": "Upload the photo you want converted into your lithophane nightlight."
+        },
+        {
+            "id": "photo_notes",
+            "label": "Photo Notes",
+            "type": "textarea",
+            "required": False,
+            "placeholder": "Add names, date, message, crop preference, or orientation notes."
+        }
+    ]
+    common = {
+        "category": "Home Décor & Lithophanes",
+        "collection_ids": [collection_id],
+        "badge": "Made to Order",
+        "badge_color": "#2563eb",
+        "sale_badge_enabled": True,
+        "stock": 0,
+        "published": True,
+        "is_custom": True,
+        "available_colors": [],
+        "price_prefix": "Starting at",
+        "material_details": "Professionally 3D printed to order using PLA filament, PETG filament when appropriate, and expert finishing.",
+        "product_page_section_title": "Customize Your Home Décor",
+        "product_page_section_text": "Choose your product color and add any special notes before checkout. Each piece is made to order and professionally 3D printed with care.",
+        "custom_builder": "",
+        "customization_fields": color_field
+    }
+    products = [
+        {
+            "id": "home-decor-incense-holder",
+            "name": "Incense Holder",
+            "subtitle": "Made-to-Order 3D Printed Incense Holder",
+            "price": 24.99,
+            "images": ["/assets/products/home-decor-lithophanes/incense-holder.png"],
+            "image_alt": "Gold 3D printed incense holder",
+            "description": "A statement 3D-printed incense holder made to order in your requested color. Designed as functional décor with a sculptural look for shelves, tables, or display spaces. Incense shown in photos is a prop and is not included.",
+            "product_page_note": "Incense is not included. Photo props are for display only."
+        },
+        {
+            "id": "home-decor-designer-diffuser",
+            "name": "Designer Diffuser",
+            "subtitle": "Made-to-Order Decorative Diffuser Display",
+            "price": 34.99,
+            "images": ["/assets/products/home-decor-lithophanes/designer-diffuser.jpeg"],
+            "image_alt": "Designer diffuser display with flower reeds",
+            "description": "A custom 3D-printed designer diffuser display made to order in your selected color. Perfect for decorative styling and home accents with a premium sculptural feel. Diffuser oil, reed sticks, and flowers shown in photos are props and are not included.",
+            "product_page_note": "Diffuser oil, reed sticks, and flowers are not included. Photo props are for display only."
+        },
+        {
+            "id": "home-decor-spiral-vase",
+            "name": "Spiral Vase",
+            "subtitle": "Modern 3D Printed Spiral Vase",
+            "price": 29.99,
+            "images": ["/assets/products/home-decor-lithophanes/spiral-vase.jpg"],
+            "image_alt": "Black spiral 3D printed vase",
+            "description": "A modern spiral vase professionally 3D printed and made to order in your requested color. Designed for decorative styling, shelves, centerpieces, and statement home décor.",
+            "product_page_note": "Decorative use recommended. Flowers or styling props are not included."
+        },
+        {
+            "id": "home-decor-lithophane-nightlight",
+            "name": "Lithophane Nightlight",
+            "subtitle": "Custom Photo Lithophane Light",
+            "price": 44.99,
+            "images": ["/assets/products/home-decor-lithophanes/lithophane-nightlight.jpg"],
+            "image_alt": "Custom photo lithophane nightlight",
+            "description": "Turn a meaningful photo into a custom 3D-printed lithophane nightlight. Upload your photo, choose your color, and add any notes for names, dates, messages, crop preference, or layout. Each lithophane is made to order and finished with care.",
+            "customization_fields": lithophane_fields,
+            "product_page_section_title": "Customize Your Lithophane Nightlight",
+            "product_page_section_text": "Upload the photo you want converted into your lithophane and choose your product color before checkout.",
+            "product_page_note": "A clear, high-quality photo works best. We may contact you if the image needs adjustment."
+        },
+        {
+            "id": "home-decor-designer-storage",
+            "name": "Designer Storage",
+            "subtitle": "3D Printed Decorative Storage Piece",
+            "price": 39.99,
+            "images": ["/assets/products/home-decor-lithophanes/designer-storage.jpeg"],
+            "image_alt": "Pink designer 3D printed storage containers",
+            "description": "A stylish 3D-printed designer storage piece made to order in your chosen color. Great for display, shelf styling, small accessories, vanity organization, or decorative storage.",
+            "product_page_note": "Decorative props shown in photos are not included."
+        },
+        {
+            "id": "home-decor-spiral-candle-holder",
+            "name": "Spiral Candle Holder",
+            "subtitle": "Made-to-Order 3D Printed Candle Holder",
+            "price": 24.99,
+            "images": ["/assets/products/home-decor-lithophanes/spiral-candle-holder.jpg"],
+            "image_alt": "Spiral 3D printed candle holder",
+            "description": "A sculptural spiral candle holder professionally 3D printed and made to order in your requested color. Designed as a decorative home accent with a clean modern look. Candles shown in photos are props and are not included.",
+            "product_page_note": "Candles are not included. Photo props are for display only."
+        }
+    ]
+    return [{**common, **product} for product in products]
+
+def filament_color_field(field_id: str = "filament_color", label: str = "Filament Color", required: bool = True):
+    return {
+        "id": field_id,
+        "label": label,
+        "type": "filament_color",
+        "required": required,
+        "helper": "Choose the filament color option you would like for this made-to-order 3D print.",
+        "options": FILAMENT_COLOR_OPTIONS,
+        "single_color_label": "Single Color Request",
+        "single_color_placeholder": "Example:\nMatte Black\nWhite\nTeal\nGold\nSilver\nOrange\nPink\nPurple\nRed\nBlue",
+        "original_color_message": "Your item will be printed using the colors shown in the product photos."
+    }
+
+def toys_fidgets_product_payloads(collection_id: str = TOYS_FIDGETS_COLLECTION_ID):
+    common = {
+        "category": "Toys & Fidgets",
+        "collection_ids": [collection_id],
+        "badge": "Made to Order",
+        "badge_color": "#2563eb",
+        "sale_badge_enabled": True,
+        "stock": 0,
+        "published": True,
+        "is_custom": True,
+        "available_colors": [],
+        "material_details": "Professionally 3D printed to order using quality PLA filament, silk tri-color filament when selected, and expert finishing.",
+        "product_page_section_title": "Customize Your Toy or Fidget",
+        "product_page_section_text": "Choose the size, color, character, animal, or personalization details for your made-to-order 3D printed item before checkout.",
+        "custom_builder": "",
+        "images": []
+    }
+    size_small_large_field = {
+        "id": "size",
+        "label": "Size",
+        "type": "select",
+        "required": True,
+        "options": ["Small", "Large"]
+    }
+    dragon_size_field = {
+        "id": "size",
+        "label": "Size",
+        "type": "select",
+        "required": True,
+        "options": ["Small", "Medium", "Large"]
+    }
+    products = [
+        {
+            "id": "toys-fidgets-infinity-hex-fidget",
+            "name": "Infinity Hex Fidget",
+            "price": 14.99,
+            "price_prefix": "Starting at",
+            "description": "The Infinity Hex Fidget is a uniquely designed 3D printed folding fidget with smooth, satisfying movement and a compact geometric design. Printed to order, it's perfect for collectors, desk accessories, or anyone who enjoys high-quality articulated fidget toys.",
+            "customization_fields": [
+                size_small_large_field,
+                filament_color_field()
+            ]
+        },
+        {
+            "id": "toys-fidgets-pocket-zoo-articulated-animals",
+            "name": "Pocket Zoo Articulated Animals",
+            "price": 4.99,
+            "price_prefix": "Starting at",
+            "description": "Bring your favorite animals to life with these adorable articulated mini animals. Each animal features movable joints and is professionally 3D printed to order. Choose almost any animal and customize it with your favorite filament color or select the original printed colors.",
+            "customization_fields": [
+                {
+                    "id": "animal_type",
+                    "label": "Animal Type",
+                    "type": "text",
+                    "required": True,
+                    "placeholder": "Example:\nAxolotl\nBee\nDragon\nFox\nFrog\nPenguin\nShark\nTurtle\nSnake\nGecko\nCow\nPig\nCustom Animal"
+                },
+                filament_color_field()
+            ]
+        },
+        {
+            "id": "toys-fidgets-personalized-puzzle-name",
+            "name": "Personalized Puzzle Name",
+            "price": 12.99,
+            "price_prefix": "Starting at",
+            "description": "Create a personalized 3D printed puzzle featuring the name of your choice. Each puzzle is custom made and designed to create a fun keepsake for children, classrooms, gifts, nurseries, birthdays, and more.",
+            "customization_fields": [
+                {
+                    "id": "puzzle_name",
+                    "label": "Name",
+                    "type": "text",
+                    "required": True,
+                    "max_length": 12,
+                    "placeholder": "Maximum 12 characters"
+                },
+                filament_color_field("back_base_color", "Back/Base Color"),
+                filament_color_field("letter_color", "Letter Color")
+            ]
+        },
+        {
+            "id": "toys-fidgets-rose-crystal-dragon",
+            "name": "Rose Crystal Dragon",
+            "price": 34.99,
+            "description": "An elegant articulated dragon featuring beautiful crystal-inspired details and sculpted roses throughout the body. Printed using premium silk tri-color filament, each dragon has its own unique color transition.",
+            "customization_fields": [
+                {
+                    **dragon_size_field,
+                    "price_adjustments": {"Small": 0, "Medium": 15, "Large": 35}
+                },
+                filament_color_field()
+            ]
+        },
+        {
+            "id": "toys-fidgets-crystal-guardian-dragon",
+            "name": "Crystal Guardian Dragon",
+            "price": 24.99,
+            "description": "A fully articulated crystal dragon inspired by magical crystal formations. Every dragon is printed to order using premium silk tri-color filament, creating stunning color shifts and a one-of-a-kind finish.",
+            "customization_fields": [
+                {
+                    **dragon_size_field,
+                    "price_adjustments": {"Small": 0, "Medium": 10, "Large": 20}
+                },
+                filament_color_field()
+            ]
+        },
+        {
+            "id": "toys-fidgets-custom-character-figurine",
+            "name": "Custom Character Figurine",
+            "price": 12.99,
+            "price_prefix": "Starting at",
+            "description": "Bring your favorite characters to life with a custom 3D printed collectible figurine. Whether it's inspired by anime, gaming, cartoons, fantasy, or your own creative idea, each figurine is printed to order and customized with your selected colors.",
+            "customization_fields": [
+                {
+                    "id": "character_name",
+                    "label": "Character Name",
+                    "type": "text",
+                    "required": True,
+                    "placeholder": "Example:\nStitch\nKirby\nPikachu\nHello Kitty\nBluey\nDragon\nDinosaur\nAxolotl\nCustom Character"
+                },
+                filament_color_field("primary_color", "Primary Color"),
+                filament_color_field("secondary_color", "Secondary Color (Optional)", False),
+                {
+                    "id": "character_notes",
+                    "label": "Character Notes",
+                    "type": "textarea",
+                    "required": False,
+                    "placeholder": "Tell us anything you'd like us to know about your character or preferred color placement."
+                }
+            ]
+        }
+    ]
+    return [{**common, **product} for product in products]
+
+def gifts_keepsakes_celebrations_product_payloads(collection_id: str = GIFTS_KEEPSAKES_CELEBRATIONS_COLLECTION_ID):
+    standard_size_notice = "Standard size only. Need another size? Please submit a Custom Order Request."
+    common = {
+        "category": "Gifts, Keepsakes & Celebrations",
+        "collection_ids": [collection_id],
+        "badge": "Made to Order",
+        "badge_color": "#2563eb",
+        "sale_badge_enabled": True,
+        "stock": 0,
+        "published": True,
+        "is_custom": True,
+        "available_colors": [],
+        "material_details": "Professionally 3D printed to order using quality PLA filament and finished with care.",
+        "product_page_section_title": "Customize Your Display",
+        "product_page_section_text": "Complete the required personalization and color options below. All display products are made to order in standard size.",
+        "custom_builder": ""
+    }
+    products = [
+        {
+            "id": "gifts-personalized-papa-word-display",
+            "name": "Personalized Papa Word Display",
+            "price": 29.99,
+            "images": ["/assets/products/gifts-keepsakes-celebrations/personalized-papa-word-display.jpg"],
+            "image_alt": "Blue 3D printed Papa word display keepsake",
+            "description": "A bold 3D printed Papa display made as a meaningful keepsake for dads, grandpas, and father figures. This decorative display is printed to order and makes a thoughtful gift for Father's Day, birthdays, Christmas, or any special occasion.",
+            "product_page_section_text": "This design is sold exactly as shown. Customers may only choose the display color. No wording changes, font changes, or size changes are included.",
+            "product_page_note": "This design is sold exactly as shown. No wording changes. No font changes. No size changes. If you want a different word or size, please submit a Custom Order Request.",
+            "customization_fields": [
+                filament_color_field("display_color", "Display Color")
+            ]
+        },
+        {
+            "id": "gifts-layered-name-word-art",
+            "name": "Layered Name Word Art",
+            "price": 34.99,
+            "images": ["/assets/products/gifts-keepsakes-celebrations/layered-name-word-art.jpg"],
+            "image_alt": "3D printed layered name word art display",
+            "description": "A personalized layered name display featuring elegant script over bold block lettering. Perfect for bedrooms, nurseries, offices, shelves, and personalized gifts.",
+            "product_page_note": standard_size_notice,
+            "customization_fields": [
+                {"id": "main_name", "label": "Main Name", "type": "text", "required": True, "placeholder": "Enter the main block name"},
+                {"id": "front_script_name", "label": "Front Script Name", "type": "text", "required": True, "placeholder": "Enter the front script name"},
+                filament_color_field("base_color", "Base Color"),
+                filament_color_field("script_color", "Script Color")
+            ]
+        },
+        {
+            "id": "gifts-personalized-initial-name-display",
+            "name": "Personalized Initial Name Display",
+            "price": 24.99,
+            "images": ["/assets/products/gifts-keepsakes-celebrations/personalized-initial-name-display.jpg"],
+            "image_alt": "Pink and white 3D printed initial name display",
+            "description": "A modern personalized monogram featuring a large initial with a custom name layered across the front. Makes a beautiful gift for birthdays, baby showers, teachers, offices, weddings, and home décor.",
+            "product_page_note": standard_size_notice,
+            "customization_fields": [
+                {"id": "large_initial", "label": "Large Initial", "type": "text", "required": True, "max_length": 1, "placeholder": "1 character"},
+                {"id": "name", "label": "Name", "type": "text", "required": True, "placeholder": "Enter the name"},
+                filament_color_field("initial_color", "Initial Color"),
+                filament_color_field("name_color", "Name Color")
+            ]
+        },
+        {
+            "id": "gifts-custom-graduation-display",
+            "name": "Custom Graduation Display",
+            "price": 39.99,
+            "images": ["/assets/products/gifts-keepsakes-celebrations/custom-graduation-display.jpg"],
+            "image_alt": "Custom 3D printed graduation display with class year and name",
+            "description": "Celebrate your graduate with a personalized graduation display featuring graduation year, graduate's name, and graduation cap. Perfect for graduation parties, gifts, memory tables, and keepsakes.",
+            "product_page_note": standard_size_notice,
+            "customization_fields": [
+                {"id": "graduation_year", "label": "Graduation Year", "type": "text", "required": True, "placeholder": "Example: 2026"},
+                {"id": "graduate_name", "label": "Graduate Name", "type": "text", "required": True, "placeholder": "Enter graduate name"},
+                filament_color_field("main_color", "Main Color"),
+                filament_color_field("accent_color", "Accent Color")
+            ]
+        },
+        {
+            "id": "gifts-personalized-couple-name-display",
+            "name": "Personalized Couple Name Display",
+            "price": 39.99,
+            "images": ["/assets/products/gifts-keepsakes-celebrations/personalized-couple-name-display.jpg"],
+            "image_alt": "3D printed couple name display with special date",
+            "description": "Celebrate your love story with a custom couple's display featuring two names connected with elegant script and a personalized special date. Perfect for weddings, anniversaries, engagements, bridal showers, Valentine's Day, or home décor.",
+            "product_page_note": standard_size_notice,
+            "customization_fields": [
+                {"id": "name_1", "label": "Name 1", "type": "text", "required": True, "placeholder": "Enter first name"},
+                {"id": "name_2", "label": "Name 2", "type": "text", "required": True, "placeholder": "Enter second name"},
+                {"id": "special_date", "label": "Special Date", "type": "text", "required": True, "placeholder": "Example: 11.11.2024"},
+                filament_color_field("base_color", "Base Color"),
+                filament_color_field("script_color", "Script Color")
+            ]
+        }
+    ]
+    return [{**common, **product} for product in products]
+
+async def resolve_nfc_stands_collection(product_ids):
+    collections = await db.product_collections.find({}, {"_id": 0}).to_list(1000)
+    seeded_collection = next((collection for collection in collections if collection.get("id") == NFC_BUSINESS_STANDS_COLLECTION_ID), None)
+    existing_admin_collection = next(
+        (
+            collection for collection in collections
+            if collection.get("id") != NFC_BUSINESS_STANDS_COLLECTION_ID and is_nfc_stands_collection(collection)
+        ),
+        None
+    )
+
+    target_collection = existing_admin_collection or seeded_collection
+    if target_collection:
+        target_collection_id = target_collection["id"]
+        await db.product_collections.update_one(
+            {"id": target_collection_id},
+            {
+                "$addToSet": {"product_ids": {"$each": product_ids}},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+
+        if seeded_collection and existing_admin_collection and seeded_collection.get("nfc_seed_version"):
+            await db.product_collections.delete_one({"id": NFC_BUSINESS_STANDS_COLLECTION_ID})
+
+        return target_collection_id
+
+    collection_payload = {
+        "id": NFC_BUSINESS_STANDS_COLLECTION_ID,
+        "name": "NFC Business Stands",
+        "description": NFC_BUSINESS_STANDS_DESCRIPTION,
+        "image_url": "/assets/products/nfc-stands/nfc-business-hub-neeta-tees.jpg",
+        "image_alt": "Custom 3D printed NFC business stands",
+        "link_url": f"/shop?collection={NFC_BUSINESS_STANDS_COLLECTION_ID}",
+        "type": "manual",
+        "product_ids": product_ids,
+        "rules": [],
+        "sort_order": 1,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "nfc_seed_version": 2
+    }
+    await db.product_collections.insert_one(collection_payload)
+    return NFC_BUSINESS_STANDS_COLLECTION_ID
+
+async def resolve_keychains_charms_collection(product_ids):
+    collections = await db.product_collections.find({}, {"_id": 0}).to_list(1000)
+    target_collection = next((collection for collection in collections if is_keychains_charms_collection(collection)), None)
+    if target_collection:
+        target_collection_id = target_collection["id"]
+        await db.product_collections.update_one(
+            {"id": target_collection_id},
+            {
+                "$addToSet": {"product_ids": {"$each": product_ids}},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        return target_collection_id
+
+    collection_payload = {
+        "id": KEYCHAINS_CHARMS_COLLECTION_ID,
+        "name": "Keychains & Charms",
+        "description": "Shop custom 3D-printed keychains, charms, NFC keychains, and personalized accessories made to order with colors, names, logos, links, and custom design details.",
+        "image_url": "/assets/products/nfc-keychains/social-payment-nfc-keychains.jpg",
+        "image_alt": "Custom NFC keychains and charms",
+        "link_url": f"/shop?collection={KEYCHAINS_CHARMS_COLLECTION_ID}",
+        "type": "manual",
+        "product_ids": product_ids,
+        "rules": [],
+        "sort_order": 2,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "keychain_seed_version": 1
+    }
+    await db.product_collections.insert_one(collection_payload)
+    return KEYCHAINS_CHARMS_COLLECTION_ID
+
+async def resolve_home_decor_lithophanes_collection(product_ids):
+    collections = await db.product_collections.find({}, {"_id": 0}).to_list(1000)
+    target_collection = next((collection for collection in collections if is_home_decor_lithophanes_collection(collection)), None)
+    if target_collection:
+        target_collection_id = target_collection["id"]
+        await db.product_collections.update_one(
+            {"id": target_collection_id},
+            {
+                "$addToSet": {"product_ids": {"$each": product_ids}},
+                "$set": {
+                    "description": target_collection.get("description") or HOME_DECOR_LITHOPHANES_DESCRIPTION,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        return target_collection_id
+
+    collection_payload = {
+        "id": HOME_DECOR_LITHOPHANES_COLLECTION_ID,
+        "name": "Home Décor & Lithophanes",
+        "description": HOME_DECOR_LITHOPHANES_DESCRIPTION,
+        "image_url": "/assets/products/home-decor-lithophanes/lithophane-nightlight.jpg",
+        "image_alt": "Custom 3D printed home décor and lithophane products",
+        "link_url": f"/shop?collection={HOME_DECOR_LITHOPHANES_COLLECTION_ID}",
+        "type": "manual",
+        "product_ids": product_ids,
+        "rules": [],
+        "sort_order": 3,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "home_decor_seed_version": 1
+    }
+    await db.product_collections.insert_one(collection_payload)
+    return HOME_DECOR_LITHOPHANES_COLLECTION_ID
+
+async def resolve_toys_fidgets_collection(product_ids):
+    collections = await db.product_collections.find({}, {"_id": 0}).to_list(1000)
+    target_collection = next((collection for collection in collections if is_toys_fidgets_collection(collection)), None)
+    if target_collection:
+        target_collection_id = target_collection["id"]
+        await db.product_collections.update_one(
+            {"id": target_collection_id},
+            {
+                "$addToSet": {"product_ids": {"$each": product_ids}},
+                "$set": {
+                    "description": target_collection.get("description") or TOYS_FIDGETS_DESCRIPTION,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        return target_collection_id
+
+    collection_payload = {
+        "id": TOYS_FIDGETS_COLLECTION_ID,
+        "name": "Toys & Fidgets",
+        "description": TOYS_FIDGETS_DESCRIPTION,
+        "image_url": "",
+        "image_alt": "Custom 3D printed toys and fidgets",
+        "link_url": f"/shop?collection={TOYS_FIDGETS_COLLECTION_ID}",
+        "type": "manual",
+        "product_ids": product_ids,
+        "rules": [],
+        "sort_order": 4,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "toys_fidgets_seed_version": 1
+    }
+    await db.product_collections.insert_one(collection_payload)
+    return TOYS_FIDGETS_COLLECTION_ID
+
+async def resolve_gifts_keepsakes_celebrations_collection(product_ids):
+    collections = await db.product_collections.find({}, {"_id": 0}).to_list(1000)
+    target_collection = next((collection for collection in collections if is_gifts_keepsakes_celebrations_collection(collection)), None)
+    if target_collection:
+        target_collection_id = target_collection["id"]
+        await db.product_collections.update_one(
+            {"id": target_collection_id},
+            {
+                "$addToSet": {"product_ids": {"$each": product_ids}},
+                "$set": {
+                    "description": target_collection.get("description") or GIFTS_KEEPSAKES_CELEBRATIONS_DESCRIPTION,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        return target_collection_id
+
+    collection_payload = {
+        "id": GIFTS_KEEPSAKES_CELEBRATIONS_COLLECTION_ID,
+        "name": "Gifts, Keepsakes & Celebrations",
+        "description": GIFTS_KEEPSAKES_CELEBRATIONS_DESCRIPTION,
+        "image_url": "/assets/products/gifts-keepsakes-celebrations/personalized-couple-name-display.jpg",
+        "image_alt": "Custom 3D printed gifts keepsakes and celebration displays",
+        "link_url": f"/shop?collection={GIFTS_KEEPSAKES_CELEBRATIONS_COLLECTION_ID}",
+        "type": "manual",
+        "product_ids": product_ids,
+        "rules": [],
+        "sort_order": 5,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "gifts_seed_version": 1
+    }
+    await db.product_collections.insert_one(collection_payload)
+    return GIFTS_KEEPSAKES_CELEBRATIONS_COLLECTION_ID
+
+_nfc_seed_completed = False
+
+async def ensure_nfc_business_stands_seeded():
+    """Create NFC stand products and attach them to the existing NFC collection when available."""
+    global _nfc_seed_completed
+    if _nfc_seed_completed:
+        return
+    product_ids = [product["id"] for product in nfc_product_payloads()]
+    keychain_product_ids = [product["id"] for product in nfc_keychain_product_payloads()]
+    home_decor_product_ids = [product["id"] for product in home_decor_lithophanes_product_payloads()]
+    toys_fidgets_product_ids = [product["id"] for product in toys_fidgets_product_payloads()]
+    gifts_product_ids = [product["id"] for product in gifts_keepsakes_celebrations_product_payloads()]
+    existing_category = await db.categories.find_one({"name": "NFC Business Stands"}, {"_id": 0})
+    if not existing_category:
+        await db.categories.insert_one({
+            "id": "nfc-business-stands-category",
+            "name": "NFC Business Stands",
+            "description": NFC_BUSINESS_STANDS_DESCRIPTION,
+            "image_url": "/assets/products/nfc-stands/nfc-business-hub-neeta-tees.jpg",
+            "created_at": datetime.now(timezone.utc)
+        })
+    existing_keychain_category = await db.categories.find_one({"name": "Keychains & Charms"}, {"_id": 0})
+    if not existing_keychain_category:
+        await db.categories.insert_one({
+            "id": "keychains-charms-category",
+            "name": "Keychains & Charms",
+            "description": "Custom 3D-printed keychains, charms, NFC keychains, and personalized accessories.",
+            "image_url": "/assets/products/nfc-keychains/social-payment-nfc-keychains.jpg",
+            "created_at": datetime.now(timezone.utc)
+        })
+
+    target_collection_id = await resolve_nfc_stands_collection(product_ids)
+    keychain_collection_id = await resolve_keychains_charms_collection(keychain_product_ids)
+    home_decor_collection_id = await resolve_home_decor_lithophanes_collection(home_decor_product_ids)
+    toys_fidgets_collection_id = await resolve_toys_fidgets_collection(toys_fidgets_product_ids)
+    gifts_collection_id = await resolve_gifts_keepsakes_celebrations_collection(gifts_product_ids)
+
+    for product_payload in nfc_product_payloads(target_collection_id):
+        now = datetime.now(timezone.utc).isoformat()
+        product_payload = {
+            **product_payload,
+            "updated_at": now,
+            "nfc_seed_version": 2
+        }
+        existing_product = await db.products.find_one({"id": product_payload["id"]}, {"_id": 0})
+        if existing_product:
+            fields_to_fill = {
+                key: value
+                for key, value in product_payload.items()
+                if key not in existing_product or existing_product.get(key) in [None, "", []]
+            }
+            fields_to_fill.update({
+                "updated_at": now,
+                "nfc_seed_version": 2
+            })
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$set": fields_to_fill}
+            )
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$addToSet": {"collection_ids": target_collection_id}}
+            )
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$pull": {"add_on_options": {"name": {"$in": ["Extra NFC icon", "Extra color"]}}}}
+            )
+            if target_collection_id != NFC_BUSINESS_STANDS_COLLECTION_ID:
+                await db.products.update_one(
+                    {"id": product_payload["id"]},
+                    {"$pull": {"collection_ids": NFC_BUSINESS_STANDS_COLLECTION_ID}}
+                )
+        else:
+            product_payload["created_at"] = now
+            await db.products.insert_one(product_payload)
+
+    for product_payload in nfc_keychain_product_payloads(keychain_collection_id):
+        now = datetime.now(timezone.utc).isoformat()
+        product_payload = {
+            **product_payload,
+            "updated_at": now,
+            "keychain_seed_version": 1
+        }
+        existing_product = await db.products.find_one({"id": product_payload["id"]}, {"_id": 0})
+        if existing_product:
+            fields_to_fill = {
+                key: value
+                for key, value in product_payload.items()
+                if key not in existing_product or existing_product.get(key) in [None, "", []]
+            }
+            fields_to_fill.update({
+                "updated_at": now,
+                "keychain_seed_version": 1
+            })
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$set": fields_to_fill}
+            )
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$addToSet": {"collection_ids": keychain_collection_id}}
+            )
+            existing_fields = existing_product.get("customization_fields") or []
+            product_fields = product_payload.get("customization_fields") or []
+            needs_filament_refresh = (
+                product_fields
+                and any(field.get("type") == "filament_color" for field in product_fields)
+                and not any(field.get("type") == "filament_color" for field in existing_fields)
+            )
+            if product_fields and (not existing_fields or needs_filament_refresh):
+                await db.products.update_one(
+                    {"id": product_payload["id"]},
+                    {"$set": {"customization_fields": product_fields}}
+                )
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$pull": {"collection_ids": NFC_BUSINESS_STANDS_COLLECTION_ID}}
+            )
+        else:
+            product_payload["created_at"] = now
+            await db.products.insert_one(product_payload)
+
+    for product_payload in home_decor_lithophanes_product_payloads(home_decor_collection_id):
+        now = datetime.now(timezone.utc).isoformat()
+        product_payload = {
+            **product_payload,
+            "updated_at": now,
+            "home_decor_seed_version": 1
+        }
+        existing_product = await db.products.find_one({"id": product_payload["id"]}, {"_id": 0})
+        if existing_product:
+            fields_to_fill = {
+                key: value
+                for key, value in product_payload.items()
+                if key not in existing_product or existing_product.get(key) in [None, "", []]
+            }
+            fields_to_fill.update({
+                "updated_at": now,
+                "home_decor_seed_version": 1
+            })
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$set": fields_to_fill}
+            )
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$addToSet": {"collection_ids": home_decor_collection_id}}
+            )
+            existing_fields = existing_product.get("customization_fields") or []
+            product_fields = product_payload.get("customization_fields") or []
+            needs_filament_refresh = (
+                product_fields
+                and any(field.get("type") == "filament_color" for field in product_fields)
+                and not any(field.get("type") == "filament_color" for field in existing_fields)
+            )
+            if product_fields and (not existing_fields or needs_filament_refresh):
+                await db.products.update_one(
+                    {"id": product_payload["id"]},
+                    {"$set": {"customization_fields": product_fields}}
+                )
+        else:
+            product_payload["created_at"] = now
+            await db.products.insert_one(product_payload)
+
+    for product_payload in toys_fidgets_product_payloads(toys_fidgets_collection_id):
+        now = datetime.now(timezone.utc).isoformat()
+        product_payload = {
+            **product_payload,
+            "updated_at": now,
+            "toys_fidgets_seed_version": 1
+        }
+        existing_product = await db.products.find_one({"id": product_payload["id"]}, {"_id": 0})
+        if existing_product:
+            fields_to_fill = {
+                key: value
+                for key, value in product_payload.items()
+                if key not in existing_product or existing_product.get(key) in [None, "", []]
+            }
+            fields_to_fill.update({
+                "updated_at": now,
+                "toys_fidgets_seed_version": 1
+            })
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$set": fields_to_fill}
+            )
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$addToSet": {"collection_ids": toys_fidgets_collection_id}}
+            )
+            existing_fields = existing_product.get("customization_fields") or []
+            product_fields = product_payload.get("customization_fields") or []
+            needs_filament_refresh = (
+                product_fields
+                and any(field.get("type") == "filament_color" for field in product_fields)
+                and not any(field.get("type") == "filament_color" for field in existing_fields)
+            )
+            if product_fields and (not existing_fields or needs_filament_refresh):
+                await db.products.update_one(
+                    {"id": product_payload["id"]},
+                    {"$set": {"customization_fields": product_fields}}
+                )
+        else:
+            product_payload["created_at"] = now
+            await db.products.insert_one(product_payload)
+
+    for product_payload in gifts_keepsakes_celebrations_product_payloads(gifts_collection_id):
+        now = datetime.now(timezone.utc).isoformat()
+        product_payload = {
+            **product_payload,
+            "updated_at": now,
+            "gifts_seed_version": 1
+        }
+        existing_product = await db.products.find_one({"id": product_payload["id"]}, {"_id": 0})
+        if existing_product:
+            fields_to_fill = {
+                key: value
+                for key, value in product_payload.items()
+                if key not in existing_product or existing_product.get(key) in [None, "", []]
+            }
+            fields_to_fill.update({
+                "updated_at": now,
+                "gifts_seed_version": 1
+            })
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$set": fields_to_fill}
+            )
+            await db.products.update_one(
+                {"id": product_payload["id"]},
+                {"$addToSet": {"collection_ids": gifts_collection_id}}
+            )
+            existing_fields = existing_product.get("customization_fields") or []
+            product_fields = product_payload.get("customization_fields") or []
+            needs_filament_refresh = (
+                product_fields
+                and any(field.get("type") == "filament_color" for field in product_fields)
+                and not any(field.get("type") == "filament_color" for field in existing_fields)
+            )
+            if product_fields and (not existing_fields or needs_filament_refresh):
+                await db.products.update_one(
+                    {"id": product_payload["id"]},
+                    {"$set": {"customization_fields": product_fields}}
+                )
+        else:
+            product_payload["created_at"] = now
+            await db.products.insert_one(product_payload)
+
+    _nfc_seed_completed = True
+
 @api_router.get("/products", response_model=List[Product])
-async def get_products(category: Optional[str] = None, published: Optional[bool] = None, search: Optional[str] = None):
+async def get_products(category: Optional[str] = None, collection: Optional[str] = None, published: Optional[bool] = None, search: Optional[str] = None):
     """Get all products with optional filters"""
+    await ensure_nfc_business_stands_seeded()
     query = {}
     if category:
         query["category"] = category
+    collection_product_ids = []
+    collection_match_ids = []
+    if collection:
+        collection_doc = await db.product_collections.find_one({"id": collection}, {"_id": 0})
+        if not collection_doc:
+            all_collections = await db.product_collections.find({}, {"_id": 0}).to_list(1000)
+            normalized_collection = collection.strip().lower().replace("-", " ")
+            collection_doc = next(
+                (
+                    item for item in all_collections
+                    if item.get("id") == collection
+                    or (item.get("name") or "").strip().lower() == normalized_collection
+                    or (item.get("link_url") or "").endswith(f"collection={collection}")
+                ),
+                None
+            )
+        collection_product_ids = collection_doc.get("product_ids", []) if collection_doc else []
+        collection_match_ids = [collection]
+        if collection_doc and collection_doc.get("id") not in collection_match_ids:
+            collection_match_ids.append(collection_doc.get("id"))
+        if collection_doc and is_toys_fidgets_collection(collection_doc):
+            collection_product_ids = list(set(collection_product_ids + [product["id"] for product in toys_fidgets_product_payloads(collection_doc.get("id", collection))]))
+        if collection_doc and is_gifts_keepsakes_celebrations_collection(collection_doc):
+            collection_product_ids = list(set(collection_product_ids + [product["id"] for product in gifts_keepsakes_celebrations_product_payloads(collection_doc.get("id", collection))]))
+        query["$or"] = [
+            {"collection_ids": {"$in": collection_match_ids}},
+            {"id": {"$in": collection_product_ids}}
+        ]
     if published is not None:
         query["published"] = published
     
     products = await db.products.find(query, {"_id": 0}).to_list(1000)
+    if collection:
+        allowed_product_ids = set(collection_product_ids)
+        allowed_collection_ids = set(collection_match_ids)
+        products = [
+            product for product in products
+            if allowed_collection_ids.intersection(set(product.get("collection_ids") or [])) or product.get("id") in allowed_product_ids
+        ]
     
     # Apply search filter if provided
     if search:
@@ -1150,10 +2533,21 @@ async def get_category_names():
 @api_router.get("/collections", response_model=List[Collection])
 async def get_collections():
     """Get all collections"""
+    await ensure_nfc_business_stands_seeded()
     collections = await db.product_collections.find({}, {"_id": 0}).to_list(1000)
     for collection in collections:
         if isinstance(collection.get('created_at'), str):
             collection['created_at'] = datetime.fromisoformat(collection['created_at'])
+        normalized_name = (collection.get("name") or "").strip().lower().replace("decor", "décor")
+        if normalized_name == "home décor & lithophanes" and not collection.get("wording_migrated_home_decor_20260629"):
+            collection["description"] = HOME_DECOR_LITHOPHANES_DESCRIPTION
+            await db.product_collections.update_one(
+                {"id": collection.get("id")},
+                {"$set": {
+                    "description": HOME_DECOR_LITHOPHANES_DESCRIPTION,
+                    "wording_migrated_home_decor_20260629": True
+                }}
+            )
     return collections
 
 @api_router.post("/collections", response_model=Collection)
@@ -1225,6 +2619,193 @@ async def delete_collection(collection_id: str, user: User = Depends(require_adm
         raise HTTPException(status_code=404, detail="Collection not found")
     return {"message": "Collection deleted successfully"}
 
+# ============ INQUIRY ROUTES ============
+
+def serialize_inquiry(inquiry: Dict, inquiry_type: str) -> Dict:
+    inquiry.pop("_id", None)
+    inquiry["inquiry_type"] = inquiry_type
+    created_at = inquiry.get("created_at")
+    updated_at = inquiry.get("updated_at")
+
+    if isinstance(created_at, datetime):
+        inquiry["created_at"] = created_at.isoformat()
+    if isinstance(updated_at, datetime):
+        inquiry["updated_at"] = updated_at.isoformat()
+
+    return inquiry
+
+@api_router.post("/custom-quote-requests", response_model=CustomQuoteRequest)
+async def create_custom_quote_request(inquiry_data: CustomQuoteRequest):
+    """Create a custom quote inquiry from the public design-your-own form"""
+    inquiry = inquiry_data.model_dump()
+    inquiry["created_at"] = inquiry["created_at"].isoformat()
+    await db.custom_quote_requests.insert_one(inquiry)
+    return inquiry_data
+
+@api_router.post("/partner-inquiries", response_model=PartnerInquiry)
+async def create_partner_inquiry(inquiry_data: PartnerInquiry):
+    """Create a partnership or collaboration inquiry"""
+    inquiry = inquiry_data.model_dump()
+    inquiry["created_at"] = inquiry["created_at"].isoformat()
+    await db.partner_inquiries.insert_one(inquiry)
+    return inquiry_data
+
+@api_router.post("/custom-quote-uploads")
+async def upload_custom_quote_image(file: UploadFile = File(...)):
+    """Upload an optional inspiration image for a public custom quote request"""
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    content = await file.read()
+    max_size = 8 * 1024 * 1024
+    if len(content) > max_size:
+        raise HTTPException(status_code=400, detail="Image must be 8MB or smaller")
+
+    try:
+        result = CloudinaryService.upload_image(content, folder="custom-quote-requests")
+        return result
+    except Exception as e:
+        logging.error(f"Custom quote image upload failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Image upload failed")
+
+@api_router.get("/admin/inquiries")
+async def get_admin_inquiries(user: User = Depends(require_admin)):
+    """Get quote, custom design, and contact inquiries for the admin inbox"""
+    quote_requests = await db.custom_quote_requests.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    contact_requests = await db.partner_inquiries.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+
+    inquiries = [
+        *(serialize_inquiry(inquiry, "custom_quote") for inquiry in quote_requests),
+        *(serialize_inquiry(inquiry, "contact") for inquiry in contact_requests)
+    ]
+
+    return sorted(inquiries, key=lambda item: item.get("created_at", ""), reverse=True)
+
+@api_router.put("/admin/inquiries/{inquiry_type}/{inquiry_id}/status")
+async def update_admin_inquiry_status(
+    inquiry_type: str,
+    inquiry_id: str,
+    status_update: InquiryStatusUpdate,
+    user: User = Depends(require_admin)
+):
+    """Update the workflow status for a saved inquiry"""
+    allowed_statuses = {"new", "reviewing", "quoted", "completed", "archived"}
+    if status_update.status not in allowed_statuses:
+        raise HTTPException(status_code=400, detail="Invalid inquiry status")
+
+    collections = {
+        "custom_quote": db.custom_quote_requests,
+        "contact": db.partner_inquiries,
+        "partner": db.partner_inquiries
+    }
+    collection = collections.get(inquiry_type)
+    if collection is None:
+        raise HTTPException(status_code=400, detail="Invalid inquiry type")
+
+    result = await collection.update_one(
+        {"id": inquiry_id},
+        {"$set": {
+            "status": status_update.status,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Inquiry not found")
+
+    return {"message": "Inquiry status updated"}
+
+@api_router.post("/newsletter-signups", response_model=NewsletterSignup)
+async def create_newsletter_signup(signup_data: NewsletterSignup):
+    """Create or refresh a VIP/newsletter signup"""
+    signup = signup_data.model_dump()
+    signup["email"] = signup["email"].strip().lower()
+    signup["created_at"] = signup["created_at"].isoformat()
+    await db.newsletter_signups.update_one(
+        {"email": signup["email"]},
+        {"$set": signup},
+        upsert=True
+    )
+    return NewsletterSignup(**signup)
+
+# ============ REVIEW ROUTES ============
+
+def serialize_review(review: Dict) -> Dict:
+    review.pop("_id", None)
+    for field in ["created_at", "updated_at"]:
+        if isinstance(review.get(field), datetime):
+            review[field] = review[field].isoformat()
+    return review
+
+@api_router.get("/reviews", response_model=List[CustomerReview])
+async def get_featured_reviews():
+    """Get approved featured reviews for the public homepage"""
+    reviews = await db.customer_reviews.find(
+        {"status": "approved", "featured": True},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(4)
+    return [serialize_review(review) for review in reviews]
+
+@api_router.post("/reviews", response_model=CustomerReview)
+async def create_customer_review(review_data: CustomerReview):
+    """Create a customer review submission for admin approval"""
+    if review_data.rating < 1 or review_data.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+
+    review = review_data.model_dump()
+    review["name"] = review["name"].strip()
+    review["review"] = review["review"].strip()
+    review["status"] = "pending"
+    review["featured"] = False
+    review["created_at"] = review["created_at"].isoformat()
+    review["updated_at"] = None
+
+    if not review["name"] or not review["review"]:
+        raise HTTPException(status_code=400, detail="Name and review are required")
+
+    await db.customer_reviews.insert_one(review)
+    return CustomerReview(**review)
+
+@api_router.get("/admin/reviews")
+async def get_admin_reviews(user: User = Depends(require_admin)):
+    """Get all customer reviews for admin management"""
+    reviews = await db.customer_reviews.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return [serialize_review(review) for review in reviews]
+
+@api_router.put("/admin/reviews/{review_id}")
+async def update_admin_review(review_id: str, review_update: CustomerReviewUpdate, user: User = Depends(require_admin)):
+    """Update a customer review and choose whether it appears on the homepage"""
+    existing = await db.customer_reviews.find_one({"id": review_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Review not found")
+
+    update_data = {key: value for key, value in review_update.model_dump().items() if value is not None}
+    if "rating" in update_data and (update_data["rating"] < 1 or update_data["rating"] > 5):
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+    if "status" in update_data and update_data["status"] not in {"pending", "approved", "hidden"}:
+        raise HTTPException(status_code=400, detail="Invalid review status")
+
+    if update_data.get("featured"):
+        featured_count = await db.customer_reviews.count_documents({
+            "id": {"$ne": review_id},
+            "status": "approved",
+            "featured": True
+        })
+        if featured_count >= 4:
+            raise HTTPException(status_code=400, detail="Only 4 reviews can be highlighted at a time")
+        update_data["status"] = "approved"
+
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.customer_reviews.update_one({"id": review_id}, {"$set": update_data})
+    return {"message": "Review updated"}
+
+@api_router.delete("/admin/reviews/{review_id}")
+async def delete_admin_review(review_id: str, user: User = Depends(require_admin)):
+    """Delete a customer review"""
+    result = await db.customer_reviews.delete_one({"id": review_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return {"message": "Review deleted"}
+
 # ============ ORDER ROUTES ============
 
 @api_router.get("/orders", response_model=List[Order])
@@ -1250,6 +2831,9 @@ async def create_order(order_data: OrderCreate, background_tasks: BackgroundTask
         customer_info=order_data.customer_info,
         shipping_address=order_data.shipping_address,
         pickup_details=order_data.pickup_details,
+        rush_order=order_data.rush_order,
+        rush_order_amount=order_data.rush_order_amount,
+        shipping_option=order_data.shipping_option,
         status="pending"
     )
     order_dict = order.model_dump()
@@ -1435,7 +3019,7 @@ class OrderFulfillment(BaseModel):
     admin_notes: Optional[str] = None
 
 @api_router.put("/admin/orders/{order_id}/fulfill")
-async def fulfill_order(order_id: str, fulfillment: OrderFulfillment, user: User = Depends(require_admin)):
+async def fulfill_order(order_id: str, fulfillment: OrderFulfillment, background_tasks: BackgroundTasks, user: User = Depends(require_admin)):
     """Fulfill order - mark as shipped or ready for pickup"""
     order = await db.orders.find_one({"id": order_id})
     if not order:
@@ -1464,7 +3048,13 @@ async def fulfill_order(order_id: str, fulfillment: OrderFulfillment, user: User
         {"id": order_id},
         {"$set": update_data}
     )
-    
+
+    # Notify the customer: ready-for-pickup, shipped (with tracking), or fulfilled
+    if fulfillment.fulfillment_action == "pickup":
+        background_tasks.add_task(send_status_update_email_background, order_id, "ready_for_pickup")
+    else:
+        background_tasks.add_task(send_status_update_email_background, order_id, update_data["status"])
+
     return {"message": f"Order {fulfillment.fulfillment_action} successfully", "status": update_data["status"]}
 
 @api_router.get("/admin/orders/{order_id}")
@@ -1516,28 +3106,137 @@ async def get_all_customers(user: User = Depends(require_admin)):
 
 # ============ SITE EDITOR ROUTES ============
 
+def default_navigation_items():
+    return [
+        {"id": "home", "label": "Home", "link": "/", "enabled": True, "show_desktop": True, "show_mobile": True, "show_footer": False, "featured": False, "footer_group": "company", "order": 1},
+        {"id": "personalize", "label": "Personalize", "link": "/personalize", "enabled": True, "show_desktop": True, "show_mobile": True, "show_footer": True, "featured": True, "order": 2},
+        {"id": "shop", "label": "Shop", "link": "/shop", "enabled": True, "show_desktop": True, "show_mobile": True, "show_footer": True, "featured": False, "order": 3},
+        {"id": "design-your-own", "label": "Design Your Own", "link": "/design-your-own", "enabled": True, "show_desktop": True, "show_mobile": True, "show_footer": True, "featured": True, "order": 4},
+        {"id": "corporate-bulk", "label": "Corporate & Bulk", "link": "/corporate-bulk-orders", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": False, "featured": False, "footer_group": "hidden", "order": 5},
+        {"id": "about", "label": "About", "link": "/about", "enabled": True, "show_desktop": True, "show_mobile": True, "show_footer": True, "featured": False, "footer_group": "company", "order": 6},
+        {"id": "contact", "label": "Contact", "link": "/contact", "enabled": True, "show_desktop": True, "show_mobile": True, "show_footer": True, "featured": False, "footer_group": "company", "order": 7},
+        {"id": "footer-personalized", "label": "Personalized Creations", "link": "/personalize", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "shop", "order": 8},
+        {"id": "footer-chains-pendants", "label": "Custom Chains & Pendants", "link": "/shop", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "shop", "order": 9},
+        {"id": "footer-nfc-business", "label": "NFC & Business Solutions", "link": "/shop", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "shop", "order": 10},
+        {"id": "footer-home-decor", "label": "Home Décor & Lithophanes", "link": "/shop", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "shop", "order": 11},
+        {"id": "footer-gifts", "label": "Gifts, Keepsakes & Celebrations", "link": "/shop", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "shop", "order": 12},
+        {"id": "footer-design-your-own", "label": "Design Your Own", "link": "/design-your-own", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "shop", "order": 13},
+        {"id": "footer-custom-order", "label": "Custom Order", "link": "/design-your-own", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "company", "order": 14},
+        {"id": "footer-corporate-bulk", "label": "Corporate & Bulk Orders", "link": "/corporate-bulk-orders", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "company", "order": 15},
+        {"id": "footer-partner-with-us", "label": "Partner With Us", "link": "/contact", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "company", "order": 16},
+        {"id": "shipping-policy", "label": "Shipping Policy", "link": "/shipping-policy", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "support", "order": 17},
+        {"id": "materials-process", "label": "Materials & 3D Printing", "link": "/materials", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "support", "order": 18},
+        {"id": "refund-policy", "label": "Refund Policy", "link": "/refund-policy", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "support", "order": 19},
+        {"id": "product-care", "label": "Product Care", "link": "/product-care", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "support", "order": 20},
+        {"id": "privacy", "label": "Privacy Policy", "link": "/privacy-policy", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "support", "order": 21},
+        {"id": "terms", "label": "Terms of Service", "link": "/terms-of-service", "enabled": True, "show_desktop": False, "show_mobile": False, "show_footer": True, "featured": False, "footer_group": "support", "order": 22},
+    ]
+
+def merge_default_navigation_items(items: List[Dict]) -> List[Dict]:
+    existing_items = list(items or [])
+    defaults = default_navigation_items()
+    default_by_id = {item["id"]: item for item in defaults}
+    for item in existing_items:
+        default_item = default_by_id.get(item.get("id"))
+        if default_item:
+            for key, value in default_item.items():
+                if key not in item:
+                    item[key] = value
+            if item.get("id") == "corporate-bulk" and item.get("link") == "/corporate-bulk-orders":
+                item["show_desktop"] = False
+                item["show_mobile"] = False
+                item["show_footer"] = False
+                item["footer_group"] = "hidden"
+    existing_ids = {item.get("id") for item in existing_items}
+    for default_item in defaults:
+        if default_item["id"] not in existing_ids:
+            existing_items.append(default_item)
+    return existing_items
+
+def refresh_3d_printing_wording(value):
+    if isinstance(value, str):
+        replacements = {
+            "Premium Materials • Expert Finishing": "Precision 3D Printing • Expert Finishing",
+            "premium materials": "quality PLA and PETG materials",
+            "Premium Materials": "Precision 3D Printing",
+            "crafted with quality PLA and PETG materials": "crafted with precision",
+            "made with quality PLA and PETG materials": "made to order and finished with care",
+            "quality materials": "quality PLA and PETG materials",
+            "Premium custom 3D printing": "Professional custom 3D printing",
+            "Local Pickup: Los Angeles • Altadena • Hawthorne • Long Beach • West Covina": "Local Pickup: Los Angeles, California",
+            "Local pickup may be available in Los Angeles, Altadena, Hawthorne, Long Beach, and West Covina.": "Local pickup may be available in Los Angeles, California.",
+            "Los Angeles, Altadena, Hawthorne, Long Beach, West Covina": "Los Angeles, California",
+            "Los Angeles, Altadena, Long Beach, Hawthorne, West Covina": "Los Angeles, California",
+            "Most Custom Orders Completed Within 72 Hours": "Production Time: 3-5 Days",
+            "Most Orders Complete in 72 Hours": "Production Time: 3-5 Days",
+            "Most custom orders are completed within 72 hours after design approval, depending on product type, project complexity, material availability, and order volume.": "Production typically takes 3-5 days after design approval, depending on product type, project complexity, material availability, and order volume.",
+            "Most custom orders are completed within 72 hours after design approval, depending on project size and complexity.": "Production typically takes 3-5 days after design approval, depending on project size and complexity.",
+        }
+        updated = value
+        for old, new in replacements.items():
+            updated = updated.replace(old, new)
+        return updated
+    if isinstance(value, list):
+        return [refresh_3d_printing_wording(item) for item in value]
+    if isinstance(value, dict):
+        return {key: refresh_3d_printing_wording(item) for key, item in value.items()}
+    return value
+
+def refresh_section_wording(sections: List[Dict]) -> List[Dict]:
+    refreshed_sections = []
+    for section in sections:
+        refreshed_section = dict(section)
+        refreshed_section["content"] = refresh_3d_printing_wording(refreshed_section.get("content", {}))
+        refreshed_sections.append(refreshed_section)
+    return refreshed_sections
+
 # Default homepage sections configuration
 DEFAULT_SECTIONS = [
+    {
+        "id": "marquee",
+        "name": "Top Announcement Marquee",
+        "enabled": True,
+        "order": 1,
+        "content": {
+            "headline": "Top Announcement Marquee",
+            "marquee_messages": [
+                "Free U.S. Shipping on Orders $150+",
+                "Production Time: 3-5 Days",
+                "Local Pickup: Los Angeles, California",
+                "Personalized Just for You",
+                "Precision 3D Printing • Expert Finishing",
+                "Your Vision, Printed Perfectly"
+            ],
+            "marquee_speed": 30,
+            "marquee_direction": "left",
+            "marquee_background_color": "",
+            "marquee_background_image_url": "",
+            "marquee_images": [],
+            "marquee_show_images": False,
+            "marquee_text_color": "#ffffff",
+            "marquee_padding_y": 12,
+            "marquee_gap": 32
+        }
+    },
     {
         "id": "hero",
         "name": "Hero Banner",
         "enabled": True,
-        "order": 1,
-        "content": {
-            "headline": "Custom 3D Printed Creations",
-            "subheadline": "Bringing Your Ideas to Life",
-            "description": "Discover unique 3D printed products crafted with precision and care.",
-            "button_text": "Shop Now",
-            "button_link": "/products"
-        }
-    },
-    {
-        "id": "marquee",
-        "name": "Scrolling Marquee",
-        "enabled": True,
         "order": 2,
         "content": {
-            "headline": "FREE SHIPPING ON ORDERS OVER $50 • NEW ARRIVALS WEEKLY • CUSTOM ORDERS WELCOME"
+            "badge_label": "CUSTOM 3D CREATION STUDIO",
+            "headline": "Create Something Uniquely Yours",
+            "subheadline": "Professionally 3D printed custom creations for personalized gifts, business branding, NFC products, home décor, keepsakes, and one-of-a-kind designs.",
+            "description": "CUSTOM 3D CREATION STUDIO",
+            "button_text": "Start Custom Order",
+            "button_link": "/design-your-own",
+            "secondary_button_text": "Shop Collections",
+            "secondary_button_link": "#collections",
+            "overlay_opacity": 0.58,
+            "overlay_color": "#d8ecdd",
+            "hero_height_desktop": 640,
+            "hero_height_mobile": 560,
+            "hero_image_position": "center right"
         }
     },
     {
@@ -1546,16 +3245,11 @@ DEFAULT_SECTIONS = [
         "enabled": True,
         "order": 3,
         "content": {
-            "headline": "Shop by Category",
-            "subheadline": "Find exactly what you're looking for",
-            "categories": [
-                {"name": "Payment Stands", "link": "/products?category=Payment%20Stands", "image": "/assets/homepage/category-payment-stands.jpg"},
-                {"name": "Keychains", "link": "/products?category=Keychains", "image": "/assets/homepage/category-keychains.jpg"},
-                {"name": "Home Decor", "link": "/products?category=Home%20Decor", "image": "/assets/homepage/category-home-decor.jpg"},
-                {"name": "Incense Holders", "link": "/products?category=Incense%20Holders", "image": "/assets/homepage/category-incense-holders.jpg"},
-                {"name": "Toys & Fidgets", "link": "/products?category=Toys%20%26%20Fidgets", "image": "/assets/homepage/category-toys-fidgets.jpg"},
-                {"name": "Custom 3D Prints", "link": "/products?category=Custom%203D%20Prints", "image": "/assets/homepage/category-custom-3d-prints.jpg"}
-            ]
+            "headline": "Shop by Collection",
+            "subheadline": "Browse our most popular custom creations.",
+            "button_text": "Personalize Yours",
+            "secondary_button_text": "Start Custom Project",
+            "homepage_category_ids": []
         }
     },
     {
@@ -1564,8 +3258,10 @@ DEFAULT_SECTIONS = [
         "enabled": True,
         "order": 4,
         "content": {
-            "headline": "Featured Products",
-            "subheadline": "Our most popular items"
+            "headline": "Best Sellers",
+            "subheadline": "Customer favorites made to personalize, gift, and use every day.",
+            "button_text": "Customize Now",
+            "product_limit": 8
         }
     },
     {
@@ -1574,31 +3270,294 @@ DEFAULT_SECTIONS = [
         "enabled": True,
         "order": 5,
         "content": {
-            "headline": "Why Choose Print Queen 3D?",
-            "description": "Quality craftsmanship, fast shipping, and exceptional customer service."
+            "headline": "Why Print Queen 3D",
+            "description": "A quick look at what makes each order feel personal, polished, and professional.",
+            "info_cards": [
+                {"title": "Personalized for Every Customer", "text": "Every piece can be customized with names, colors, photos, logos, QR codes, NFC chips, or custom design details."},
+                {"title": "Production Time: 3-5 Days", "text": "Production typically takes 3-5 days after design approval, depending on project size and complexity."},
+                {"title": "Expert Finishing", "text": "Each piece is cleaned, refined, and quality checked for a polished final result."},
+                {"title": "Designed & Printed in Los Angeles", "text": "Locally made in Los Angeles with nationwide U.S. shipping and select local pickup options."}
+            ]
         }
     },
     {
-        "id": "newsletter",
-        "name": "Newsletter Signup",
+        "id": "how_it_works",
+        "name": "How It Works",
+        "enabled": True,
+        "order": 5,
+        "content": {
+            "headline": "How It Works",
+            "subheadline": "Custom orders made easy, from idea to finished print in four simple steps.",
+            "steps": [
+                {"title": "Share Your Idea", "text": "Pick a product to personalize or send us your idea, photo, logo, or sketch through the Design Your Own form."},
+                {"title": "We Design It Together", "text": "We review your request, confirm colors, sizes, and details, and make sure everything is exactly how you want it."},
+                {"title": "Printed & Finished in LA", "text": "Your piece is professionally 3D printed and hand-finished in Los Angeles with care and quality checks."},
+                {"title": "Ship or Local Pickup", "text": "Choose nationwide shipping or free pickup in Los Angeles. Express manufacturing and delivery is available."}
+            ],
+            "button_text": "Start My Custom Order",
+            "button_link": "/design-your-own"
+        }
+    },
+    {
+        "id": "faq",
+        "name": "FAQ",
+        "enabled": True,
+        "order": 8,
+        "content": {
+            "headline": "Frequently Asked Questions",
+            "subheadline": "Quick answers about custom orders, turnaround, shipping, and pickup.",
+            "faq_items": [
+                {"question": "How long does a custom order take?", "answer": "Production typically takes 3-5 days after design approval, depending on product type and order details. If we have something in stock, it ships next day. Shipping or delivery time is separate from production time."},
+                {"question": "How do I start a custom order?", "answer": "Use the Design Your Own form to share your idea, inspiration photos, logo, or sketch. We review every request and work with you on colors, sizes, and details before production begins."},
+                {"question": "What materials do you use?", "answer": "We professionally 3D print with quality PLA and PETG filament, plus resin finishes when needed. If you need a specific material or finish, include it in your custom request."},
+                {"question": "Do you offer local pickup?", "answer": "Yes! Free local pickup is available in Los Angeles. You will receive an email confirmation when your order is ready for pickup."},
+                {"question": "Can I get my order faster?", "answer": "Yes, express manufacturing and delivery is available at checkout for an additional $25."},
+                {"question": "How does NFC programming work?", "answer": "NFC stands and keychains are programmed to the exact link you provide, like payments, social media, booking pages, menus, reviews, or any custom URL. Please double-check your link before checkout."}
+            ],
+            "button_text": "Still have questions? Contact us",
+            "button_link": "/contact"
+        }
+    },
+    {
+        "id": "design_cta",
+        "name": "Design Your Own CTA",
         "enabled": True,
         "order": 6,
         "content": {
-            "headline": "Stay in the Loop",
-            "description": "Subscribe for exclusive deals and new product announcements.",
-            "button_text": "Subscribe"
+            "headline": "Have an idea? We’ll bring it to life.",
+            "description": "Start your custom order by sharing your idea, inspiration photos, logo, sketch, or reference details. We’ll review your project and help create something made just for you.",
+            "button_text": "Start My Custom Project",
+            "button_link": "/custom-order",
+            "background_image_url": "/assets/homepage/printqueen-hero-realistic-products.png",
+            "overlay_opacity": 0.76
+        }
+    },
+    {
+        "id": "about_preview",
+        "name": "About Preview",
+        "enabled": True,
+        "order": 7,
+        "content": {
+            "badge_label": "",
+            "headline": "About Print Queen 3D",
+            "description": "Print Queen 3D is a small business built on creativity, precision, and the love of bringing ideas to life. As a small business owner, I take pride in creating custom 3D-printed products that feel personal, polished, and made just for you.\n\nFrom personalized gifts and keepsakes to NFC products, business branding, home décor, lithophanes, keychains, pendants, and one-of-a-kind designs, every piece is professionally 3D printed with care, precision, and expert finishing. Whether you have a finished design, a photo, a logo, or just an idea, I’ll work with you to help turn your vision into something real.",
+            "button_text": "Learn More",
+            "button_link": "/about",
+            "image_url": "",
+            "mobile_image_url": "",
+            "image_alt": "Print Queen 3D custom creations",
+            "image_position": "center",
+            "text_size": "lg",
+            "button_size": "default",
+            "section_padding_y": 64,
+            "background_color": "#ffffff"
+        }
+    },
+    {
+        "id": "reviews",
+        "name": "Customer Reviews",
+        "enabled": True,
+        "order": 8,
+        "content": {
+            "headline": "What Customers Are Saying",
+            "subheadline": "Real custom creations deserve real reactions.",
+            "reviews": []
+        }
+    },
+    {
+        "id": "social_gallery",
+        "name": "Instagram / Social Gallery",
+        "enabled": True,
+        "order": 9,
+        "content": {
+            "headline": "Follow Our Latest Creations",
+            "description": "See new custom orders, behind-the-scenes printing, and product drops.",
+            "button_text": "@printqueen3d",
+            "button_link": "https://instagram.com/printqueen3d",
+            "gallery_images": []
+        }
+    },
+    {
+        "id": "personalize_page",
+        "name": "Personalize Page",
+        "enabled": True,
+        "order": 20,
+        "content": {
+            "badge_label": "Personalize",
+            "headline": "Made Just for You",
+            "subheadline": "Browse personalized favorites, keepsakes, décor, charms, fidgets, and celebration pieces.",
+            "button_text": "Start Custom Order",
+            "button_link": "/design-your-own"
+        }
+    },
+    {
+        "id": "design_page",
+        "name": "Design Your Own Page",
+        "enabled": True,
+        "order": 21,
+        "content": {
+            "badge_label": "Design Your Own",
+            "headline": "Design Your Own Custom 3D Print",
+            "description": "Tell us what you want to create and we'll review your details, timeline, materials, and next steps.",
+            "button_text": "Get My Custom Quote"
+        }
+    },
+    {
+        "id": "about_page",
+        "name": "About Page",
+        "enabled": True,
+        "order": 22,
+        "content": {
+            "badge_label": "",
+            "headline": "Turning Your Vision Into Reality",
+            "description": "At Print Queen 3D, we believe every great idea deserves to become something real. From personalized gifts and business branding to custom home décor, event keepsakes, NFC products, and one-of-a-kind creations, we specialize in designing and professionally 3D printing high-quality products made specifically for you.\n\nEvery order is crafted with precision, quality PLA and PETG materials when appropriate, and expert finishing to ensure it not only looks incredible but is built to last. Whether you’re celebrating a milestone, growing your business, creating memorable event favors, or bringing a completely original idea to life, we’re committed to delivering products that are as unique as the people who order them.\n\nBased in Los Angeles, California, Print Queen 3D proudly serves customers nationwide with fast turnaround times, exceptional craftsmanship, and personalized service from concept to completion. We don’t just print products—we create meaningful pieces that tell stories, strengthen brands, celebrate life’s biggest moments, and leave lasting impressions.\n\nIf you can imagine it, we can print it."
+        }
+    },
+    {
+        "id": "contact_page",
+        "name": "Contact Page",
+        "enabled": True,
+        "order": 23,
+        "content": {
+            "badge_label": "Contact",
+            "headline": "Contact Print Queen 3D",
+            "description": "Send a message, ask about a custom project, or start a partnership conversation.",
+            "button_text": "Send Message"
+        }
+    },
+    {
+        "id": "corporate_bulk_page",
+        "name": "Corporate & Bulk Orders Page",
+        "enabled": True,
+        "order": 24,
+        "content": {
+            "badge_label": "Corporate & Bulk",
+            "headline": "Corporate & Bulk Orders",
+            "description": "Need custom 3D-printed products for your business, event, organization, school, or brand? Print Queen 3D creates professionally 3D printed bulk orders, branded pieces, event favors, NFC products, signage, keepsakes, and made-to-order custom items with precision and expert finishing.",
+            "button_text": "Start a Bulk Order",
+            "button_link": "/design-your-own"
+        }
+    },
+    {
+        "id": "refund_policy_page",
+        "name": "Refund Policy Page",
+        "enabled": True,
+        "order": 25,
+        "content": {
+            "badge_label": "Policies",
+            "headline": "Refund Policy",
+            "description": "At Print Queen 3D, every product is made with care and many of our items are custom-made specifically for each customer. Because of the personalized nature of our products, all personalized, custom-made, and made-to-order products are final sale.\n\nOnce production has begun, orders cannot be canceled, refunded, or exchanged. Please carefully review all names, dates, colors, sizes, spellings, logos, photos, and customization details before submitting your order. Print Queen 3D is not responsible for customer-submitted errors that are approved prior to production.\n\nNon-custom products may be eligible for return on a case-by-case basis within 14 days of delivery if they are unused, in their original condition, and in their original packaging. Approved returns may be subject to a 15% restocking fee. Customers are responsible for all return shipping costs unless the return is due to our error.\n\nPlease inspect your order immediately upon arrival. If your order arrives damaged, defective, or incorrect, contact us within 24 hours of delivery by emailing printqueen3d@gmail.com. Include your order number, a description of the issue, clear photos of the product, and photos of the packaging if shipping damage occurred.\n\nWe will review each claim and, if approved, repair, replace, or remake the item at no additional cost. Claims submitted after 24 hours may not qualify for replacement or repair.\n\nCarrier delivery estimates are not guaranteed. Print Queen 3D is not responsible for delays caused by USPS, UPS, FedEx, weather conditions, holidays, customs, or other carrier-related issues.\n\nRequests to modify an order must be made before production begins. Once production starts, customization changes cannot be guaranteed and additional charges may apply.\n\nQuestions regarding refunds or returns may be sent to printqueen3d@gmail.com or (310) 936-1893."
+        }
+    },
+    {
+        "id": "product_care_page",
+        "name": "Product Care Page",
+        "enabled": True,
+        "order": 26,
+        "content": {
+            "badge_label": "Policies",
+            "headline": "Product Care",
+            "description": "Thank you for choosing Print Queen 3D. Each item is expertly designed and 3D printed with care. Proper care will help ensure your product remains beautiful for years to come.\n\nGeneral Care:\nHandle products with care. Avoid dropping or exposing items to excessive force. Store in a cool, dry location. Keep away from prolonged direct sunlight and excessive heat. Clean using a soft microfiber cloth. For stubborn dirt, wipe gently with a damp cloth and mild soap. Do not use abrasive cleaners, acetone, bleach, alcohol, or harsh chemicals.\n\nPersonalized Products:\nCustomized products are created specifically for you. Avoid scratching engraved or printed surfaces and keep personalized items away from excessive moisture unless otherwise noted.\n\nNFC Products:\nDo not bend or puncture NFC-enabled products. Avoid prolonged exposure to high temperatures, magnets, or excessive moisture. Clean gently with a soft cloth.\n\nLithophane Night Lights:\nIndoor use only. Keep away from water and excessive humidity. Use only the recommended light source included with your product. Do not place near open flames or excessive heat.\n\nKeychains & Charms:\nAvoid placing heavy weight or excessive pressure on acrylic or printed keychains. Metal hardware may naturally wear over time depending on usage.\n\nHome Décor:\nDecorative items, including vases, nameplates, wall décor, incense holders, and lithophane lamps, are intended for display. Do not use products for purposes other than their intended design.\n\nProduct Variations:\nDue to the custom 3D printing process, slight variations in color, texture, finish, or layer appearance may occur. These variations are a normal part of 3D printing and make each item unique."
+        }
+    },
+    {
+        "id": "privacy_policy_page",
+        "name": "Privacy Policy Page",
+        "enabled": True,
+        "order": 27,
+        "content": {
+            "badge_label": "Policies",
+            "headline": "Privacy Policy",
+            "description": "Print Queen 3D respects your privacy and is committed to protecting your personal information.\n\nWhen you place an order, submit a custom inquiry, or use our website, we may collect your name, email address, phone number, shipping and billing address, payment information processed securely by our payment providers, uploaded photos, logos, artwork, files, form messages, device information, browser information, and website usage analytics.\n\nWe use this information to process orders, manufacture custom products, communicate about your order, provide customer support, improve our website, prevent fraud, comply with legal obligations, and send marketing messages if you choose to subscribe.\n\nPrint Queen 3D does not store complete credit card information. Payments are processed securely by trusted third-party payment providers.\n\nIf you upload or submit logos, photographs, artwork, or designs, you confirm that you have the legal right to use those materials. You retain ownership of your intellectual property.\n\nIf you subscribe to our mailing list, we may send updates, promotions, and new product announcements. You may unsubscribe at any time.\n\nOur website may use cookies and similar technologies to improve your browsing experience and analyze website traffic. You may disable cookies through your browser settings, although some website features may not function properly.\n\nWe use commercially reasonable safeguards to protect your information. While no system can guarantee absolute security, we work to protect your data from unauthorized access.\n\nYou may request to access, correct, or delete eligible personal information, or opt out of marketing communications by emailing printqueen3d@gmail.com.\n\nQuestions regarding this Privacy Policy may be directed to:\nPrint Queen 3D\nEmail: printqueen3d@gmail.com\nPhone: (310) 936-1893"
+        }
+    },
+    {
+        "id": "terms_of_service_page",
+        "name": "Terms of Service Page",
+        "enabled": True,
+        "order": 28,
+        "content": {
+            "badge_label": "Policies",
+            "headline": "Terms of Service",
+            "description": "Welcome to Print Queen 3D. By accessing our website, placing an order, submitting a custom request, or using our services, you agree to these Terms of Service.\n\nPrint Queen 3D provides custom 3D printed products, personalized gifts, NFC products, business branding items, home décor, lithophane night lights, fidgets, event items, and related custom design services. Our website and services are intended for customers in the United States only.\n\nAll product descriptions, pricing, availability, and processing timelines are subject to change at any time without notice. We reserve the right to refuse service, cancel orders, or limit quantities at our discretion.\n\nBecause many of our products are custom-made, customers are responsible for carefully reviewing all order details before submitting payment. This includes names, spelling, dates, colors, photos, logos, sizes, quantities, personalization details, and any approved design proofs.\n\nOnce production has begun, custom orders cannot be canceled, refunded, or exchanged. Personalized and made-to-order items are final sale unless they arrive damaged, defective, or incorrect due to our error.\n\nProduction typically takes 3-5 days after design approval, depending on product type, project complexity, material availability, and order volume. Rush production may be available for an additional fee. Production timelines do not include carrier shipping time, weekends, or holidays unless otherwise stated.\n\nCustomers who submit photos, artwork, logos, business names, slogans, or other design materials confirm that they have the legal right to use those materials. Print Queen 3D is not responsible for claims arising from customer-submitted content.\n\nAll website content, product images, product designs, logos, text, graphics, and branding created by Print Queen 3D are protected intellectual property and may not be copied, reproduced, sold, or used without written permission.\n\nShipping estimates are not guaranteed. Print Queen 3D is not responsible for delays caused by shipping carriers, weather, holidays, incorrect addresses, or events outside our control.\n\nLocal pickup may be available in Los Angeles, California. Pickup details will be provided when applicable.\n\nCustomers must inspect items upon delivery and report any damaged, defective, or incorrect items within 24 hours by emailing printqueen3d@gmail.com with photos and order details.\n\nPrint Queen 3D is not responsible for damage caused after delivery, including drops, misuse, exposure to heat, improper cleaning, water damage, or normal wear and tear.\n\nTo the fullest extent permitted by law, Print Queen 3D is not liable for indirect, incidental, special, or consequential damages arising from use of our website, products, or services.\n\nWe may update these Terms of Service at any time. Continued use of our website after changes are posted means you accept the updated terms.\n\nFor questions, contact:\nPrint Queen 3D\nEmail: printqueen3d@gmail.com\nPhone: (310) 936-1893"
+        }
+    },
+    {
+        "id": "shipping_policy_page",
+        "name": "Shipping Policy Page",
+        "enabled": True,
+        "order": 29,
+        "content": {
+            "badge_label": "Policies",
+            "headline": "Shipping Policy",
+            "description": "Print Queen 3D currently serves customers in the United States only.\n\nProduction typically takes 3-5 days after design approval, depending on product type, project complexity, material availability, and order volume. Production timelines do not include carrier shipping time, weekends, or holidays unless otherwise stated.\n\nShipping estimates are not guaranteed. Print Queen 3D is not responsible for delays caused by USPS, UPS, FedEx, weather, holidays, incorrect addresses, or events outside our control.\n\nCustomers are responsible for entering a complete and accurate shipping address at checkout. If an order is returned due to an incorrect or incomplete address, additional shipping fees may apply.\n\nLocal pickup may be available in Los Angeles, California. Pickup details will be provided when applicable.\n\nFor shipping questions, contact:\nPrint Queen 3D\nEmail: printqueen3d@gmail.com\nPhone: (310) 936-1893"
+        }
+    },
+    {
+        "id": "materials_page",
+        "name": "Materials & 3D Printing Page",
+        "enabled": True,
+        "order": 30,
+        "content": {
+            "badge_label": "3D Printed",
+            "headline": "Materials & 3D Printing",
+            "description": "All Print Queen 3D items are professionally designed and 3D printed with care. Each item is made to order or finished by hand depending on the product, personalization, and requested details.\n\nCommon materials include PLA filament, PETG filament, and resin when needed. A resin overlay may be requested as a $5 add-on where available. Acrylic is only available for custom creations when the project allows it.\n\nBecause 3D printing is a custom manufacturing process, slight variations in texture, color, layer lines, finish, or small details may occur. These natural variations are part of the 3D printing process and help make each piece unique.\n\nIf you need a specific material, finish, color, strength, resin overlay, or acrylic detail for a custom print, include that request when submitting your custom order or personalization details."
         }
     }
 ]
 
+OBSOLETE_HOMEPAGE_SECTION_IDS = {"custom_projects", "newsletter"}
+
+def merge_default_sections(sections: List[Dict]) -> List[Dict]:
+    default_by_id = {section["id"]: section for section in DEFAULT_SECTIONS}
+    merged_sections = []
+    seen_ids = set()
+    for section in sections:
+        section_id = section.get("id")
+        if section_id in OBSOLETE_HOMEPAGE_SECTION_IDS or section_id in seen_ids:
+            continue
+        seen_ids.add(section_id)
+        merged_sections.append(section)
+    for section in merged_sections:
+        default_section = default_by_id.get(section.get("id"))
+        if default_section:
+            if section.get("id") == "marquee":
+                section["name"] = "Top Announcement Marquee"
+                section["order"] = 1
+            elif section.get("id") == "hero":
+                section["order"] = 2
+            section_content = section.get("content") or {}
+            default_content = default_section.get("content") or {}
+            for key, value in default_content.items():
+                if key not in section_content or section_content[key] is None:
+                    section_content[key] = value
+            current_description = section_content.get("description") or ""
+            legacy_about_copy = (
+                not current_description
+                or "Los Angeles-based custom 3D printing studio" in current_description
+                or "blends creativity, precision, and technology" in current_description
+            )
+            if section.get("id") == "about_preview" and legacy_about_copy:
+                section_content["headline"] = default_content.get("headline", section_content.get("headline"))
+                section_content["description"] = default_content.get("description", section_content.get("description"))
+            section["content"] = section_content
+    existing_ids = {section.get("id") for section in merged_sections}
+    for default_section in DEFAULT_SECTIONS:
+        if default_section["id"] not in existing_ids:
+            merged_sections.append(default_section)
+    return sorted(merged_sections, key=lambda section: section.get("order", 999))
+
 @api_router.get("/site-config")
-async def get_public_site_config():
+async def get_public_site_config(response: Response):
     """Get public site configuration (no auth required)"""
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
     # Get site settings
     settings = await db.site_settings.find_one({"id": "site_settings"}, {"_id": 0})
     if not settings:
         settings = SiteSettings().model_dump()
         settings['updated_at'] = settings['updated_at'].isoformat()
+    settings["navigation_items"] = merge_default_navigation_items(settings.get("navigation_items", []))
     
     # Get homepage sections
     sections_config = await db.homepage_sections.find_one({"id": "homepage_sections"}, {"_id": 0})
@@ -1608,6 +3567,9 @@ async def get_public_site_config():
             "sections": DEFAULT_SECTIONS,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
+    else:
+        sections_config["sections"] = merge_default_sections(sections_config.get("sections", []))
+    sections_config["sections"] = refresh_section_wording(sections_config.get("sections", []))
     
     return {
         "settings": settings,
@@ -1621,7 +3583,10 @@ async def get_site_settings(user: User = Depends(require_admin)):
     if not settings:
         # Return default settings
         default_settings = SiteSettings()
-        return default_settings.model_dump()
+        settings_dict = default_settings.model_dump()
+        settings_dict["navigation_items"] = default_navigation_items()
+        return settings_dict
+    settings["navigation_items"] = merge_default_navigation_items(settings.get("navigation_items", []))
     return settings
 
 @api_router.put("/admin/site-settings")
@@ -1652,24 +3617,29 @@ async def update_site_settings(settings_update: SiteSettingsUpdate, user: User =
     return {"message": "Site settings updated successfully"}
 
 @api_router.get("/admin/homepage-sections")
-async def get_homepage_sections(user: User = Depends(require_admin)):
+async def get_homepage_sections(response: Response, user: User = Depends(require_admin)):
     """Get homepage sections configuration (admin only)"""
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
     sections_config = await db.homepage_sections.find_one({"id": "homepage_sections"}, {"_id": 0})
     if not sections_config:
         # Return default sections
         return {
             "id": "homepage_sections",
-            "sections": DEFAULT_SECTIONS,
+            "sections": refresh_section_wording(DEFAULT_SECTIONS),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
+    sections_config["sections"] = merge_default_sections(sections_config.get("sections", []))
+    sections_config["sections"] = refresh_section_wording(sections_config.get("sections", []))
     return sections_config
 
 @api_router.put("/admin/homepage-sections")
 async def update_homepage_sections(sections_update: HomepageSectionsUpdate, user: User = Depends(require_admin)):
     """Update homepage sections configuration (admin only)"""
+    merged_sections = merge_default_sections([section.model_dump() for section in sections_update.sections])
     update_data = {
         "id": "homepage_sections",
-        "sections": [section.model_dump() for section in sections_update.sections],
+        "sections": merged_sections,
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
@@ -1679,7 +3649,7 @@ async def update_homepage_sections(sections_update: HomepageSectionsUpdate, user
         upsert=True
     )
     
-    return {"message": "Homepage sections updated successfully"}
+    return {"message": "Homepage sections updated successfully", "sections": merged_sections}
 
 # ============ STRIPE SETTINGS ROUTES ============
 
@@ -1723,8 +3693,8 @@ async def get_public_stripe_config():
         "enable_google_pay": settings.get("enable_google_pay", True),
         "enable_link": settings.get("enable_link", True),
         "tax_rate": settings.get("tax_rate", 0.0),
-        "free_shipping_threshold": settings.get("free_shipping_threshold", 50.0),
-        "flat_shipping_rate": settings.get("flat_shipping_rate", 5.99)
+        "free_shipping_threshold": settings.get("free_shipping_threshold", 150.0),
+        "flat_shipping_rate": settings.get("flat_shipping_rate", 12.95)
     }
 
 # ============ SHIPPING SETTINGS ROUTES ============
@@ -1740,7 +3710,7 @@ async def get_shipping_settings(user: User = Depends(require_admin)):
                 ShippingOption(
                     name="Standard Shipping",
                     description="5-7 business days",
-                    price=5.99,
+                    price=12.95,
                     estimated_days_min=5,
                     estimated_days_max=7,
                     enabled=True,
@@ -1786,19 +3756,29 @@ async def get_public_shipping_settings():
                     "id": "standard",
                     "name": "Standard Shipping",
                     "description": "5-7 business days",
-                    "price": 5.99,
+                    "price": 12.95,
                     "estimated_days_min": 5,
                     "estimated_days_max": 7
                 }
             ],
             "free_shipping_enabled": True,
-            "free_shipping_threshold": 50.0,
+            "free_shipping_threshold": 150.0,
             "rush_order_enabled": True,
             "rush_order_price": 25.0,
             "rush_order_days_min": 1,
             "rush_order_days_max": 3,
             "rush_order_label": "Rush Order",
-            "rush_order_description": "Expedite your order for faster processing"
+            "rush_order_description": "Expedite your order for faster processing",
+            "fulfillment_heading": "How would you like to receive your order?",
+            "shipping_card_title": "Ship to Me",
+            "shipping_unavailable_text": "Not available for these items",
+            "pickup_card_title": "Local Pickup",
+            "pickup_price_label": "FREE",
+            "pickup_unavailable_text": "Not available",
+            "pickup_location_heading": "Select Pickup Location",
+            "pickup_datetime_heading": "Select Pickup Date & Time",
+            "pickup_details_heading": "Pickup Details",
+            "pickup_confirmation_note": "Local pickup is available in Los Angeles, California. Once your order is complete and ready for pickup, you will receive an email notification with pickup instructions."
         }
     
     # Filter to only enabled shipping options
@@ -1807,13 +3787,23 @@ async def get_public_shipping_settings():
     return {
         "shipping_options": enabled_options,
         "free_shipping_enabled": settings.get("free_shipping_enabled", True),
-        "free_shipping_threshold": settings.get("free_shipping_threshold", 50.0),
+        "free_shipping_threshold": settings.get("free_shipping_threshold", 150.0),
         "rush_order_enabled": settings.get("rush_order_enabled", True),
         "rush_order_price": settings.get("rush_order_price", 25.0),
         "rush_order_days_min": settings.get("rush_order_days_min", 1),
         "rush_order_days_max": settings.get("rush_order_days_max", 3),
         "rush_order_label": settings.get("rush_order_label", "Rush Order"),
-        "rush_order_description": settings.get("rush_order_description", "Expedite your order for faster processing")
+        "rush_order_description": settings.get("rush_order_description", "Expedite your order for faster processing"),
+        "fulfillment_heading": settings.get("fulfillment_heading", "How would you like to receive your order?"),
+        "shipping_card_title": settings.get("shipping_card_title", "Ship to Me"),
+        "shipping_unavailable_text": settings.get("shipping_unavailable_text", "Not available for these items"),
+        "pickup_card_title": settings.get("pickup_card_title", "Local Pickup"),
+        "pickup_price_label": settings.get("pickup_price_label", "FREE"),
+        "pickup_unavailable_text": settings.get("pickup_unavailable_text", "Not available"),
+        "pickup_location_heading": settings.get("pickup_location_heading", "Select Pickup Location"),
+        "pickup_datetime_heading": settings.get("pickup_datetime_heading", "Select Pickup Date & Time"),
+        "pickup_details_heading": settings.get("pickup_details_heading", "Pickup Details"),
+        "pickup_confirmation_note": settings.get("pickup_confirmation_note", "Local pickup is available in Los Angeles, California. Once your order is complete and ready for pickup, you will receive an email notification with pickup instructions.")
     }
 
 # ============ EMAIL SETTINGS ROUTES ============
@@ -1958,13 +3948,14 @@ def generate_status_update_email(order: Dict, new_status: str, customer_name: st
         "processing": ("Order Processing", "We're preparing your order", "#f59e0b"),
         "fulfilled": ("Order Fulfilled", "Your order has been processed and is ready", "#10b981"),
         "shipped": ("Order Shipped", "Your order is on its way", "#3b82f6"),
+        "ready_for_pickup": ("Ready for Pickup", "Great news! Your order is ready for pickup", "#10b981"),
         "picked_up": ("Order Picked Up", "Your order has been picked up", "#10b981"),
         "completed": ("Order Completed", "Thank you for your order", "#10b981"),
         "cancelled": ("Order Cancelled", "Your order has been cancelled", "#ef4444"),
     }
-    
+
     title, message, color = status_messages.get(new_status, ("Status Update", f"Your order status is now: {new_status}", "#6b7280"))
-    
+
     tracking_info = ""
     if new_status == "shipped" and order.get("tracking_number"):
         tracking_info = f"""
@@ -1972,6 +3963,16 @@ def generate_status_update_email(order: Dict, new_status: str, customer_name: st
             <h3 style="margin: 0 0 8px 0; color: #2563eb;">Tracking Information</h3>
             <p style="margin: 0; color: #1d4ed8;"><strong>Carrier:</strong> {order.get('shipping_carrier', 'N/A')}</p>
             <p style="margin: 4px 0 0 0; color: #1d4ed8;"><strong>Tracking #:</strong> {order.get('tracking_number', 'N/A')}</p>
+        </div>
+        """
+    if new_status == "ready_for_pickup" and order.get("pickup_details"):
+        pickup = order["pickup_details"]
+        tracking_info = f"""
+        <div style="background: #ecfdf5; padding: 16px; border-radius: 8px; margin-top: 20px;">
+            <h3 style="margin: 0 0 8px 0; color: #059669;">Pickup Location</h3>
+            <p style="margin: 0; color: #047857;"><strong>{pickup.get('location_name', '')}</strong></p>
+            <p style="margin: 4px 0 0 0; color: #047857;">{pickup.get('location_address', '')}</p>
+            <p style="margin: 8px 0 0 0; color: #047857;"><strong>Pickup date:</strong> {pickup.get('pickup_date', '')} at {pickup.get('pickup_time', '')}</p>
         </div>
         """
     
@@ -2620,10 +4621,20 @@ def generate_default_schedule():
     
     return schedule
 
+def is_los_angeles_pickup_location(location: Dict) -> bool:
+    city = (location.get("city") or "").strip().lower()
+    name = (location.get("name") or "").strip().lower()
+    address = (location.get("address") or "").strip().lower()
+    return city == "los angeles" or "los angeles" in name or "los angeles" in address
+
+def filter_los_angeles_pickup_locations(locations: List[Dict]) -> List[Dict]:
+    return [location for location in locations if is_los_angeles_pickup_location(location)]
+
 @api_router.get("/admin/pickup-locations")
 async def get_pickup_locations(user: User = Depends(require_admin)):
     """Get all pickup locations (admin only)"""
     locations = await db.pickup_locations.find({}, {"_id": 0}).to_list(100)
+    locations = filter_los_angeles_pickup_locations(locations)
     
     # Sort by order field
     locations.sort(key=lambda x: x.get("order", 0))
@@ -2638,6 +4649,7 @@ async def get_pickup_locations(user: User = Depends(require_admin)):
 async def get_public_pickup_locations():
     """Get enabled pickup locations (public - for checkout)"""
     locations = await db.pickup_locations.find({"enabled": True}, {"_id": 0}).to_list(100)
+    locations = filter_los_angeles_pickup_locations(locations)
     
     # Sort by order field
     locations.sort(key=lambda x: x.get("order", 0))
@@ -2730,7 +4742,7 @@ async def toggle_pickup_location(location_id: str, user: User = Depends(require_
 async def get_available_pickup_slots(location_id: str, date: str):
     """Get available pickup time slots for a specific date"""
     location = await db.pickup_locations.find_one({"id": location_id, "enabled": True}, {"_id": 0})
-    if not location:
+    if not location or not is_los_angeles_pickup_location(location):
         raise HTTPException(status_code=404, detail="Pickup location not found")
     
     # Parse the date and get day of week
@@ -2773,6 +4785,7 @@ async def get_available_locations_for_cart(cart_items: List[CartProductItem]):
     
     # Get all enabled pickup locations
     all_locations = await db.pickup_locations.find({"enabled": True}, {"_id": 0}).to_list(100)
+    all_locations = filter_los_angeles_pickup_locations(all_locations)
     all_location_ids = {loc["id"] for loc in all_locations}
     
     # Get product IDs from cart
@@ -2873,6 +4886,7 @@ async def get_product_pickup_locations(product_id: str):
             {"enabled": True},
             {"_id": 0}
         ).to_list(100)
+    locations = filter_los_angeles_pickup_locations(locations)
     
     locations.sort(key=lambda x: x.get("order", 0))
     
@@ -2900,9 +4914,9 @@ async def export_database(user: User = Depends(require_admin)):
         # List of collections to export
         collections_to_export = [
             "users",
-            "products", 
+            "products",
             "categories",
-            "collections",
+            "product_collections",
             "orders",
             "site_settings",
             "stripe_settings",
@@ -2955,6 +4969,9 @@ async def import_database(import_request: ImportRequest, user: User = Depends(re
         import_results = {}
         
         for collection_name, documents in data["collections"].items():
+            # Older exports saved product collections under the wrong name
+            if collection_name == "collections":
+                collection_name = "product_collections"
             if not documents:
                 import_results[collection_name] = {"status": "skipped", "count": 0, "reason": "empty"}
                 continue
@@ -3043,7 +5060,7 @@ async def get_export_info(user: User = Depends(require_admin)):
         collections_info = {}
         
         collections_to_check = [
-            "users", "products", "categories", "collections", "orders",
+            "users", "products", "categories", "product_collections", "orders",
             "site_settings", "stripe_settings", "email_settings", 
             "shipping_settings", "pickup_locations", "custom_builders",
             "homepage_sections"
@@ -3065,13 +5082,54 @@ async def get_export_info(user: User = Depends(require_admin)):
 
 
 
+# ============ SITEMAP ============
+
+@api_router.get("/sitemap.xml")
+async def sitemap():
+    """Dynamic sitemap listing static pages, published products, and collections"""
+    base = "https://www.printqueen3d.com"
+    static_paths = [
+        "/", "/shop", "/design-your-own", "/personalize", "/about", "/contact",
+        "/corporate-bulk-orders", "/materials", "/refund-policy", "/product-care",
+        "/privacy-policy", "/terms-of-service", "/shipping-policy"
+    ]
+    urls = [f"{base}{path}" for path in static_paths]
+
+    products = await db.products.find({"published": True}, {"_id": 0, "id": 1}).to_list(1000)
+    urls += [f"{base}/products/{product['id']}" for product in products]
+
+    collections = await db.product_collections.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+    urls += [
+        f"{base}/shop?collection={collection['id']}"
+        for collection in collections
+        if "design your own" not in (collection.get("name") or "").lower()
+    ]
+
+    xml_items = "".join(f"<url><loc>{url.replace('&', '&amp;')}</loc></url>" for url in urls)
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{xml_items}</urlset>'
+    return Response(content=xml, media_type="application/xml")
+
+
+def get_allowed_origins():
+    configured_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:3000')
+    default_origins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://printqueen3d.com',
+        'https://www.printqueen3d.com',
+    ]
+    origins = [origin.strip() for origin in configured_origins.split(',') if origin.strip()]
+    return sorted(set(origins + default_origins))
+
+
 # Include router
 app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(','),
+    allow_origins=get_allowed_origins(),
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )

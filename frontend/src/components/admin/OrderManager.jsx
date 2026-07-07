@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import {
   Package,
   Truck,
+  Zap,
   Search,
   X,
   Clock,
@@ -128,11 +129,17 @@ const OrderDetailsModal = ({ order, onClose, onFulfill, onStatusChange }) => {
           {activeTab === 'details' && (
             <div className="space-y-6">
               {/* Fulfillment Type Badge */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${fulfillment.color}`}>
                   <FulfillmentIcon className="h-4 w-4" />
                   {fulfillment.label} Order
                 </span>
+                {order.rush_order && (
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-50 text-orange-600">
+                    <Zap className="h-4 w-4" />
+                    Expedited Manufacturing & Delivery{Number(order.rush_order_amount) > 0 ? ` (+$${Number(order.rush_order_amount).toFixed(2)})` : ''}
+                  </span>
+                )}
               </div>
 
               {/* Customer Info */}
@@ -557,6 +564,12 @@ const OrderCard = ({ order, onView, onStatusChange, onFulfill }) => {
                   <FulfillmentIcon className="h-3 w-3" />
                   {fulfillment.label}
                 </span>
+                {order.rush_order && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-600">
+                    <Zap className="h-3 w-3" />
+                    Expedited
+                  </span>
+                )}
                 {hasCustomization && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
                     <Palette className="h-3 w-3" />

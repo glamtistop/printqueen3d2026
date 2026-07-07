@@ -17,82 +17,137 @@ import {
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
+const FILAMENT_COLOR_FIELD_TEMPLATE = {
+  id: 'filament_color',
+  label: 'Filament Color',
+  type: 'filament_color',
+  required: true,
+  helper: 'Choose the filament color option you would like for this made-to-order 3D print.',
+  options: [
+    'Original Printed Color',
+    'Single Color Request',
+    'Silky Triple-Color Red • Blue • Green',
+    'Silky Triple-Color Purple • Blue • Pink',
+    'Silky Triple-Color Black Cherry',
+    'Silky Triple-Color Blackberry',
+    'Silky Triple-Color Bright Blue • Raspberry',
+    'Silky Triple-Color Rainbow',
+    'Silky Triple-Color Rainbow 2',
+    'Silky Triple-Color Pastel Rainbow',
+    'Silky Triple-Color Gold • Copper • Bronze',
+    'Silky Triple-Color Blue • Green • Purple',
+    'Silky Triple-Color Sunset (Orange • Gold • Red)'
+  ],
+  single_color_label: 'Single Color Request',
+  single_color_placeholder: 'Example:\\nMatte Black\\nWhite\\nTeal\\nGold\\nSilver\\nOrange\\nPink\\nPurple\\nRed\\nBlue',
+  original_color_message: 'Your item will be printed using the colors shown in the product photos.'
+};
+
 export const ProductForm = ({ product, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
+    subtitle: '',
     description: '',
     price: '',
+    price_prefix: '',
+    compare_at_price: '',
+    compare_at_price_prefix: '',
     category: '',
     stock: 0,
     images: [],
+    image_alt: '',
     published: true,
     collection_ids: [],
     variants: [],
     badge: '',
+    badge_color: '#dc2626',
+    sale_badge_enabled: true,
     available_colors: [],
     material_details: '',
     custom_builder: '',
+    platform_options: [],
+    add_on_options: [],
+    bundle_options: [],
+    customization_fields: [],
+    product_page_section_title: '',
+    product_page_section_text: '',
+    product_page_note: '',
     // Pickup settings
     available_for_pickup: true,
     pickup_only: false,
     pickup_location_ids: [],
     estimated_prep_time: ''
   });
-  const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
   const [pickupLocations, setPickupLocations] = useState([]);
   const [customBuilders, setCustomBuilders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [collectionsLoading, setCollectionsLoading] = useState(false);
   const [showPickupSettings, setShowPickupSettings] = useState(false);
+  const [addOnOptionsJson, setAddOnOptionsJson] = useState('[]');
+  const [bundleOptionsJson, setBundleOptionsJson] = useState('[]');
+  const [customizationFieldsJson, setCustomizationFieldsJson] = useState('[]');
 
   useEffect(() => {
     if (product) {
       setFormData({
         name: product.name || '',
+        subtitle: product.subtitle || '',
         description: product.description || '',
         price: product.price || '',
+        price_prefix: product.price_prefix || '',
+        compare_at_price: product.compare_at_price || '',
+        compare_at_price_prefix: product.compare_at_price_prefix || '',
         category: product.category || '',
         stock: product.stock || '',
         images: product.images || [],
+        image_alt: product.image_alt || '',
         published: product.published !== undefined ? product.published : true,
         collection_ids: product.collection_ids || [],
         variants: product.variants || [],
         badge: product.badge || '',
+        badge_color: product.badge_color || '#dc2626',
+        sale_badge_enabled: product.sale_badge_enabled !== undefined ? product.sale_badge_enabled : true,
         available_colors: product.available_colors || [],
         material_details: product.material_details || '',
         custom_builder: product.custom_builder || '',
+        platform_options: product.platform_options || [],
+        add_on_options: product.add_on_options || [],
+        bundle_options: product.bundle_options || [],
+        customization_fields: product.customization_fields || [],
+        product_page_section_title: product.product_page_section_title || '',
+        product_page_section_text: product.product_page_section_text || '',
+        product_page_note: product.product_page_note || '',
         // Pickup settings
         available_for_pickup: product.available_for_pickup !== undefined ? product.available_for_pickup : true,
         pickup_only: product.pickup_only || false,
         pickup_location_ids: product.pickup_location_ids || [],
         estimated_prep_time: product.estimated_prep_time || ''
       });
+      setAddOnOptionsJson(JSON.stringify(product.add_on_options || [], null, 2));
+      setBundleOptionsJson(JSON.stringify(product.bundle_options || [], null, 2));
+      setCustomizationFieldsJson(JSON.stringify(product.customization_fields || [], null, 2));
       // Show pickup settings if there are any non-default settings
       if (product.pickup_only || (product.pickup_location_ids && product.pickup_location_ids.length > 0) || !product.available_for_pickup) {
         setShowPickupSettings(true);
       }
     }
-    fetchCategories();
     fetchCollections();
     fetchPickupLocations();
     fetchCustomBuilders();
   }, [product]);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/api/categories`);
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-    }
-  };
-
   const fetchCollections = async () => {
+    setCollectionsLoading(true);
     try {
       const response = await axios.get(`${BACKEND_URL}/api/collections`);
-      setCollections(response.data);
+      setCollections(response.data || []);
     } catch (error) {
       console.error('Failed to fetch collections:', error);
+      toast.error('Collections did not load. Please try reopening the product form.');
+      setCollections([]);
+    } finally {
+      setCollectionsLoading(false);
     }
   };
 
@@ -121,9 +176,36 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     setLoading(true);
 
     try {
+      const selectedCollection = collections.find((collection) => collection.id === formData.collection_ids[0]);
+      if (!selectedCollection) {
+        toast.error('Please choose which collection this product belongs to.');
+        setLoading(false);
+        return;
+      }
+
+      let parsedAddOns = [];
+      let parsedBundles = [];
+      let parsedCustomizationFields = [];
+      try {
+        parsedAddOns = addOnOptionsJson ? JSON.parse(addOnOptionsJson) : [];
+        parsedBundles = bundleOptionsJson ? JSON.parse(bundleOptionsJson) : [];
+        parsedCustomizationFields = customizationFieldsJson ? JSON.parse(customizationFieldsJson) : [];
+      } catch (parseError) {
+        toast.error('Add-ons, bundles, or customization fields JSON is not valid.');
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         ...formData,
+        category: selectedCollection.name,
+        collection_ids: [selectedCollection.id],
         price: parseFloat(formData.price),
+        compare_at_price: formData.compare_at_price ? parseFloat(formData.compare_at_price) : null,
+        platform_options: Array.isArray(formData.platform_options) ? formData.platform_options : [],
+        add_on_options: parsedAddOns,
+        bundle_options: parsedBundles,
+        customization_fields: parsedCustomizationFields,
         stock: parseInt(formData.stock) || 0,
         estimated_prep_time: formData.estimated_prep_time ? parseInt(formData.estimated_prep_time) : null
       };
@@ -178,6 +260,32 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     setFormData(prev => ({ ...prev, pickup_location_ids: [] }));
   };
 
+  const handlePrimaryCollectionChange = (collectionId) => {
+    const selectedCollection = collections.find((collection) => collection.id === collectionId);
+    setFormData({
+      ...formData,
+      collection_ids: collectionId ? [collectionId] : [],
+      category: selectedCollection?.name || ''
+    });
+  };
+
+  const insertFilamentColorSelector = () => {
+    try {
+      const fields = customizationFieldsJson ? JSON.parse(customizationFieldsJson) : [];
+      const nextId = fields.some((field) => field.id === FILAMENT_COLOR_FIELD_TEMPLATE.id)
+        ? `filament_color_${fields.length + 1}`
+        : FILAMENT_COLOR_FIELD_TEMPLATE.id;
+      const nextFields = [
+        ...fields,
+        { ...FILAMENT_COLOR_FIELD_TEMPLATE, id: nextId }
+      ];
+      setCustomizationFieldsJson(JSON.stringify(nextFields, null, 2));
+      toast.success('Filament color selector added');
+    } catch (error) {
+      toast.error('Customization fields JSON must be valid before adding the filament selector.');
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -197,6 +305,53 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Subtitle
+            </label>
+            <input
+              type="text"
+              value={formData.subtitle}
+              onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+              placeholder="e.g., 2 Icon NFC Stand"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Choose Product Collection *
+            </label>
+            <select
+              value={formData.collection_ids[0] || ''}
+              onChange={(e) => handlePrimaryCollectionChange(e.target.value)}
+              className="w-full px-3 py-3 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              required
+              disabled={collectionsLoading || collections.length === 0}
+            >
+              <option value="">
+                {collectionsLoading
+                  ? 'Loading collections...'
+                  : collections.length === 0
+                    ? 'No collections found'
+                    : 'Choose the collection for this product'}
+              </option>
+              {collections.map((collection) => (
+                <option key={collection.id} value={collection.id}>
+                  {collection.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-600 mt-2">
+              This is where the product will show on the website.
+            </p>
+            {collections.length === 0 && !collectionsLoading && (
+              <p className="mt-2 text-sm font-semibold text-amber-700">
+                No collections loaded. Create a collection first, then reopen this product form.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Description *
             </label>
             <textarea
@@ -211,7 +366,7 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price ($) *
+                Sale / Current Price ($) *
               </label>
               <input
                 type="number"
@@ -223,6 +378,50 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Original / Compare Price ($)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.compare_at_price}
+                onChange={(e) => setFormData({ ...formData, compare_at_price: e.target.value })}
+                placeholder="e.g., 39.99"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sale Price Prefix
+              </label>
+              <input
+                type="text"
+                value={formData.price_prefix}
+                onChange={(e) => setFormData({ ...formData, price_prefix: e.target.value })}
+                placeholder="e.g., Starting at"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Original Price Prefix
+              </label>
+              <input
+                type="text"
+                value={formData.compare_at_price_prefix}
+                onChange={(e) => setFormData({ ...formData, compare_at_price_prefix: e.target.value })}
+                placeholder="e.g., Starting at"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Stock Quantity
@@ -240,31 +439,12 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category *
-            </label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">Select a category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.name}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
               Material Details (Optional)
             </label>
             <textarea
               value={formData.material_details}
               onChange={(e) => setFormData({ ...formData, material_details: e.target.value })}
-              placeholder="e.g., Premium PLA filament, eco-friendly, durable and lightweight"
+              placeholder="e.g., Quality PLA or PETG, precision 3D printed, finished with care"
               rows="3"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -283,6 +463,30 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-xs text-gray-500 mt-1">Displayed as a badge on product card</p>
+          </div>
+
+          <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Badge Color
+              </label>
+              <input
+                type="text"
+                value={formData.badge_color}
+                onChange={(e) => setFormData({ ...formData, badge_color: e.target.value })}
+                placeholder="#dc2626"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <label className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+              <input
+                type="checkbox"
+                checked={formData.sale_badge_enabled}
+                onChange={(e) => setFormData({ ...formData, sale_badge_enabled: e.target.checked })}
+                className="h-4 w-4 rounded border-red-300"
+              />
+              Show Sale Badge
+            </label>
           </div>
 
           <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
@@ -324,41 +528,77 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
             <p className="text-xs text-gray-500 mt-1">Add custom builder component for product customization</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Collections
-            </label>
-            <div className="border border-gray-300 rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
-              {collections.length === 0 ? (
-                <p className="text-sm text-gray-500">No collections available</p>
-              ) : (
-                collections.map((col) => (
-                  <div key={col.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`collection-${col.id}`}
-                      checked={formData.collection_ids.includes(col.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({ 
-                            ...formData, 
-                            collection_ids: [...formData.collection_ids, col.id] 
-                          });
-                        } else {
-                          setFormData({ 
-                            ...formData, 
-                            collection_ids: formData.collection_ids.filter(id => id !== col.id) 
-                          });
-                        }
-                      }}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor={`collection-${col.id}`} className="ml-2 block text-sm text-gray-700">
-                      {col.name}
-                    </label>
-                  </div>
-                ))
-              )}
+          <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 space-y-4">
+            <h3 className="font-semibold text-gray-900">Custom Product Page Section</h3>
+            <input
+              type="text"
+              value={formData.product_page_section_title}
+              onChange={(e) => setFormData({ ...formData, product_page_section_title: e.target.value })}
+              placeholder="Customize Your NFC Stand"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+            <textarea
+              value={formData.product_page_section_text}
+              onChange={(e) => setFormData({ ...formData, product_page_section_text: e.target.value })}
+              rows={3}
+              placeholder="Section description"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+            <textarea
+              value={formData.platform_options.join('\n')}
+              onChange={(e) => setFormData({ ...formData, platform_options: e.target.value.split('\n').map((item) => item.trim()).filter(Boolean) })}
+              rows={5}
+              placeholder="One platform option per line"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+            <textarea
+              value={formData.product_page_note}
+              onChange={(e) => setFormData({ ...formData, product_page_note: e.target.value })}
+              rows={2}
+              placeholder="Product page note"
+              className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Add-ons JSON</label>
+                <textarea
+                  value={addOnOptionsJson}
+                  onChange={(e) => setAddOnOptionsJson(e.target.value)}
+                  rows={7}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bundles JSON</label>
+                <textarea
+                  value={bundleOptionsJson}
+                  onChange={(e) => setBundleOptionsJson(e.target.value)}
+                  rows={7}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+            </div>
+            <div>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <label className="block text-sm font-medium text-gray-700">Product Customization Fields JSON</label>
+                <button
+                  type="button"
+                  onClick={insertFilamentColorSelector}
+                  className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700"
+                >
+                  Add Filament Color Selector
+                </button>
+              </div>
+              <textarea
+                value={customizationFieldsJson}
+                onChange={(e) => setCustomizationFieldsJson(e.target.value)}
+                rows={9}
+                placeholder='[{"id":"primary_color","label":"Primary Color","type":"text","required":true},{"id":"social_platform","label":"Social Media Platform","type":"select","options":["Instagram","TikTok"],"required":true},{"id":"front_cover_logo","label":"Upload Front Cover Logo","type":"file"}]'
+                className="w-full px-3 py-2 border border-blue-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Field types: text, url, textarea, select, file, filament_color. Use options for dropdowns/swatch selectors and required true/false.
+              </p>
             </div>
           </div>
 
@@ -555,6 +795,18 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
             existingImages={formData.images}
             onImagesUploaded={handleImagesUploaded}
           />
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Product Image Alt Text
+            </label>
+            <input
+              type="text"
+              value={formData.image_alt || ''}
+              onChange={(e) => setFormData({ ...formData, image_alt: e.target.value })}
+              placeholder="Describe the product image"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+            />
+          </div>
         </div>
       </div>
 

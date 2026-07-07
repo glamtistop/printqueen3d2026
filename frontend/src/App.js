@@ -11,10 +11,12 @@ import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrdersPage from './pages/OrdersPage';
 import AdminDashboard from './pages/AdminDashboardNew';
 import LoginPage from './pages/LoginPage';
+import { AboutPage, ContactPage, CorporateBulkOrdersPage, DesignYourOwnPage, MaterialsPage, PersonalizePage, PolicyPage } from './pages/MarketingPages';
 import PageTransition from './components/PageTransition';
 import ScrollToTop from './components/ScrollToTop';
 import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
 import { Toaster } from './components/ui/sonner';
+import { ROUTE_META, setPageMeta, removeProductJsonLd } from './lib/seo';
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -26,6 +28,24 @@ export const AuthContext = React.createContext();
 // Cart Context
 export const CartContext = React.createContext();
 
+// Sets the SEO title/description for every static route; product and
+// collection pages refine these after their data loads.
+const RouteMeta = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const meta = ROUTE_META[location.pathname];
+    if (meta) {
+      setPageMeta({ ...meta, path: location.pathname });
+    }
+    if (!location.pathname.startsWith('/products/')) {
+      removeProductJsonLd();
+    }
+  }, [location.pathname]);
+
+  return null;
+};
+
 // Animated Routes Component
 const AnimatedRoutes = ({ user }) => {
   const location = useLocation();
@@ -35,6 +55,19 @@ const AnimatedRoutes = ({ user }) => {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
         <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
+        <Route path="/personalize" element={<PageTransition><PersonalizePage /></PageTransition>} />
+        <Route path="/shop" element={<PageTransition><ProductsPage /></PageTransition>} />
+        <Route path="/design-your-own" element={<PageTransition><DesignYourOwnPage /></PageTransition>} />
+        <Route path="/custom-order" element={<PageTransition><DesignYourOwnPage /></PageTransition>} />
+        <Route path="/corporate-bulk-orders" element={<PageTransition><CorporateBulkOrdersPage /></PageTransition>} />
+        <Route path="/about" element={<PageTransition><AboutPage /></PageTransition>} />
+        <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
+        <Route path="/refund-policy" element={<PageTransition><PolicyPage sectionId="refund_policy_page" /></PageTransition>} />
+        <Route path="/product-care" element={<PageTransition><PolicyPage sectionId="product_care_page" /></PageTransition>} />
+        <Route path="/privacy-policy" element={<PageTransition><PolicyPage sectionId="privacy_policy_page" /></PageTransition>} />
+        <Route path="/terms-of-service" element={<PageTransition><PolicyPage sectionId="terms_of_service_page" /></PageTransition>} />
+        <Route path="/shipping-policy" element={<PageTransition><PolicyPage sectionId="shipping_policy_page" /></PageTransition>} />
+        <Route path="/materials" element={<PageTransition><MaterialsPage /></PageTransition>} />
         <Route path="/products" element={<PageTransition><ProductsPage /></PageTransition>} />
         <Route path="/products/:id" element={<PageTransition><ProductDetailPage /></PageTransition>} />
         <Route path="/nfc-stand" element={<Navigate to="/products/nfc-stand-custom" replace />} />
@@ -165,10 +198,20 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="text-gray-500 font-medium animate-pulse">Loading OS...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-emerald-50 to-blue-50 px-6">
+        <div className="flex flex-col items-center gap-5 text-center">
+          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-xl ring-1 ring-blue-100">
+            <div className="absolute inset-0 rounded-full border-4 border-emerald-200 border-t-blue-500 animate-spin"></div>
+            <img
+              src="/printqueen-logo.png"
+              alt="Print Queen 3D"
+              className="relative z-10 h-16 w-16 object-contain"
+            />
+          </div>
+          <div>
+            <p className="text-lg font-bold text-slate-900">Print Queen 3D</p>
+            <p className="mt-1 text-sm font-medium text-slate-500">Opening your custom 3D print studio...</p>
+          </div>
         </div>
       </div>
     );
@@ -180,6 +223,7 @@ function App() {
         <div className="App bg-slate-50 min-h-screen font-sans text-slate-900">
           <BrowserRouter>
             <ScrollToTop />
+            <RouteMeta />
             <AnimatedRoutes user={user} />
           </BrowserRouter>
           <Toaster position="top-right" theme="light" />

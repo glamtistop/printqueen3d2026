@@ -60,7 +60,17 @@ export const ShippingSettings = () => {
     rush_order_days_min: 1,
     rush_order_days_max: 3,
     rush_order_label: 'Rush Order',
-    rush_order_description: 'Expedite your order for faster processing'
+    rush_order_description: 'Expedite your order for faster processing',
+    fulfillment_heading: 'How would you like to receive your order?',
+    shipping_card_title: 'Ship to Me',
+    shipping_unavailable_text: 'Not available for these items',
+    pickup_card_title: 'Local Pickup',
+    pickup_price_label: 'FREE',
+    pickup_unavailable_text: 'Not available',
+    pickup_location_heading: 'Select Pickup Location',
+    pickup_datetime_heading: 'Select Pickup Date & Time',
+    pickup_details_heading: 'Pickup Details',
+    pickup_confirmation_note: 'Local pickup is available in Los Angeles, California. Once your order is complete and ready for pickup, you will receive an email notification with pickup instructions.'
   });
   const [expandedOption, setExpandedOption] = useState(null);
 
@@ -217,6 +227,72 @@ export const ShippingSettings = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Checkout Fulfillment Copy */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-6">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-emerald-500" />
+          Checkout Fulfillment Section
+        </h3>
+        <p className="text-sm text-slate-500 mb-5">
+          Edit the wording customers see when choosing shipping or local pickup during checkout.
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Fulfillment Section Heading
+            </label>
+            <input
+              type="text"
+              value={settings.fulfillment_heading || ''}
+              onChange={(e) => setSettings(prev => ({ ...prev, fulfillment_heading: e.target.value }))}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none"
+              placeholder="How would you like to receive your order?"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Shipping Card Title
+              </label>
+              <input
+                type="text"
+                value={settings.shipping_card_title || ''}
+                onChange={(e) => setSettings(prev => ({ ...prev, shipping_card_title: e.target.value }))}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none"
+                placeholder="Ship to Me"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Pickup Price Label
+              </label>
+              <input
+                type="text"
+                value={settings.pickup_price_label || ''}
+                onChange={(e) => setSettings(prev => ({ ...prev, pickup_price_label: e.target.value }))}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none"
+                placeholder="FREE"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Pickup Confirmation Note
+            </label>
+            <textarea
+              value={settings.pickup_confirmation_note || ''}
+              onChange={(e) => setSettings(prev => ({ ...prev, pickup_confirmation_note: e.target.value }))}
+              rows={4}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none resize-none"
+              placeholder="Local pickup is available in Los Angeles, California. Once your order is complete and ready for pickup, you will receive an email notification with pickup instructions."
+            />
+          </div>
+        </div>
       </div>
 
       {/* Rush Order Settings */}

@@ -1,7 +1,7 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext, CartContext } from '../App';
-import { ShoppingCart, User, LogOut, Menu } from 'lucide-react';
+import { ShoppingCart, LogOut, Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -24,9 +24,56 @@ const Navbar = () => {
   const { cart } = useContext(CartContext);
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [navigationItems, setNavigationItems] = useState([]);
 
   const handleLogin = () => {
     navigate('/login');
+  };
+
+  const fallbackNavLinks = [
+    { id: 'home', label: 'Home', link: '/', enabled: true, show_desktop: true, show_mobile: true, show_footer: true, order: 1 },
+    { id: 'personalize', label: 'Personalize', link: '/personalize', enabled: true, show_desktop: true, show_mobile: true, show_footer: true, featured: true, order: 2 },
+    { id: 'shop', label: 'Shop', link: '/shop', enabled: true, show_desktop: true, show_mobile: true, show_footer: true, order: 3 },
+    { id: 'design-your-own', label: 'Design Your Own', link: '/design-your-own', enabled: true, show_desktop: true, show_mobile: true, show_footer: true, featured: true, order: 4 },
+    { id: 'corporate-bulk', label: 'Corporate & Bulk', link: '/corporate-bulk-orders', enabled: true, show_desktop: false, show_mobile: false, show_footer: false, footer_group: 'hidden', order: 5 },
+    { id: 'about', label: 'About', link: '/about', enabled: true, show_desktop: true, show_mobile: true, show_footer: true, order: 6 },
+    { id: 'contact', label: 'Contact', link: '/contact', enabled: true, show_desktop: true, show_mobile: true, show_footer: true, order: 7 },
+  ];
+
+  useEffect(() => {
+    const fetchNavigation = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/site-config`);
+        const data = await response.json();
+        const items = data?.settings?.navigation_items || [];
+        setNavigationItems(items.length > 0 ? items : fallbackNavLinks);
+      } catch (error) {
+        setNavigationItems(fallbackNavLinks);
+      }
+    };
+    fetchNavigation();
+  }, []);
+
+  const navLinks = (navigationItems.length > 0 ? navigationItems : fallbackNavLinks)
+    .filter((item) => item.enabled)
+    .map((item) => (
+      item.id === 'corporate-bulk' && item.link === '/corporate-bulk-orders'
+        ? { ...item, show_desktop: false, show_mobile: false }
+        : item
+    ))
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  const renderNavLink = (link, className, onClick) => {
+    const destination = link.link || '/';
+    return destination.startsWith('http') || destination.includes('#') ? (
+      <a key={link.id || link.label} href={destination} className={className} onClick={onClick}>
+        {link.label}
+      </a>
+    ) : (
+      <Link key={link.id || link.label} to={destination} className={className} onClick={onClick}>
+        {link.label}
+      </Link>
+    );
   };
 
   return (
@@ -43,16 +90,22 @@ const Navbar = () => {
               />
             </Link>
 
-            {/* Center - Command Palette */}
-            <div className="hidden md:flex flex-1 justify-center max-w-md mx-4">
-              <CommandPalette />
+            {/* Desktop Menu */}
+            <div className="hidden lg:flex items-center gap-2 flex-1 justify-center px-4">
+              {navLinks.filter((link) => link.show_desktop !== false).map((link) => {
+                const linkClass = `whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-colors ${
+                  link.featured
+                    ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                }`;
+                return renderNavLink(link, linkClass);
+              })}
             </div>
 
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-6">
-              <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-                Shop
-              </Link>
+            <div className="hidden md:flex items-center space-x-3">
+              <div className="hidden xl:block w-56">
+                <CommandPalette />
+              </div>
               
               {/* Cart Drawer Trigger */}
               <CartDrawer>
@@ -123,16 +176,15 @@ const Navbar = () => {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[300px]">
                   <SheetHeader>
-                    <SheetTitle className="text-left">Menu</SheetTitle>
+                    <SheetTitle className="text-center">Menu</SheetTitle>
                   </SheetHeader>
-                  <div className="flex flex-col gap-4 mt-8">
-                    <Link
-                      to="/products"
-                      className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Shop All Products
-                    </Link>
+                  <div className="flex flex-col items-center gap-4 mt-8 text-center">
+                    {navLinks.filter((link) => link.show_mobile !== false).map((link) => {
+                      const linkClass = `text-lg font-medium transition-colors ${
+                        link.featured ? 'text-blue-700' : 'text-gray-900 hover:text-blue-600'
+                      }`;
+                      return renderNavLink(link, linkClass, () => setMobileMenuOpen(false));
+                    })}
                     {user ? (
                       <>
                         <Link
@@ -144,7 +196,7 @@ const Navbar = () => {
                         </Link>
                         {user.is_admin && (
                           <Link
-                            to="/admin"
+                          to="/admin"
                             className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                           >
@@ -157,7 +209,7 @@ const Navbar = () => {
                             setMobileMenuOpen(false);
                           }} 
                           variant="outline" 
-                          className="justify-start mt-4"
+                          className="justify-center mt-4"
                         >
                           <LogOut className="h-4 w-4 mr-2" />
                           Logout
@@ -176,20 +228,6 @@ const Navbar = () => {
         </div>
       </nav>
       
-      {/* Marquee - Moved inside sticky container */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-pink-400 via-pink-500 to-pink-400 text-white py-2 shadow-sm">
-        <div className="inline-flex items-center space-x-2 animate-marquee whitespace-nowrap">
-          <span className="font-medium">Fast & reliable U.S. shipping</span>
-          <span>·</span>
-          <span className="font-medium">Local pickup in Los Angeles, Altadena, Long Beach, Hawthorne, West Covina</span>
-          <span>·</span>
-          <span className="font-medium">Handmade 3D printed designs made to order in LA</span>
-          <span>·</span>
-          <span className="font-medium">Fast & reliable U.S. shipping</span>
-          <span>·</span>
-          <span className="font-medium">Local pickup in Los Angeles, Altadena, Long Beach, Hawthorne, West Covina</span>
-        </div>
-      </div>
     </div>
   );
 };

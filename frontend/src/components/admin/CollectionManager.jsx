@@ -3,7 +3,8 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
-import { Trash2, Edit, Plus, FolderOpen, X, Package, Layers } from 'lucide-react';
+import { Trash2, Edit, Plus, FolderOpen, X, Package, Layers, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
+import { ImageUploader } from './ImageUploader';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -15,6 +16,11 @@ const CollectionCard = ({ collection, onEdit, onDelete }) => (
     exit={{ opacity: 0, scale: 0.95 }}
     className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-lg hover:border-slate-200 transition-all duration-200 group"
   >
+    {collection.image_url && (
+      <div className="aspect-[4/3] overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-emerald-50 mb-4">
+        <img src={collection.image_url} alt={collection.name} className="h-full w-full object-cover" />
+      </div>
+    )}
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
@@ -78,6 +84,9 @@ export const CollectionManager = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    image_url: '',
+    image_alt: '',
+    link_url: '',
     type: 'manual',
     product_ids: [],
     rules: []
@@ -140,6 +149,9 @@ export const CollectionManager = () => {
     setFormData({
       name: collection.name,
       description: collection.description || '',
+      image_url: collection.image_url || collection.cover_image_url || collection.image || '',
+      image_alt: collection.image_alt || '',
+      link_url: collection.link_url || collection.url || '',
       type: collection.type,
       product_ids: collection.product_ids || [],
       rules: collection.rules || []
@@ -166,6 +178,9 @@ export const CollectionManager = () => {
     setFormData({
       name: '',
       description: '',
+      image_url: '',
+      image_alt: '',
+      link_url: '',
       type: 'manual',
       product_ids: [],
       rules: []
@@ -305,6 +320,56 @@ export const CollectionManager = () => {
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none"
                       placeholder="Describe this collection"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <ImageIcon className="h-4 w-4 inline mr-1" /> Collection Image
+                    </label>
+                    {formData.image_url && (
+                      <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                        <img src={formData.image_url} alt="Collection preview" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, image_url: '' })}
+                          className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-md"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
+                    <ImageUploader
+                      images={[]}
+                      onUpload={(urls) => setFormData({ ...formData, image_url: urls[0] || '' })}
+                      maxImages={1}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Collection Image Alt Text
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.image_alt || ''}
+                      onChange={(e) => setFormData({ ...formData, image_alt: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                      placeholder="Describe the collection image"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <LinkIcon className="h-4 w-4 inline mr-1" /> Collection Link
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.link_url}
+                      onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                      placeholder="/products?collection=..."
+                    />
+                    <p className="mt-1 text-xs text-slate-500">Leave blank to automatically link this collection to its products.</p>
                   </div>
 
                   <div>

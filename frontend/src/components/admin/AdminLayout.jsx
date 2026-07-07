@@ -19,6 +19,7 @@ import {
   CreditCard,
   MapPin,
   Mail,
+  Inbox,
   Wand2,
   Truck,
   Database
@@ -36,6 +37,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
     { id: 'categories', label: 'Categories', icon: Tags },
     { id: 'collections', label: 'Collections', icon: FolderOpen },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'inquiries', label: 'Inquiries', icon: Inbox },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'locations', label: 'Pickup Locations', icon: MapPin },
     { id: 'builders', label: 'Custom Builders', icon: Wand2 },

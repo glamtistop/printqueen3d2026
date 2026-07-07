@@ -97,12 +97,13 @@ const StepIndicator = ({ steps, currentStep }) => (
 // Order Item Card
 const OrderItemCard = ({ item }) => {
   const hasCustomization = item.customization && Object.keys(item.customization).length > 0;
-  
+  const itemImage = item.images?.[0] || item.image;
+
   return (
     <div className="flex gap-4 p-4 bg-gray-50 rounded-xl">
       <div className="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-        {item.image ? (
-          <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+        {itemImage ? (
+          <img src={itemImage} alt={item.name} className="h-full w-full object-cover" />
         ) : (
           <ShoppingBag className="h-6 w-6 text-gray-400" />
         )}
@@ -167,6 +168,11 @@ const PickupLocationCard = ({ location, selected, onSelect }) => (
           <p className="text-xs text-gray-500 mt-1">
             <Clock className="h-3 w-3 inline mr-1" />
             {location.hours_display}
+          </p>
+        )}
+        {location.notes && (
+          <p className="text-xs text-gray-500 mt-2 bg-white/70 rounded-lg px-2 py-1">
+            {location.notes}
           </p>
         )}
       </div>
@@ -236,12 +242,29 @@ const CheckoutPage = () => {
     if (fulfillmentType !== 'shipping') return 0;
     if (shippingSettings?.free_shipping_enabled && subtotal >= shippingSettings.free_shipping_threshold) return 0;
     if (selectedShippingOption) return selectedShippingOption.price;
-    return 5.99; // Default fallback
+    return 12.95; // Default fallback
   };
   
   const shippingAmount = getShippingCost();
   const rushOrderAmount = rushOrder && shippingSettings?.rush_order_enabled ? (shippingSettings.rush_order_price || 25) : 0;
   const total = subtotal + taxAmount + shippingAmount + rushOrderAmount;
+  const firstShippingOption = shippingSettings?.shipping_options?.[0] || null;
+  const activeShippingOption = selectedShippingOption || firstShippingOption;
+  const qualifiesForFreeShipping = Boolean(
+    shippingSettings?.free_shipping_enabled && subtotal >= Number(shippingSettings.free_shipping_threshold || 0)
+  );
+  const shippingCardPriceText = !shippingAvailable
+    ? (shippingSettings?.shipping_unavailable_text || 'Not available for these items')
+    : qualifiesForFreeShipping
+      ? 'FREE shipping'
+      : activeShippingOption
+        ? `$${Number(activeShippingOption.price || 0).toFixed(2)} shipping`
+        : '$12.95 shipping';
+  const shippingCardDeliveryText = activeShippingOption
+    ? activeShippingOption.description || `${activeShippingOption.estimated_days_min}-${activeShippingOption.estimated_days_max} business days`
+    : 'Delivery timing shown at checkout';
+  const pickupConfirmationNote = shippingSettings?.pickup_confirmation_note
+    || 'Local pickup is available in Los Angeles, California. Once your order is complete and ready for pickup, you will receive an email notification with pickup instructions.';
 
   // Redirect if no user or empty cart
   useEffect(() => {
@@ -365,7 +388,7 @@ const CheckoutPage = () => {
         price: item.price,
         variant: item.variant,
         customization: item.customization || null,
-        product_image: item.image
+        product_image: item.images?.[0] || item.image || null
       }));
 
       // Build order data
@@ -506,7 +529,9 @@ const CheckoutPage = () => {
 
                       {/* Fulfillment Type Selection */}
                       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">How would you like to receive your order?</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                          {shippingSettings?.fulfillment_heading || 'How would you like to receive your order?'}
+                        </h2>
                         
                         <div className="grid sm:grid-cols-2 gap-4">
                           {/* Shipping Option */}
@@ -532,19 +557,16 @@ const CheckoutPage = () => {
                                 <Truck className="h-6 w-6" />
                               </div>
                               <div>
-                                <h3 className={`font-semibold ${!shippingAvailable ? 'text-gray-400' : 'text-gray-900'}`}>Ship to Me</h3>
+                                <h3 className={`font-semibold ${!shippingAvailable ? 'text-gray-400' : 'text-gray-900'}`}>
+                                  {shippingSettings?.shipping_card_title || 'Ship to Me'}
+                                </h3>
                                 <p className={`text-sm ${!shippingAvailable ? 'text-gray-400' : 'text-gray-500'}`}>
-                                  {!shippingAvailable 
-                                    ? 'Not available for these items' 
-                                    : subtotal >= 50 
-                                      ? 'FREE shipping' 
-                                      : '$5.99 shipping'
-                                  }
+                                  {shippingCardPriceText}
                                 </p>
                               </div>
                               {shippingAvailable && fulfillmentType === 'shipping' && <Check className="h-5 w-5 text-blue-500 ml-auto" />}
                             </div>
-                            {shippingAvailable && <p className="text-xs text-gray-500">Delivery in 5-7 business days</p>}
+                            {shippingAvailable && <p className="text-xs text-gray-500">{shippingCardDeliveryText}</p>}
                           </button>
 
                           {/* Pickup Option */}
@@ -570,9 +592,14 @@ const CheckoutPage = () => {
                                 <MapPin className="h-6 w-6" />
                               </div>
                               <div>
-                                <h3 className={`font-semibold ${!pickupAvailable ? 'text-gray-400' : 'text-gray-900'}`}>Pickup In-Store</h3>
+                                <h3 className={`font-semibold ${!pickupAvailable ? 'text-gray-400' : 'text-gray-900'}`}>
+                                  {shippingSettings?.pickup_card_title || 'Local Pickup'}
+                                </h3>
                                 <p className={`text-sm font-medium ${!pickupAvailable ? 'text-gray-400' : 'text-emerald-600'}`}>
-                                  {!pickupAvailable ? 'Not available' : 'FREE'}
+                                  {!pickupAvailable
+                                    ? (shippingSettings?.pickup_unavailable_text || 'Not available')
+                                    : (shippingSettings?.pickup_price_label || 'FREE')
+                                  }
                                 </p>
                               </div>
                               {pickupAvailable && fulfillmentType === 'pickup' && <Check className="h-5 w-5 text-emerald-500 ml-auto" />}
@@ -695,7 +722,10 @@ const CheckoutPage = () => {
                   {/* Pickup Location Selection */}
                   {fulfillmentType === 'pickup' && pickupLocations.length > 0 && (
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Select Pickup Location</h2>
+                      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                        {shippingSettings?.pickup_location_heading || 'Select Pickup Location'}
+                      </h2>
+                      <p className="text-sm text-gray-600 mb-4">{pickupConfirmationNote}</p>
                       <div className="space-y-3">
                         {pickupLocations.map(location => (
                           <PickupLocationCard
@@ -712,7 +742,9 @@ const CheckoutPage = () => {
                   {/* Date & Time Selection */}
                   {fulfillmentType === 'pickup' && selectedLocation && (
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Select Pickup Date & Time</h2>
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                        {shippingSettings?.pickup_datetime_heading || 'Select Pickup Date & Time'}
+                      </h2>
                       
                       {/* Date Selection */}
                       <div className="mb-4">
@@ -898,11 +930,12 @@ const CheckoutPage = () => {
                     <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-200">
                       <h2 className="text-lg font-semibold text-emerald-900 mb-3 flex items-center gap-2">
                         <MapPin className="h-5 w-5" />
-                        Pickup Details
+                        {shippingSettings?.pickup_details_heading || 'Pickup Details'}
                       </h2>
                       <div className="space-y-2 text-emerald-800">
                         <p className="font-medium">{selectedLocation.name}</p>
                         <p className="text-sm">{selectedLocation.address}, {selectedLocation.city}, {selectedLocation.state} {selectedLocation.zip_code}</p>
+                        <p className="text-sm text-emerald-700">{pickupConfirmationNote}</p>
                         <div className="flex items-center gap-4 pt-2 border-t border-emerald-200 mt-2">
                           <span className="flex items-center gap-1 text-sm">
                             <Calendar className="h-4 w-4" />
@@ -1063,9 +1096,11 @@ const CheckoutPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">
-                    {fulfillmentType === 'shipping' && selectedShippingOption 
-                      ? selectedShippingOption.name 
-                      : 'Shipping'}
+                    {fulfillmentType === 'pickup'
+                      ? (shippingSettings?.pickup_card_title || 'Local Pickup')
+                      : selectedShippingOption
+                        ? selectedShippingOption.name
+                        : 'Shipping'}
                   </span>
                   <span className={`font-medium ${shippingAmount === 0 ? 'text-emerald-600' : ''}`}>
                     {shippingAmount === 0 ? 'FREE' : `$${shippingAmount.toFixed(2)}`}
@@ -1095,9 +1130,9 @@ const CheckoutPage = () => {
               }`}>
                 <div className="flex items-center gap-2">
                   {fulfillmentType === 'pickup' ? (
-                    <><MapPin className="h-4 w-4" /> In-Store Pickup</>
+                    <><MapPin className="h-4 w-4" /> {shippingSettings?.pickup_card_title || 'Local Pickup'}</>
                   ) : (
-                    <><Truck className="h-4 w-4" /> Shipping</>
+                    <><Truck className="h-4 w-4" /> {shippingSettings?.shipping_card_title || 'Shipping'}</>
                   )}
                 </div>
               </div>

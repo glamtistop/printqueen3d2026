@@ -7,6 +7,7 @@ import { ProductManager } from '../components/admin/ProductManager';
 import { CategoryManager } from '../components/admin/CategoryManager';
 import { CollectionManager } from '../components/admin/CollectionManager';
 import { OrderManager } from '../components/admin/OrderManager';
+import { InquiryManager } from '../components/admin/InquiryManager';
 import { CustomerManager } from '../components/admin/CustomerManager';
 import { SiteEditor } from '../components/admin/SiteEditor';
 import { PaymentSettings } from '../components/admin/PaymentSettings';
@@ -38,6 +39,8 @@ const AdminDashboardNew = () => {
         return <CollectionManager />;
       case 'orders':
         return <OrderManager />;
+      case 'inquiries':
+        return <InquiryManager />;
       case 'customers':
         return <CustomerManager />;
       case 'locations':

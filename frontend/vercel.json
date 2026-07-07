@@ -6,6 +6,10 @@
       "destination": "https://printqueen3d2026-backend.vercel.app/api/$1"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "https://printqueen3d2026-backend.vercel.app/api/sitemap.xml"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

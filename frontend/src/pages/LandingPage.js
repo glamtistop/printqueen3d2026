@@ -1,482 +1,656 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../App';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Camera, Instagram, MapPin, ShieldCheck, Sparkles, Star, Truck, Wand2 } from 'lucide-react';
+import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
+import SiteFooter from '../components/SiteFooter';
+import MockProductVisual from '../components/MockProductVisual';
 import { Skeleton } from '../components/ui/skeleton';
 
-const DEFAULT_HOMEPAGE_CATEGORIES = [
-  { name: 'Payment Stands', link: '/products?category=Payment%20Stands', image: '/assets/homepage/category-payment-stands.jpg' },
-  { name: 'Keychains', link: '/products?category=Keychains', image: '/assets/homepage/category-keychains.jpg' },
-  { name: 'Home Decor', link: '/products?category=Home%20Decor', image: '/assets/homepage/category-home-decor.jpg' },
-  { name: 'Incense Holders', link: '/products?category=Incense%20Holders', image: '/assets/homepage/category-incense-holders.jpg' },
-  { name: 'Toys & Fidgets', link: '/products?category=Toys%20%26%20Fidgets', image: '/assets/homepage/category-toys-fidgets.jpg' },
-  { name: 'Custom 3D Prints', link: '/products?category=Custom%203D%20Prints', image: '/assets/homepage/category-custom-3d-prints.jpg' }
+const fallbackHeroImage = '/assets/homepage/printqueen-hero-realistic-products.png';
+const fallbackProjectImages = [
+  '/assets/homepage/printqueen-hero-realistic-products.png',
+  '/assets/homepage/printqueen-hero-products.png',
+  '/assets/homepage/payment-stands.png',
+  '/assets/homepage/nfc-keychain.png',
+  '/assets/homepage/category-keychains.jpg',
+  '/assets/homepage/category-home-decor.jpg',
+  '/assets/homepage/category-custom-3d-prints.jpg',
 ];
 
+const legacyHeroImages = new Set([
+  '/assets/homepage/custom-3d-prints.png',
+  '/assets/homepage/payment-stands.png',
+  '/assets/homepage/nfc-keychain.png',
+  '/assets/homepage/printqueen-hero-products.png'
+]);
+
+const collectionDisplayOrder = [
+  'Personalized Favorites',
+  'Business Solutions',
+  'Keychains & Charms',
+  'Gifts & Keepsakes',
+  'Home Decor & Lithophanes',
+  'Home Décor & Lithophanes',
+  'Fidgets & Fun',
+  'Celebrations & Special Occasions',
+  'Design Your Own',
+];
+
+const trustCards = [
+  [Sparkles, 'Personalized for Every Customer', 'Every piece can be customized with names, colors, photos, logos, QR codes, NFC chips, or custom design details.'],
+  [Truck, 'Production Time: 3-5 Days', 'Production typically takes 3-5 days after design approval, depending on project size and complexity.'],
+  [ShieldCheck, 'Expert Finishing', 'Each piece is cleaned, refined, and quality checked for a polished final result.'],
+  [MapPin, 'Designed & Printed in Los Angeles', 'Locally made in Los Angeles with nationwide U.S. shipping and select local pickup options.'],
+];
+
+const renderRouteLink = (to, className, children) => {
+  const link = to || '#';
+  return link.startsWith('#') || link.startsWith('http') ? (
+    <a href={link} className={className}>{children}</a>
+  ) : (
+    <Link to={link} className={className}>{children}</Link>
+  );
+};
+
 const LandingPage = () => {
-  const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const [email, setEmail] = useState('');
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
   const [siteConfig, setSiteConfig] = useState(null);
+  const [collections, setCollections] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredReviews, setFeaturedReviews] = useState([]);
+  const [reviewForm, setReviewForm] = useState({ name: '', rating: 5, review: '' });
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
-  // Parallax Scroll Hook
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 500], [0, 150]);
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.5]);
-
-  const bannerImages = [
-    '/assets/homepage/custom-3d-prints.png',
-    '/assets/homepage/payment-stands.png',
-    '/assets/homepage/nfc-keychain.png'
-  ];
-
-  // Fetch site configuration
   useEffect(() => {
-    const fetchSiteConfig = async () => {
+    const fetchPageData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/site-config`);
-        const data = await response.json();
-        setSiteConfig(data);
+        const [siteResponse, collectionsResponse, featuredResponse, reviewsResponse] = await Promise.all([
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/site-config`, { cache: 'no-store' }),
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/collections`),
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/featured/list?limit=12`),
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/reviews`)
+        ]);
+        setSiteConfig(await siteResponse.json());
+        setCollections(await collectionsResponse.json());
+        setFeaturedProducts(await featuredResponse.json());
+        setFeaturedReviews(await reviewsResponse.json());
       } catch (error) {
-        console.error('Failed to fetch site config:', error);
-      }
-    };
-    fetchSiteConfig();
-  }, []);
-
-  // Fetch featured products
-  useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/featured/list?limit=6`);
-        const data = await response.json();
-        setFeaturedProducts(data);
-      } catch (error) {
-        console.error('Failed to fetch featured products:', error);
+        console.error('Failed to load homepage data:', error);
       } finally {
         setLoadingProducts(false);
       }
     };
-    fetchFeaturedProducts();
+    fetchPageData();
   }, []);
 
-  // Get hero images from config or use defaults
-  const heroImages = siteConfig?.settings?.hero_images;
-  const desktopHeroImages = heroImages?.desktop_images?.length > 0 
-    ? heroImages.desktop_images 
-    : bannerImages;
-  const mobileHeroImage = heroImages?.mobile_image || bannerImages[0];
+  const settings = siteConfig?.settings || {};
+  const heroImages = settings.hero_images || {};
+  const savedDesktopHeroImages = Array.isArray(heroImages.desktop_images)
+    ? heroImages.desktop_images.filter((image) => image && !legacyHeroImages.has(image))
+    : [];
+  const desktopHeroImage = savedDesktopHeroImages[0] || '';
+  const mobileHeroImage = heroImages.mobile_image || desktopHeroImage;
+  const hasHeroImage = Boolean(desktopHeroImage || mobileHeroImage);
 
-  // Auto-rotate banner every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % desktopHeroImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [desktopHeroImages.length]);
-
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    alert(`Thanks for joining! Check ${email} for your 10% off code.`);
-    setEmail('');
-  };
-
-  // Helper to check if a section is enabled
+  const getSection = (sectionId) => siteConfig?.homepage_sections?.find((section) => section.id === sectionId);
   const isSectionEnabled = (sectionId) => {
-    if (!siteConfig?.homepage_sections) return true;
-    const section = siteConfig.homepage_sections.find(s => s.id === sectionId);
+    const section = getSection(sectionId);
     return section ? section.enabled : true;
   };
-
-  // Helper to get section content
   const getSectionContent = (sectionId, field, defaultValue = '') => {
-    if (!siteConfig?.homepage_sections) return defaultValue;
-    const section = siteConfig.homepage_sections.find(s => s.id === sectionId);
-    return section?.content?.[field] || defaultValue;
+    const section = getSection(sectionId);
+    return section?.content?.[field] ?? defaultValue;
   };
 
-  const getHomepageCategories = () => {
-    const categoriesSection = siteConfig?.homepage_sections?.find(s => s.id === 'categories');
-    const categories = categoriesSection?.content?.categories;
-    return Array.isArray(categories) ? categories : DEFAULT_HOMEPAGE_CATEGORIES;
+  const getCollectionImage = (collection) => (
+    collection.image_url || collection.cover_image_url || collection.image || ''
+  );
+
+  const getHomepageCollectionLink = (collection) => {
+    const collectionName = (collection.name || '').trim().toLowerCase();
+    if (collectionName.includes('design your own')) {
+      return '/design-your-own';
+    }
+    return `/shop?collection=${encodeURIComponent(collection.id)}`;
   };
 
-  // Get site settings
-  const settings = siteConfig?.settings || {};
-  const contactInfo = settings.contact_info || {};
-  const socialLinks = settings.social_links || {};
+  const homepageCollections = (() => {
+    const normalizedCollections = collections.map((collection) => ({
+      ...collection,
+      normalizedName: (collection.name || '').trim().toLowerCase()
+    }));
+    const seen = new Set();
+    const orderedCollections = collectionDisplayOrder
+      .map((name) => normalizedCollections.find((collection) => collection.normalizedName === name.toLowerCase()))
+      .filter(Boolean)
+      .filter((collection) => {
+        if (seen.has(collection.id)) return false;
+        seen.add(collection.id);
+        return true;
+      });
+    return (orderedCollections.length > 0 ? orderedCollections : normalizedCollections).slice(0, 6);
+  })();
+
+  const heroContent = getSection('hero')?.content || {};
+  const heroHeadline = !heroContent.headline || heroContent.headline === 'Custom 3D Printed Creations' || heroContent.headline === 'Custom 3D Creations Made Just for You'
+    ? 'Create Something Uniquely Yours'
+    : heroContent.headline;
+  const heroSubheadline = !heroContent.subheadline
+    || heroContent.subheadline === 'Bringing Your Ideas to Life'
+    || /premium materials/i.test(heroContent.subheadline || '')
+    ? 'Professionally 3D printed custom creations for personalized gifts, business branding, NFC products, home decor, keepsakes, and one-of-a-kind designs.'
+    : heroContent.subheadline;
+  const hasEditableHeroBadge = Object.prototype.hasOwnProperty.call(heroContent, 'badge_label');
+  const rawHeroBadge = hasEditableHeroBadge ? heroContent.badge_label : heroContent.description;
+  const heroBadge = !hasEditableHeroBadge && (
+    !rawHeroBadge
+    || rawHeroBadge === 'Discover unique 3D printed products crafted with precision and care.'
+    || rawHeroBadge === 'Custom 3D Creation Studio'
+  )
+    ? 'CUSTOM 3D CREATION STUDIO'
+    : rawHeroBadge;
+  const heroPrimaryText = !heroContent.button_text || heroContent.button_text === 'Shop Now' ? 'Start Custom Order' : heroContent.button_text;
+  const heroPrimaryLink = !heroContent.button_link || heroContent.button_link === '/products' || heroContent.button_link === '#design-your-own' ? '/design-your-own' : heroContent.button_link;
+  const heroSecondaryText = heroContent.secondary_button_text || 'Shop Collections';
+  const heroSecondaryLink = heroContent.secondary_button_link || '#collections';
+  const heroOverlayOpacity = heroContent.overlay_opacity ?? 0.58;
+  const heroOverlayColor = heroContent.overlay_color || '#d8ecdd';
+  const heroHeightDesktop = Number(heroContent.hero_height_desktop) || 640;
+  const heroHeightMobile = Number(heroContent.hero_height_mobile) || 560;
+  const heroImagePosition = heroContent.hero_image_position || 'center right';
+
+  const marqueeContent = getSection('marquee')?.content || {};
+  const savedMarqueeMessages = Array.isArray(marqueeContent.marquee_messages) ? marqueeContent.marquee_messages.filter(Boolean) : [];
+  const marqueeMessages = savedMarqueeMessages;
+  const marqueeImages = Array.isArray(marqueeContent.marquee_images) ? marqueeContent.marquee_images.filter(Boolean) : [];
+  const marqueeShowImages = marqueeContent.marquee_show_images && marqueeImages.length > 0;
+  const shouldShowMarquee = isSectionEnabled('marquee') && (marqueeMessages.length > 0 || marqueeShowImages);
+  const marqueeSpeed = marqueeContent.marquee_speed || 30;
+  const marqueeDirection = marqueeContent.marquee_direction === 'right' ? 'reverse' : 'normal';
+  const marqueeGap = marqueeContent.marquee_gap || 32;
+  const marqueeBackgroundStyle = {
+    backgroundColor: marqueeContent.marquee_background_color || undefined,
+    backgroundImage: marqueeContent.marquee_background_image_url ? `url(${marqueeContent.marquee_background_image_url})` : undefined,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    paddingTop: `${marqueeContent.marquee_padding_y || 12}px`,
+    paddingBottom: `${marqueeContent.marquee_padding_y || 12}px`,
+  };
+
+  const isCustomProduct = (product) => {
+    const customTerms = ['custom', 'personal', 'name', 'nfc', 'lithophane', 'photo', 'qr', 'keychain', 'logo', 'wedding', 'memorial'];
+    const text = `${product?.name || ''} ${product?.category || ''} ${product?.description || ''}`.toLowerCase();
+    return Boolean(product?.is_custom || product?.custom_builder || customTerms.some((term) => text.includes(term)));
+  };
+
+  const getProductBadges = (product) => {
+    const badges = [];
+    if (product?.badge && product.sale_badge_enabled !== false) badges.push(product.badge);
+    const text = `${product?.name || ''} ${product?.category || ''} ${product?.description || ''}`.toLowerCase();
+    if (product?.featured) badges.push('Best Seller');
+    if (isCustomProduct(product)) badges.push('Customizable');
+    if (text.includes('personal') || text.includes('name')) badges.push('Personalized');
+    if (text.includes('nfc')) badges.push('NFC Enabled');
+    if (product?.is_new || text.includes('new')) badges.push('New');
+    return [...new Set(badges)].slice(0, 3);
+  };
+
+  const formatPrice = (price, prefix = '') => {
+    const amount = Number(price || 0).toFixed(2);
+    return `${prefix ? `${prefix} ` : ''}$${amount}`;
+  };
+
+  const renderProductPrice = (product) => {
+    const hasComparePrice = Number(product?.compare_at_price) > Number(product?.price || 0);
+    return (
+      <div className="flex flex-col items-center sm:items-start leading-tight">
+        {hasComparePrice && (
+          <span className="text-sm font-semibold text-gray-400 line-through">
+            {formatPrice(product.compare_at_price, product.compare_at_price_prefix)}
+          </span>
+        )}
+        <span className="text-2xl font-bold text-green-600">
+          {formatPrice(product.price, product.price_prefix || (product.custom_builder ? 'Starting at' : ''))}
+        </span>
+      </div>
+    );
+  };
+
+  const bestSellerLimit = Number(getSectionContent('featured', 'product_limit', 8)) || 8;
+  const bestSellerProducts = featuredProducts.slice(0, Math.min(bestSellerLimit, 12));
+  const aboutContent = getSection('about_preview')?.content || {};
+  const aboutImageSetting = aboutContent.image_url || '';
+  const aboutMobileImage = aboutContent.mobile_image_url || aboutImageSetting;
+  const aboutImagePosition = aboutContent.image_position || 'center';
+  const aboutImageAlt = aboutContent.image_alt || 'Print Queen 3D custom creations';
+  const aboutSectionPadding = Number(aboutContent.section_padding_y) || 64;
+  const aboutBackgroundColor = aboutContent.background_color || '#ffffff';
+  const aboutTextSizeClass = aboutContent.text_size === 'sm' ? 'text-base' : aboutContent.text_size === 'xl' ? 'text-xl' : 'text-lg';
+  const aboutButtonClass = aboutContent.button_size === 'large' ? 'inline-flex mt-7 btn-primary text-lg px-8 py-4' : 'inline-flex mt-7 btn-primary';
+  const ctaBackgroundSetting = getSectionContent('design_cta', 'background_image_url', fallbackHeroImage);
+  const aboutImage = legacyHeroImages.has(aboutImageSetting) ? '' : aboutImageSetting;
+  const ctaBackground = legacyHeroImages.has(ctaBackgroundSetting) ? fallbackHeroImage : ctaBackgroundSetting;
+
+  const trustCardIcons = [Sparkles, Truck, ShieldCheck, MapPin];
+  const savedInfoCards = getSection('why_choose_us')?.content?.info_cards;
+  const whyChooseCards = Array.isArray(savedInfoCards) && savedInfoCards.filter((card) => card?.title).length > 0
+    ? savedInfoCards.filter((card) => card?.title).map((card, index) => ({
+        Icon: trustCardIcons[index % trustCardIcons.length],
+        title: card.title,
+        text: card.text || ''
+      }))
+    : trustCards.map(([Icon, title, text]) => ({ Icon, title, text }));
+  const howItWorksSteps = (getSection('how_it_works')?.content?.steps || []).filter((step) => step?.title);
+  const faqItems = (getSection('faq')?.content?.faq_items || []).filter((item) => item?.question);
+
+  const submitReview = async (event) => {
+    event.preventDefault();
+    setReviewSubmitting(true);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewForm),
+      });
+      if (!response.ok) throw new Error('Review submission failed');
+      setReviewForm({ name: '', rating: 5, review: '' });
+      toast.success('Thank you! Your review was submitted for approval.');
+    } catch (error) {
+      toast.error('We could not submit your review yet.');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
-
-      {/* Hero Banner - Auto-rotating Carousel (Desktop) / Static Banner (Mobile) */}
-      <section className="relative w-full overflow-hidden" style={{ backgroundColor: '#d8ecdd' }}>
-        {/* Desktop Banner - Carousel with Parallax */}
-        <motion.div 
-          style={{ y: heroY, opacity: heroOpacity, height: '550px' }}
-          className="hidden md:block relative w-full"
-        >
-          {/* Main Banner Image */}
-          <div className="relative flex items-center justify-center h-full">
-            <img
-              src={desktopHeroImages[currentBannerIndex]}
-              alt="Print Queen 3D Hero"
-              className="h-full w-auto object-contain transition-opacity duration-1000"
-            />
-          </div>
-          
-          {/* Carousel Indicators */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-            {desktopHeroImages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentBannerIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentBannerIndex 
-                    ? 'bg-white shadow-lg' 
-                    : 'bg-white/50 hover:bg-white/75'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Mobile Banner - Static */}
-        <div className="block md:hidden relative w-full">
-          <img
-            src={mobileHeroImage}
-            alt="Print Queen 3D Mobile Banner"
-            className="w-full h-auto object-contain"
-          />
-        </div>
-      </section>
-
-      {/* Scrolling Marquee */}
-      {isSectionEnabled('marquee') && (
-        <div className="bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 py-3 overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap flex">
-            {[...Array(4)].map((_, i) => (
-              <span key={i} className="mx-8 text-white font-semibold text-sm md:text-base tracking-wide">
-                {getSectionContent('marquee', 'headline', 'FREE SHIPPING ON ORDERS OVER $50 • NEW ARRIVALS WEEKLY • CUSTOM ORDERS WELCOME')}
+      {shouldShowMarquee && (
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600" style={marqueeBackgroundStyle}>
+          <div
+            className="animate-marquee whitespace-nowrap inline-flex items-center font-semibold text-sm md:text-base tracking-wide"
+            style={{ animationDuration: `${marqueeSpeed}s`, animationDirection: marqueeDirection, gap: `${marqueeGap}px`, color: marqueeContent.marquee_text_color || '#ffffff' }}
+          >
+            {[...Array(3)].flatMap(() => marqueeMessages).map((message, index) => (
+              <span key={`${message}-${index}`} className="inline-flex items-center" style={{ gap: `${marqueeGap}px` }}>
+                {marqueeShowImages && marqueeImages[index % marqueeImages.length] && (
+                  <img src={marqueeImages[index % marqueeImages.length]} alt="" className="h-10 w-10 rounded-full object-cover border border-white/40" />
+                )}
+                <span>{message}</span>
+                <span className="opacity-70">•</span>
               </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Shop Categories */}
+      <Navbar />
+
+      {isSectionEnabled('hero') && (
+      <section className="relative isolate w-full overflow-hidden" style={{ backgroundColor: heroOverlayColor || '#d8ecdd' }}>
+        {hasHeroImage && (
+          <div className="absolute inset-0 z-0">
+            <picture>
+              {mobileHeroImage && <source media="(max-width: 767px)" srcSet={mobileHeroImage} />}
+              <img
+                src={desktopHeroImage || mobileHeroImage}
+                alt="Custom 3D creations by Print Queen 3D"
+                className="h-full w-full object-cover md:object-contain md:object-right"
+                style={{ objectPosition: heroImagePosition }}
+              />
+            </picture>
+          </div>
+        )}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            background: hasHeroImage
+              ? `linear-gradient(90deg, ${heroOverlayColor} 0%, ${heroOverlayColor} 55%, transparent 100%)`
+              : `linear-gradient(135deg, ${heroOverlayColor} 0%, #eef8f2 52%, #ffffff 100%)`,
+            opacity: hasHeroImage ? heroOverlayOpacity : 1
+          }}
+        />
+        <div
+          className="relative z-10 hero-shell-height flex items-center"
+          style={{ '--hero-height-mobile': `${heroHeightMobile}px`, '--hero-height-desktop': `${heroHeightDesktop}px` }}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16">
+            <div className="max-w-2xl mx-auto md:mx-0 text-center md:text-left">
+              {heroBadge?.trim() && <span className="hero-badge">{heroBadge}</span>}
+              <h1 className="hero-title text-5xl sm:text-6xl md:text-7xl">{heroHeadline}</h1>
+              <p className="hero-subtitle max-w-xl">{heroSubheadline}</p>
+              <div className="hero-buttons justify-center md:justify-start">
+                {renderRouteLink(heroPrimaryLink, 'btn-primary text-center', heroPrimaryText)}
+                {renderRouteLink(heroSecondaryLink, 'btn-secondary text-center', heroSecondaryText)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      )}
+
       {isSectionEnabled('categories') && (
-      <motion.section 
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="py-12 bg-white"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {getHomepageCategories().map((category) => (
-              <Link
-                key={category.name}
-                to={category.link || `/products?category=${encodeURIComponent(category.name)}`}
-                className="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-white"
-              >
-                <div className="aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
-                  <img
-                    src={category.image || '/assets/homepage/category-custom-3d-prints.jpg'}
-                    alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-3 text-center border-t border-gray-100">
-                  <h3 className="font-semibold text-sm text-gray-900">{category.name}</h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-      )}
-
-      {/* Featured Products */}
-      {isSectionEnabled('featured') && (
-      <motion.section 
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="py-16 bg-gradient-to-b from-white to-blue-50"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-3">
-              {getSectionContent('featured', 'headline', 'Featured Products')}
-            </h2>
-            <p className="text-lg text-gray-600">
-              {getSectionContent('featured', 'subheadline', 'Handpicked favorites from our collection')}
-            </p>
-          </div>
-          
-          {loadingProducts ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-square w-full rounded-xl" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : featuredProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No featured products available yet.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <Link
-                  key={product.id}
-                  to={`/products/${product.id}`}
-                  className="group product-card rounded-xl overflow-hidden hover:scale-105 transition-all duration-300"
-                >
-                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
-                    <img
-                      src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/400'}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    {product.badge && (
-                      <div className="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                        {product.badge}
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-gray-900 mb-2">{product.name}</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-green-600">${product.price.toFixed(2)}</span>
-                      <button className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors">
-                        View
-                      </button>
+        <motion.section
+          id="collections"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="py-16 bg-white scroll-mt-28"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+              {homepageCollections.map((collection) => {
+                const collectionImage = getCollectionImage(collection);
+                const isDesignYourOwn = (collection.name || '').trim().toLowerCase().includes('design your own');
+                return (
+                  <a key={collection.id} href={getHomepageCollectionLink(collection)} className="group product-card rounded-xl overflow-hidden hover:scale-[1.02] transition-all duration-300">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+                      {collectionImage ? (
+                        <img src={collectionImage} alt={collection.image_alt || collection.name} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                      ) : (
+                        <MockProductVisual label={collection.name} className="group-hover:scale-105 transition-transform duration-300" />
+                      )}
                     </div>
-                  </div>
-                </Link>
+                    <div className="p-5">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{collection.name}</h3>
+                      {collection.description && <p className="text-sm text-gray-600 min-h-[60px] line-clamp-3">{collection.description}</p>}
+                      <div className="flex items-center justify-center sm:justify-end gap-3 mt-5">
+                        <span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold group-hover:bg-blue-700 transition-colors">
+                          {isDesignYourOwn
+                            ? getSectionContent('categories', 'secondary_button_text', 'Start Custom Project')
+                            : getSectionContent('categories', 'button_text', 'Personalize Yours')}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {isSectionEnabled('featured') && (
+        <section className="py-16 bg-gradient-to-b from-blue-50/60 to-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-10">
+              <h2 className="section-title">{['Featured Products'].includes(getSectionContent('featured', 'headline', '')) ? 'Best Sellers' : getSectionContent('featured', 'headline', 'Best Sellers')}</h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-4">
+                {['Our most popular items'].includes(getSectionContent('featured', 'subheadline', '')) ? 'Customer favorites made to personalize, gift, and use every day.' : getSectionContent('featured', 'subheadline', 'Customer favorites made to personalize, gift, and use every day.')}
+              </p>
+            </div>
+            {loadingProducts ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((item) => <Skeleton key={item} className="h-80 rounded-xl" />)}
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {bestSellerProducts.map((product) => {
+                  const badges = getProductBadges(product);
+                  return (
+                    <Link key={product.id} to={`/products/${product.id}`} className="group product-card rounded-xl overflow-hidden hover:scale-[1.02] transition-all duration-300">
+                      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+                        {product.images && product.images.length > 0 ? (
+                          <img src={product.images[0]} alt={product.image_alt || product.name} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                        ) : (
+                          <MockProductVisual label={product.name} className="group-hover:scale-105 transition-transform duration-300" />
+                        )}
+                        {badges.length > 0 && (
+                          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+                            {badges.map((badge) => (
+                              <span
+                                key={badge}
+                                className="bg-white/95 text-blue-700 px-3 py-1 rounded-full text-xs font-bold shadow-sm"
+                                style={badge === product.badge ? { backgroundColor: product.badge_color || '#dc2626', color: '#ffffff' } : undefined}
+                              >
+                                {badge}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">{product.name}</h3>
+                        {product.subtitle && <p className="text-sm font-bold text-blue-700">{product.subtitle}</p>}
+                        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 mt-5">
+                          {renderProductPrice(product)}
+                          <span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold group-hover:bg-blue-700 transition-colors">
+                            {getSectionContent('featured', 'button_text', 'Customize Now')}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {isSectionEnabled('why_choose_us') && (
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="section-title text-center mb-10">{['Why Choose Print Queen 3D?'].includes(getSectionContent('why_choose_us', 'headline', '')) ? 'Why Print Queen 3D' : getSectionContent('why_choose_us', 'headline', 'Why Print Queen 3D')}</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {whyChooseCards.map(({ Icon, title, text }, index) => (
+                <div key={title || index} className="rounded-xl bg-gradient-to-br from-blue-50 to-green-50 border border-blue-100 p-6 shadow-sm text-center">
+                  <Icon className="h-8 w-8 text-blue-600 mb-4 mx-auto" />
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">{title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{text}</p>
+                </div>
               ))}
             </div>
-          )}
-
-          <div className="text-center mt-10">
-            <Link to="/products">
-              <button className="btn-primary text-lg px-8 py-4">
-                Shop All Products
-              </button>
-            </Link>
           </div>
-        </div>
-      </motion.section>
+        </section>
       )}
 
-      {/* Why Choose Section */}
-      {isSectionEnabled('why_choose_us') && (
-      <motion.section 
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="py-20 px-4 sm:px-6 lg:px-8"
-      >
-        <div className="max-w-6xl mx-auto">
-          <h2 className="section-title text-center mb-16">
-            {getSectionContent('why_choose_us', 'headline', 'Why Choose Print Queen 3D?')}
-          </h2>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center space-y-4">
-              <div className="text-5xl">⚡</div>
-              <h3 className="text-xl font-bold text-gray-900">Fast Turnaround</h3>
-              <p className="text-gray-600">1-3 day processing for quick delivery</p>
+      {isSectionEnabled('how_it_works') && howItWorksSteps.length > 0 && (
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-blue-50/60">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="section-title">{getSectionContent('how_it_works', 'headline', 'How It Works')}</h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-4">
+                {getSectionContent('how_it_works', 'subheadline', 'Custom orders made easy, from idea to finished print in four simple steps.')}
+              </p>
             </div>
-
-            <div className="text-center space-y-4">
-              <div className="text-5xl">🎯</div>
-              <h3 className="text-xl font-bold text-gray-900">Precision Quality</h3>
-              <p className="text-gray-600">Professional-grade 3D printing</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {howItWorksSteps.map((step, index) => (
+                <div key={step.title || index} className="rounded-xl bg-white border border-blue-100 p-6 shadow-sm text-center">
+                  <span className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white text-lg font-bold">{index + 1}</span>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">{step.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{step.text}</p>
+                </div>
+              ))}
             </div>
-
-            <div className="text-center space-y-4">
-              <div className="text-5xl">💡</div>
-              <h3 className="text-xl font-bold text-gray-900">Expert Support</h3>
-              <p className="text-gray-600">Guidance from concept to completion</p>
-            </div>
-
-            <div className="text-center space-y-4">
-              <div className="text-5xl">🏙️</div>
-              <h3 className="text-xl font-bold text-gray-900">Local LA Service</h3>
-              <p className="text-gray-600">Supporting local businesses</p>
-            </div>
-          </div>
-        </div>
-      </motion.section>
-      )}
-
-      {/* Newsletter Section */}
-      {isSectionEnabled('newsletter') && (
-      <motion.section 
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-green-600"
-      >
-        <div className="max-w-3xl mx-auto text-center text-white">
-          <h2 className="text-4xl font-bold mb-4">
-            {getSectionContent('newsletter', 'headline', 'Want 10% off?')}
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            {getSectionContent('newsletter', 'description', 'Join the royal list for new drops, exclusive offers, and a 10% welcome coupon. We send good vibes only.')}
-          </p>
-          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-              className="flex-1 px-6 py-4 rounded-full text-gray-900 focus:outline-none focus:ring-4 focus:ring-white/30"
-            />
-            <button
-              type="submit"
-              className="bg-white text-blue-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors"
-            >
-              {getSectionContent('newsletter', 'button_text', 'Get my 10%')}
-            </button>
-          </form>
-        </div>
-      </motion.section>
-      )}
-
-      {/* About Section */}
-      <motion.section 
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="py-20 px-4 sm:px-6 lg:px-8"
-      >
-        <div className="max-w-4xl mx-auto">
-          <h2 className="section-title text-center mb-8">Your Vision, Printed Perfectly.</h2>
-          <p className="text-lg text-gray-600 leading-relaxed text-center">
-            Print Queen 3D turns creativity into tangible design. We specialize in premium, made-to-order 3D prints—NFC payment stands, QR displays, personalized keychains and charms, lithophane lamps, vases, fidgets, and custom pieces for events and brands. Every item is printed locally in LA with quality materials, then checked by hand for a clean, professional finish. Whether you are a business that needs smart, on-brand tools or you are gifting something one-of-a-kind, we deliver fast, friendly service and precision results. Your ideas deserve to be printed perfectly.
-          </p>
-        </div>
-      </motion.section>
-
-      {/* Footer */}
-      <footer className="site-footer">
-        <div className="footer-content">
-          {/* Brand Section */}
-          <div className="footer-section">
-            <img 
-              src={settings.logo_url || "/printqueen-logo.png"} 
-              alt={settings.site_name || "Print Queen 3D"} 
-              className="h-16 w-auto mb-4"
-            />
-            <p className="text-gray-300 font-semibold mb-2">
-              Precision in Every Layer. Style in Every Print.<br />
-              Built in LA. Made for Everywhere.<br />
-              If You Can Dream It, We Can Print It.
-            </p>
-            <p className="text-gray-400 text-sm mb-4">
-              <strong>Local Pickup Available In These Cities:</strong><br />
-              Los Angeles, Altadena, Long Beach, Hawthorne, West Covina<br />
-              <strong>Shipping Everywhere</strong>
-            </p>
-            <p className="text-gray-300">
-              {contactInfo.phone && (
-                <><a href={`tel:${contactInfo.phone}`} className="hover:text-blue-400">{contactInfo.phone}</a><br /></>
-              )}
-              {!contactInfo.phone && (
-                <><a href="tel:8004956227" className="hover:text-blue-400">800-495-6227</a><br /></>
-              )}
-              {contactInfo.email && (
-                <a href={`mailto:${contactInfo.email}`} className="hover:text-blue-400">{contactInfo.email}</a>
-              )}
-              {!contactInfo.email && (
-                <a href="mailto:Printqueen3d@gmail.com" className="hover:text-blue-400">Printqueen3d@gmail.com</a>
-              )}
-            </p>
-            {/* Social Links */}
-            {(socialLinks.instagram || socialLinks.facebook || socialLinks.twitter || socialLinks.youtube) && (
-              <div className="flex gap-4 mt-4">
-                {socialLinks.instagram && (
-                  <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-pink-400 transition-colors">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                  </a>
-                )}
-                {socialLinks.facebook && (
-                  <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-400 transition-colors">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                  </a>
-                )}
-                {socialLinks.twitter && (
-                  <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-sky-400 transition-colors">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                  </a>
-                )}
-                {socialLinks.youtube && (
-                  <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-red-500 transition-colors">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                  </a>
+            {getSectionContent('how_it_works', 'button_text', 'Start My Custom Order') && (
+              <div className="text-center mt-10">
+                {renderRouteLink(
+                  getSectionContent('how_it_works', 'button_link', '/design-your-own'),
+                  'btn-primary inline-flex',
+                  getSectionContent('how_it_works', 'button_text', 'Start My Custom Order')
                 )}
               </div>
             )}
           </div>
+        </section>
+      )}
 
-          {/* Quick Links */}
-          <div className="footer-section">
-            <h3>Quick Links</h3>
-            <ul className="footer-links">
-              <li><Link to="/">About Us</Link></li>
-              <li><Link to="/products">Shop Products</Link></li>
-              <li><Link to="/products/nfc-stand-custom">Request a Quote</Link></li>
-              {user && <li><Link to="/orders">My Account</Link></li>}
-            </ul>
+      {isSectionEnabled('design_cta') && (
+        <section className="relative isolate overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
+          <div className="absolute inset-0 z-0">
+            <img src={ctaBackground} alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-700/90 via-emerald-600/80 to-blue-900/75" />
           </div>
-
-          {/* Connect & Collaborate */}
-          <div className="footer-section">
-            <h3>Connect & Collaborate</h3>
-            <ul className="footer-links">
-              <li><a href="mailto:Printqueen3d@gmail.com">Partner With Us</a></li>
-              <li><a href="#">Product Care</a></li>
-            </ul>
+          <div className="relative z-10 max-w-4xl mx-auto text-center text-white">
+            <h2 className="text-4xl md:text-5xl font-bold mb-5">{getSectionContent('design_cta', 'headline', 'Have an idea? We’ll bring it to life.')}</h2>
+            <p className="text-lg md:text-xl leading-relaxed opacity-95 max-w-3xl mx-auto">
+              {getSectionContent('design_cta', 'description', 'Start your custom order by sharing your idea, inspiration photos, logo, sketch, or reference details. We’ll review your project and help create something made just for you.')}
+            </p>
+            {renderRouteLink(
+              getSectionContent('design_cta', 'button_link', '/custom-order'),
+              'inline-flex mt-8 bg-white text-blue-700 px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-colors',
+              getSectionContent('design_cta', 'button_text', 'Start My Custom Project')
+            )}
           </div>
+        </section>
+      )}
 
-          {/* Legal */}
-          <div className="footer-section">
-            <h3>Legal</h3>
-            <ul className="footer-links">
-              <li><a href="#">Terms of Service</a></li>
-              <li><a href="#">Refund Policy</a></li>
-              <li><a href="#">Shipping Policy</a></li>
-              <li><a href="#">Privacy Policy</a></li>
-            </ul>
+      {isSectionEnabled('about_preview') && (
+        <section className="px-4 sm:px-6 lg:px-8" style={{ paddingTop: `${aboutSectionPadding}px`, paddingBottom: `${aboutSectionPadding}px`, backgroundColor: aboutBackgroundColor }}>
+          <div className={`max-w-7xl mx-auto grid ${aboutImage ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-10 items-center`}>
+            {aboutImage && (
+              <div className="overflow-hidden rounded-xl bg-blue-50 border border-blue-100 aspect-[4/3]">
+                <picture>
+                  {aboutMobileImage && <source media="(max-width: 767px)" srcSet={aboutMobileImage} />}
+                  <img src={aboutImage} alt={aboutImageAlt} className="h-full w-full object-cover" style={{ objectPosition: aboutImagePosition }} />
+                </picture>
+              </div>
+            )}
+            <div className="text-center lg:text-left">
+              <h2 className="section-title mb-5">{getSectionContent('about_preview', 'headline', 'About Print Queen 3D')}</h2>
+              <div className={`${aboutTextSizeClass} text-gray-600 leading-relaxed space-y-4`}>
+                {getSectionContent('about_preview', 'description', 'Print Queen 3D is a small business built on creativity, precision, and the love of bringing ideas to life. As a small business owner, I take pride in creating custom 3D-printed products that feel personal, polished, and made just for you.\n\nFrom personalized gifts and keepsakes to NFC products, business branding, home décor, lithophanes, keychains, pendants, and one-of-a-kind designs, every piece is professionally 3D printed with care, precision, and expert finishing. Whether you have a finished design, a photo, a logo, or just an idea, I’ll work with you to help turn your vision into something real.').split('\n').filter(Boolean).map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </div>
+              {renderRouteLink(
+                getSectionContent('about_preview', 'button_link', '/about'),
+                aboutButtonClass,
+                getSectionContent('about_preview', 'button_text', 'Learn More')
+              )}
+            </div>
           </div>
-        </div>
+        </section>
+      )}
 
-        <div className="footer-bottom">
-          <p>© 2025 {settings.site_name || 'Print Queen 3D'}. {settings.footer_text || 'All rights reserved.'}</p>
-          <p className="text-sm text-gray-400 mt-2">Made to order in Los Angeles · Fast, reliable shipping · Local pickup available</p>
-        </div>
-      </footer>
+      {isSectionEnabled('reviews') && (
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50/70 to-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="section-title">{getSectionContent('reviews', 'headline', 'What Customers Are Saying')}</h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-4">
+                {getSectionContent('reviews', 'subheadline', 'Real custom creations deserve real reactions.')}
+              </p>
+            </div>
+            {featuredReviews.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+                {featuredReviews.slice(0, 4).map((review) => (
+                  <div key={review.id} className="rounded-xl bg-white border border-blue-100 p-6 shadow-sm">
+                    <div className="flex justify-center gap-1 text-yellow-400 mb-4">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className={`h-4 w-4 ${star <= review.rating ? 'fill-current' : ''}`} />
+                      ))}
+                    </div>
+                    <p className="text-gray-600 leading-relaxed mb-5">“{review.review}”</p>
+                    <p className="font-bold text-gray-900">{review.name}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl bg-white border border-blue-100 p-6 text-center text-gray-600">
+                Featured customer reviews will appear here soon.
+              </div>
+            )}
+
+            <form onSubmit={submitReview} className="mt-10 max-w-3xl mx-auto rounded-xl bg-white border border-blue-100 shadow-sm p-5 md:p-7">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Leave a Review</h3>
+                <p className="text-gray-600 mt-2">Share your experience with Print Queen 3D.</p>
+              </div>
+              <div className="grid md:grid-cols-[1fr_auto] gap-4 mb-4">
+                <input
+                  required
+                  value={reviewForm.name}
+                  onChange={(event) => setReviewForm((current) => ({ ...current, name: event.target.value }))}
+                  placeholder="Your Name"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <div className="flex items-center justify-center gap-1 rounded-lg border border-gray-200 px-4 py-3">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <button
+                      key={rating}
+                      type="button"
+                      onClick={() => setReviewForm((current) => ({ ...current, rating }))}
+                      className="text-yellow-400"
+                      aria-label={`${rating} star rating`}
+                    >
+                      <Star className={`h-6 w-6 ${rating <= reviewForm.rating ? 'fill-current' : ''}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <textarea
+                required
+                rows="4"
+                value={reviewForm.review}
+                onChange={(event) => setReviewForm((current) => ({ ...current, review: event.target.value }))}
+                placeholder="Write your review"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button type="submit" disabled={reviewSubmitting} className="w-full btn-primary text-lg py-4 mt-4 disabled:opacity-70">
+                {reviewSubmitting ? 'Submitting Review...' : 'Submit Review'}
+              </button>
+            </form>
+          </div>
+        </section>
+      )}
+
+      {isSectionEnabled('faq') && faqItems.length > 0 && (
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="section-title">{getSectionContent('faq', 'headline', 'Frequently Asked Questions')}</h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-4">
+                {getSectionContent('faq', 'subheadline', 'Quick answers about custom orders, turnaround, shipping, and pickup.')}
+              </p>
+            </div>
+            <div className="space-y-3">
+              {faqItems.map((item, index) => (
+                <details key={item.question || index} className="group rounded-xl border border-blue-100 bg-white shadow-sm">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-bold text-gray-900 [&::-webkit-details-marker]:hidden">
+                    <span>{item.question}</span>
+                    <span aria-hidden="true" className="text-2xl leading-none text-blue-600 transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p className="px-5 pb-5 text-gray-600 leading-relaxed">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+            {getSectionContent('faq', 'button_text', 'Still have questions? Contact us') && (
+              <div className="text-center mt-10">
+                {renderRouteLink(
+                  getSectionContent('faq', 'button_link', '/contact'),
+                  'btn-secondary inline-flex',
+                  getSectionContent('faq', 'button_text', 'Still have questions? Contact us')
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {isSectionEnabled('social_gallery') && (
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center">
+              <Camera className="h-10 w-10 mx-auto text-blue-600 mb-4" />
+              <h2 className="section-title">{getSectionContent('social_gallery', 'headline', 'Follow Our Latest Creations')}</h2>
+              <div className="flex flex-wrap justify-center gap-4 mt-6">
+                <a href={settings.social_links?.instagram || 'https://instagram.com/printqueen3d'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-700 font-bold hover:text-blue-900">
+                  <Instagram className="h-5 w-5" /> {settings.footer_instagram_label?.replace('Instagram: ', '') || '@printqueen3d'}
+                </a>
+                <a href={settings.social_links?.tiktok || 'https://www.tiktok.com/@printqueen3d'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-700 font-bold hover:text-blue-900">
+                  <Wand2 className="h-5 w-5" /> {settings.footer_tiktok_label?.replace('TikTok: ', '') || '@printqueen3d'}
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <SiteFooter siteConfig={siteConfig} />
     </div>
   );
 };
