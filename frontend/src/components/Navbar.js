@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext, CartContext } from '../App';
 import { ShoppingCart, LogOut, Menu } from 'lucide-react';
+import { fetchSiteConfig } from '../lib/siteConfig';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -43,8 +44,7 @@ const Navbar = () => {
   useEffect(() => {
     const fetchNavigation = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/site-config`);
-        const data = await response.json();
+        const data = await fetchSiteConfig();
         const items = data?.settings?.navigation_items || [];
         setNavigationItems(items.length > 0 ? items : fallbackNavLinks);
       } catch (error) {

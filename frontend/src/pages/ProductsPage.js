@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import SiteFooter from '../components/SiteFooter';
 import { Skeleton } from '../components/ui/skeleton';
 import { ROUTE_META, setPageMeta } from '../lib/seo';
+import { fetchSiteConfig } from '../lib/siteConfig';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -33,22 +34,40 @@ const ProductsPage = () => {
     setSelectedCollection(collectionFromUrl || '');
   }, [searchParams]);
 
+  // Static content (categories, collections, featured, site-config) loads once.
   useEffect(() => {
     fetchCategories();
     fetchShopContent();
+  }, []);
+
+  // Products refetch when the category/collection filter changes.
+  useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, selectedCollection, searchQuery]);
+  }, [selectedCategory, selectedCollection]);
+
+  // Search is debounced so typing does not fire a request per keystroke.
+  const didMountSearch = useRef(false);
+  useEffect(() => {
+    if (!didMountSearch.current) {
+      didMountSearch.current = true;
+      return;
+    }
+    const timer = setTimeout(() => {
+      fetchProducts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchShopContent = async () => {
     try {
-      const [collectionsResponse, featuredResponse, siteResponse] = await Promise.all([
+      const [collectionsResponse, featuredResponse, siteData] = await Promise.all([
         axios.get(`${API}/collections`),
         axios.get(`${API}/products/featured/list?limit=6`),
-        axios.get(`${API}/site-config`)
+        fetchSiteConfig()
       ]);
       setCollections(collectionsResponse.data);
       setFeaturedProducts(featuredResponse.data);
-      setSiteConfig(siteResponse.data);
+      setSiteConfig(siteData);
     } catch (error) {
       console.error('Error fetching shop content:', error);
     }

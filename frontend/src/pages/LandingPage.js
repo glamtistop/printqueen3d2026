@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import SiteFooter from '../components/SiteFooter';
 import MockProductVisual from '../components/MockProductVisual';
 import { Skeleton } from '../components/ui/skeleton';
+import { fetchSiteConfig } from '../lib/siteConfig';
 
 const fallbackHeroImage = '/assets/homepage/printqueen-hero-realistic-products.png';
 const fallbackProjectImages = [
@@ -66,13 +67,16 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchPageData = async () => {
       try {
-        const [siteResponse, collectionsResponse, featuredResponse, reviewsResponse] = await Promise.all([
-          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/site-config`, { cache: 'no-store' }),
+        const [siteData, collectionsResponse, featuredResponse, reviewsResponse] = await Promise.all([
+          // Plain (shared) fetch: the endpoint sends Cache-Control: no-store and the
+          // module cache resets on every full page load, so this is always fresh while
+          // Navbar/Footer reuse the same single request.
+          fetchSiteConfig(),
           fetch(`${process.env.REACT_APP_BACKEND_URL}/api/collections`),
           fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/featured/list?limit=12`),
           fetch(`${process.env.REACT_APP_BACKEND_URL}/api/reviews`)
         ]);
-        setSiteConfig(await siteResponse.json());
+        setSiteConfig(siteData);
         setCollections(await collectionsResponse.json());
         setFeaturedProducts(await featuredResponse.json());
         setFeaturedReviews(await reviewsResponse.json());
@@ -134,25 +138,16 @@ const LandingPage = () => {
   })();
 
   const heroContent = getSection('hero')?.content || {};
-  const heroHeadline = !heroContent.headline || heroContent.headline === 'Custom 3D Printed Creations' || heroContent.headline === 'Custom 3D Creations Made Just for You'
-    ? 'Create Something Uniquely Yours'
-    : heroContent.headline;
-  const heroSubheadline = !heroContent.subheadline
-    || heroContent.subheadline === 'Bringing Your Ideas to Life'
-    || /premium materials/i.test(heroContent.subheadline || '')
-    ? 'Professionally 3D printed custom creations for personalized gifts, business branding, NFC products, home decor, keepsakes, and one-of-a-kind designs.'
-    : heroContent.subheadline;
+  const heroHeadline = heroContent.headline || 'Create Something Uniquely Yours';
+  const heroSubheadline = heroContent.subheadline
+    || 'Professionally 3D printed custom creations for personalized gifts, business branding, NFC products, home decor, keepsakes, and one-of-a-kind designs.';
+  // badge_label is the editable field; fall back to the legacy `description` field only when badge_label is absent.
   const hasEditableHeroBadge = Object.prototype.hasOwnProperty.call(heroContent, 'badge_label');
-  const rawHeroBadge = hasEditableHeroBadge ? heroContent.badge_label : heroContent.description;
-  const heroBadge = !hasEditableHeroBadge && (
-    !rawHeroBadge
-    || rawHeroBadge === 'Discover unique 3D printed products crafted with precision and care.'
-    || rawHeroBadge === 'Custom 3D Creation Studio'
-  )
-    ? 'CUSTOM 3D CREATION STUDIO'
-    : rawHeroBadge;
-  const heroPrimaryText = !heroContent.button_text || heroContent.button_text === 'Shop Now' ? 'Start Custom Order' : heroContent.button_text;
-  const heroPrimaryLink = !heroContent.button_link || heroContent.button_link === '/products' || heroContent.button_link === '#design-your-own' ? '/design-your-own' : heroContent.button_link;
+  const heroBadge = hasEditableHeroBadge
+    ? heroContent.badge_label
+    : (heroContent.description || 'CUSTOM 3D CREATION STUDIO');
+  const heroPrimaryText = heroContent.button_text || 'Start Custom Order';
+  const heroPrimaryLink = heroContent.button_link || '/design-your-own';
   const heroSecondaryText = heroContent.secondary_button_text || 'Shop Collections';
   const heroSecondaryLink = heroContent.secondary_button_link || '#collections';
   const heroOverlayOpacity = heroContent.overlay_opacity ?? 0.58;
@@ -376,9 +371,9 @@ const LandingPage = () => {
         <section className="py-16 bg-gradient-to-b from-blue-50/60 to-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
-              <h2 className="section-title">{['Featured Products'].includes(getSectionContent('featured', 'headline', '')) ? 'Best Sellers' : getSectionContent('featured', 'headline', 'Best Sellers')}</h2>
+              <h2 className="section-title">{getSectionContent('featured', 'headline', 'Best Sellers')}</h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-4">
-                {['Our most popular items'].includes(getSectionContent('featured', 'subheadline', '')) ? 'Customer favorites made to personalize, gift, and use every day.' : getSectionContent('featured', 'subheadline', 'Customer favorites made to personalize, gift, and use every day.')}
+                {getSectionContent('featured', 'subheadline', 'Customer favorites made to personalize, gift, and use every day.')}
               </p>
             </div>
             {loadingProducts ? (

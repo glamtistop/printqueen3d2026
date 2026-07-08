@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { fetchSiteConfig } from '../lib/siteConfig';
 
 const fallbackNavigationItems = [
   { id: 'home', label: 'Home', link: '/', enabled: true, show_footer: false, footer_group: 'company', order: 1 },
@@ -71,8 +72,7 @@ const SiteFooter = ({ siteConfig }) => {
 
     const fetchConfig = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/site-config`);
-        setConfig(await response.json());
+        setConfig(await fetchSiteConfig());
       } catch (error) {
         setConfig({ settings: {} });
       }

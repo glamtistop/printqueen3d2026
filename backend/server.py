@@ -2123,7 +2123,7 @@ async def ensure_nfc_business_stands_seeded():
             fields_to_fill = {
                 key: value
                 for key, value in product_payload.items()
-                if key not in existing_product or existing_product.get(key) in [None, "", []]
+                if key not in existing_product
             }
             fields_to_fill.update({
                 "updated_at": now,
@@ -2162,7 +2162,7 @@ async def ensure_nfc_business_stands_seeded():
             fields_to_fill = {
                 key: value
                 for key, value in product_payload.items()
-                if key not in existing_product or existing_product.get(key) in [None, "", []]
+                if key not in existing_product
             }
             fields_to_fill.update({
                 "updated_at": now,
@@ -2208,7 +2208,7 @@ async def ensure_nfc_business_stands_seeded():
             fields_to_fill = {
                 key: value
                 for key, value in product_payload.items()
-                if key not in existing_product or existing_product.get(key) in [None, "", []]
+                if key not in existing_product
             }
             fields_to_fill.update({
                 "updated_at": now,
@@ -2250,7 +2250,7 @@ async def ensure_nfc_business_stands_seeded():
             fields_to_fill = {
                 key: value
                 for key, value in product_payload.items()
-                if key not in existing_product or existing_product.get(key) in [None, "", []]
+                if key not in existing_product
             }
             fields_to_fill.update({
                 "updated_at": now,
@@ -2292,7 +2292,7 @@ async def ensure_nfc_business_stands_seeded():
             fields_to_fill = {
                 key: value
                 for key, value in product_payload.items()
-                if key not in existing_product or existing_product.get(key) in [None, "", []]
+                if key not in existing_product
             }
             fields_to_fill.update({
                 "updated_at": now,
@@ -3196,23 +3196,29 @@ async def get_order_details(order_id: str, user: User = Depends(require_admin)):
 async def get_all_customers(user: User = Depends(require_admin)):
     """Get all customers with order stats"""
     users = await db.users.find({"is_admin": False}, {"_id": 0}).to_list(1000)
-    
+
+    # One aggregation for all customers' order stats instead of a query per user.
+    pipeline = [
+        {"$group": {
+            "_id": "$user_id",
+            "total_orders": {"$sum": 1},
+            "total_spent": {"$sum": {"$ifNull": ["$total", 0]}}
+        }}
+    ]
+    stats = {row["_id"]: row for row in await db.orders.aggregate(pipeline).to_list(10000)}
+
     customers = []
     for usr in users:
-        # Get order count and total spent
-        orders = await db.orders.find({"user_id": usr["id"]}).to_list(1000)
-        total_orders = len(orders)
-        total_spent = sum(order.get("total", 0) for order in orders)
-        
+        stat = stats.get(usr["id"], {})
         customers.append({
             "id": usr["id"],
             "email": usr["email"],
             "name": usr["name"],
             "created_at": usr.get("created_at"),
-            "total_orders": total_orders,
-            "total_spent": total_spent
+            "total_orders": stat.get("total_orders", 0),
+            "total_spent": stat.get("total_spent", 0)
         })
-    
+
     return customers
 
 # ============ SITE EDITOR ROUTES ============
@@ -3264,6 +3270,8 @@ def merge_default_navigation_items(items: List[Dict]) -> List[Dict]:
             existing_items.append(default_item)
     return existing_items
 
+# Retained ONLY for the one-time content migration (migrate_content_overrides_20260707).
+# It is no longer applied on API reads — the admin editor is the source of truth.
 def refresh_3d_printing_wording(value):
     if isinstance(value, str):
         replacements = {
@@ -3292,14 +3300,6 @@ def refresh_3d_printing_wording(value):
     if isinstance(value, dict):
         return {key: refresh_3d_printing_wording(item) for key, item in value.items()}
     return value
-
-def refresh_section_wording(sections: List[Dict]) -> List[Dict]:
-    refreshed_sections = []
-    for section in sections:
-        refreshed_section = dict(section)
-        refreshed_section["content"] = refresh_3d_printing_wording(refreshed_section.get("content", {}))
-        refreshed_sections.append(refreshed_section)
-    return refreshed_sections
 
 # Default homepage sections configuration
 DEFAULT_SECTIONS = [
@@ -3632,25 +3632,11 @@ def merge_default_sections(sections: List[Dict]) -> List[Dict]:
     for section in merged_sections:
         default_section = default_by_id.get(section.get("id"))
         if default_section:
-            if section.get("id") == "marquee":
-                section["name"] = "Top Announcement Marquee"
-                section["order"] = 1
-            elif section.get("id") == "hero":
-                section["order"] = 2
             section_content = section.get("content") or {}
             default_content = default_section.get("content") or {}
             for key, value in default_content.items():
                 if key not in section_content or section_content[key] is None:
                     section_content[key] = value
-            current_description = section_content.get("description") or ""
-            legacy_about_copy = (
-                not current_description
-                or "Los Angeles-based custom 3D printing studio" in current_description
-                or "blends creativity, precision, and technology" in current_description
-            )
-            if section.get("id") == "about_preview" and legacy_about_copy:
-                section_content["headline"] = default_content.get("headline", section_content.get("headline"))
-                section_content["description"] = default_content.get("description", section_content.get("description"))
             section["content"] = section_content
     existing_ids = {section.get("id") for section in merged_sections}
     for default_section in DEFAULT_SECTIONS:
@@ -3680,8 +3666,7 @@ async def get_public_site_config(response: Response):
         }
     else:
         sections_config["sections"] = merge_default_sections(sections_config.get("sections", []))
-    sections_config["sections"] = refresh_section_wording(sections_config.get("sections", []))
-    
+
     return {
         "settings": settings,
         "homepage_sections": sections_config["sections"]
@@ -3737,11 +3722,10 @@ async def get_homepage_sections(response: Response, user: User = Depends(require
         # Return default sections
         return {
             "id": "homepage_sections",
-            "sections": refresh_section_wording(DEFAULT_SECTIONS),
+            "sections": DEFAULT_SECTIONS,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
     sections_config["sections"] = merge_default_sections(sections_config.get("sections", []))
-    sections_config["sections"] = refresh_section_wording(sections_config.get("sections", []))
     return sections_config
 
 @api_router.put("/admin/homepage-sections")
@@ -5252,13 +5236,86 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+async def migrate_content_overrides_20260707():
+    """One-time migration: persist the content visitors currently see into the
+    database, so the silent override layers (backend wording rewriter + frontend
+    hero/featured ladders) can be removed without changing the live site.
+
+    Self-guarded via a flag doc; never re-runs after the first successful pass.
+    """
+    if await db.migrations.find_one({"id": "content_overrides_20260707"}):
+        return
+
+    sections_config = await db.homepage_sections.find_one({"id": "homepage_sections"}, {"_id": 0})
+    if sections_config:
+        sections = merge_default_sections(sections_config.get("sections", []))
+        for section in sections:
+            content = refresh_3d_printing_wording(section.get("content") or {})
+            section_id = section.get("id")
+            if section_id == "hero":
+                if not content.get("headline") or content.get("headline") in (
+                    "Custom 3D Printed Creations", "Custom 3D Creations Made Just for You"
+                ):
+                    content["headline"] = "Create Something Uniquely Yours"
+                subheadline = content.get("subheadline") or ""
+                if not subheadline or subheadline == "Bringing Your Ideas to Life" or "premium materials" in subheadline.lower():
+                    content["subheadline"] = (
+                        "Professionally 3D printed custom creations for personalized gifts, "
+                        "business branding, NFC products, home decor, keepsakes, and one-of-a-kind designs."
+                    )
+                if not content.get("button_text") or content.get("button_text") == "Shop Now":
+                    content["button_text"] = "Start Custom Order"
+                if not content.get("button_link") or content.get("button_link") in ("/products", "#design-your-own"):
+                    content["button_link"] = "/design-your-own"
+            elif section_id == "featured":
+                if content.get("headline") == "Featured Products":
+                    content["headline"] = "Best Sellers"
+                if content.get("subheadline") == "Our most popular items":
+                    content["subheadline"] = "Customer favorites made to personalize, gift, and use every day."
+            section["content"] = content
+        await db.homepage_sections.update_one(
+            {"id": "homepage_sections"},
+            {"$set": {"sections": sections}}
+        )
+
+    settings = await db.site_settings.find_one({"id": "site_settings"}, {"_id": 0})
+    if settings:
+        rewritten = refresh_3d_printing_wording({key: value for key, value in settings.items() if key != "id"})
+        if rewritten:
+            await db.site_settings.update_one({"id": "site_settings"}, {"$set": rewritten})
+
+    await db.migrations.insert_one({
+        "id": "content_overrides_20260707",
+        "applied_at": datetime.now(timezone.utc).isoformat()
+    })
+    logging.info("Applied content override migration: content_overrides_20260707")
+
+async def ensure_indexes():
+    """Create indexes for the fields we filter on. Idempotent — Mongo no-ops
+    existing indexes, so this is safe to run on every serverless cold start.
+    Plain (non-unique) indexes only, so duplicate data can never crash startup.
+    """
+    await db.users.create_index("email")
+    await db.users.create_index("id")
+    await db.user_sessions.create_index("session_token")
+    await db.products.create_index("id")
+    await db.products.create_index("published")
+    await db.products.create_index("collection_ids")
+    await db.orders.create_index("user_id")
+    await db.orders.create_index("id")
+    await db.payment_transactions.create_index("session_id")
+    await db.product_collections.create_index("id")
+    await db.pickup_locations.create_index("id")
+
 @app.on_event("startup")
 async def startup_event():
     """Run startup tasks"""
+    await ensure_indexes()
     await seed_admin_user()
     await seed_email_settings()
     await seed_stripe_settings()
     await seed_nfc_builder()
+    await migrate_content_overrides_20260707()
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
