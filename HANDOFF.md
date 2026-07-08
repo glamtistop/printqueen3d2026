@@ -80,6 +80,152 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-08 - Claude Code - Admin fields now the only customization UI (fields precedence)
+
+Nandi's request: a product's admin-defined fields (e.g., keychain = two colors + icon + NFC link) must be exactly what customers see, editable per product from the admin editor. Complements Codex's visual field editor entry below — Codex built the admin editing side; this makes the storefront obey it.
+
+Files changed:
+
+- `frontend/src/pages/ProductDetailPage.js` (coexists with Codex's same-day edits; all markers verified present together)
+
+What changed:
+
+- Admin `customization_fields` take precedence on EVERY product type. The hardcoded guided NFC flows (stand + keychain multi-step UIs) are now fallbacks used only when a product has no fields.
+- Fields section heading/subtext use the admin-editable `product_page_section_title` / `product_page_section_text` (fallback "Customize This Product").
+- Validation skips guided-flow requirements when admin fields exist; required admin fields still enforced.
+- Stand order details no longer record empty guided-flow steps when admin fields are used.
+- Data note: all 7 keychains have fields; the 6 NFC stand products have none, so they keep the guided flow until fields are added in admin.
+
+Verification (local, live DB): keychain page shows only admin fields under admin heading; stand w/o fields unchanged; stand with a temp field switched to fields UI (product restored exactly); add-to-cart enforced required fields, fired success toast, cart carried exactly the field answers; test cart cleared; no console errors.
+
+Commit/push/deploy: NOT committed/pushed/deployed.
+
+### 2026-07-08 - Claude Code - Plan 5: Dead code & dependency cleanup
+
+Executed `PLAN-dead-code-cleanup.md`. All plan greps re-verified before each deletion.
+
+Files changed/deleted:
+
+- Deleted: `frontend/src/pages/NFCStandPage.js`, `frontend/src/pages/AdminDashboard.js` (old page; `AdminDashboardNew.js` + `components/admin/AdminDashboard.jsx` remain live)
+- Deleted: 33 orphan `frontend/src/components/ui/*` files + `frontend/src/hooks/use-toast.js` (kept the 13 in use: button, command, dialog, dropdown-menu, input, label, scroll-area, separator, sheet, skeleton, sonner, tabs, textarea)
+- `frontend/src/App.js` (removed dead legacy-auth `processSession` path), `frontend/src/pages/LandingPage.js` (removed unused `fallbackProjectImages`)
+- `backend/server.py` (removed dead `/auth/session` 410 route; added 5MB logo cap + HTTPException passthrough on `/api/nfc-stand/order`)
+- `frontend/package.json` + regenerated `yarn.lock` (removed 29 unused packages: react-hook-form, @hookform/resolvers, zod, react-day-picker, date-fns, embla-carousel-react, input-otp, react-resizable-panels, vaul, cra-template, and 20 unused @radix-ui packages)
+
+Lockfile decision: `yarn.lock` was never git-tracked and remains untracked; project stays on yarn (packageManager field + corepack). No DEPLOYMENT.md change needed.
+
+Verification: production build (`corepack yarn build`) succeeded with trimmed deps; removed packages absent from node_modules; greps confirm zero refs to deleted files/packages; BuildYourStand/MockProductVisual/cmdk/next-themes/dnd-kit verified live and kept; sonner add-to-cart toast confirmed working.
+
+Commit/push/deploy: NOT committed/pushed/deployed.
+
+### 2026-07-08 - Codex - Admin Editable Product Customization Fields
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/PLAN-admin-content-integrity.md`
+
+Files changed:
+
+- `backend/server.py`
+- `frontend/src/components/admin/ProductForm.jsx`
+- `HANDOFF.md`
+
+What changed:
+
+- Replaced the repeat NFC Backpack field overwrite with a one-time migration (`nfc_backpack_customization_fields_20260708`) so future admin edits to that product's customization fields are not overwritten by code.
+- Updated the default NFC Backpack color helper text:
+  - Backpack color helper: "This color is for the backpack."
+  - Straps/pocket color helper: "This color is for the straps and pocket."
+- Added a visual product customization field editor in Admin → Products:
+  - Add Text, Text Area, Dropdown, Upload, and Color fields.
+  - Edit customer label, field key, type, required setting, helper text, placeholder text, dropdown options, and color-picker labels.
+  - Reorder and remove fields.
+  - Keep the advanced JSON box for power editing.
+- This allows fields like a Heart/Thunder version selector to be added from the admin product editor and saved live to the product page.
+
+Verification:
+
+- `PYTHONPYCACHEPREFIX=/tmp/python-cache python3 -m py_compile backend/server.py` passed.
+- Babel parser checks passed for `frontend/src/components/admin/ProductForm.jsx` and `frontend/src/pages/ProductDetailPage.js`.
+- `git diff --check` passed.
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+- Note: unrelated uncommitted Plan 5 cleanup changes from another agent were already present and were preserved.
+
+### 2026-07-08 - Codex - Show Full Picked Product Descriptions
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/PLAN-admin-content-integrity.md`
+
+Files changed:
+
+- `frontend/src/pages/ProductDetailPage.js`
+- `frontend/src/pages/ProductsPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Product detail pages now show the selected product's own full admin description for NFC stand and NFC keychain products instead of replacing it with generic guided-customizer wording.
+- Shop/collection product cards now show the full product description instead of clamping it to two lines.
+- Left the Design Your Own page/form unchanged per Nandi's instruction.
+
+Verification:
+
+- Babel parser checks passed for `frontend/src/pages/ProductDetailPage.js` and `frontend/src/pages/ProductsPage.js`.
+- `git diff --check` passed.
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+- Note: unrelated uncommitted Plan 5 cleanup changes from another agent were already present and were preserved.
+
+### 2026-07-08 - Codex - NFC Backpack Customization Fields
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/PLAN-admin-content-integrity.md`
+
+Files changed:
+
+- `backend/server.py`
+- `frontend/src/pages/ProductDetailPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Updated only the NFC Backpack / Emergency Contact NFC Keychain product seed customization fields to the requested five customer-facing fields:
+  - `backpack_name` / Name on Backpack / text / required
+  - `back_pack_color` / Original Color as Displayed or Single Color / color selector / required
+  - `pocket_and_straps` / Original Color as Displayed or Single Color / color selector / required
+  - `name` / Emergency Contact / textarea / required
+  - `phone_number` / Phone Number / number / required
+- Removed tricolor/multicolor options for that product by setting the two color fields to original-or-single only.
+- Added a targeted seed refresh for `nfc-keychain-emergency-contact` so existing live DB product fields update to the requested five fields without changing other products.
+- Updated the product detail renderer so `filament_color` fields with `allow_tri_color: false` do not show the Tri Color option, and number fields render as number inputs.
+
+Verification:
+
+- `PYTHONPYCACHEPREFIX=/tmp/python-cache python3 -m py_compile backend/server.py` passed.
+- Babel parser check for `frontend/src/pages/ProductDetailPage.js` passed.
+- `git diff --check` passed.
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+- Note: unrelated uncommitted Plan 5 cleanup changes from another agent were already present and were preserved.
+
 ### 2026-07-07 - Codex - Verified Plans 3 and 4 for Manual Deploy
 
 Read before editing:

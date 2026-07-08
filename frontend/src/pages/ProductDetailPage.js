@@ -256,11 +256,11 @@ const ProductDetailPage = () => {
   const hasComparePrice = Number(product?.compare_at_price) > Number(product?.price || 0);
   const displayProductName = isNfcStandProduct ? 'Custom NFC Business Stand' : isNfcKeychainProduct ? 'Custom NFC Keychain' : product?.name;
   const displayProductSubtitle = isNfcStandProduct ? 'Custom 3D-Printed Tap-to-Connect Stand' : isNfcKeychainProduct ? 'Tap-to-Connect Custom Keychain' : product?.subtitle;
-  const displayProductDescription = isNfcStandProduct
+  const displayProductDescription = product?.description || (isNfcStandProduct
     ? 'Create a custom 3D-printed NFC stand made for your brand. Choose your back shape, base style, colors, icons, and links to create a professional tap-to-connect display for payments, social media, websites, booking pages, reviews, menus, QR codes, and more.'
     : isNfcKeychainProduct
       ? 'Create a custom 3D-printed NFC keychain that connects customers, followers, or clients directly to your selected link. Choose your keychain style, color, icon, and URL, then upload your logo or QR code if needed.'
-      : product?.description;
+      : '');
   const readyMadeStandOptions = [product, ...relatedProducts]
     .filter(Boolean)
     .filter((stand, index, stands) => stands.findIndex((item) => item.id === stand.id) === index)
@@ -487,6 +487,7 @@ const ProductDetailPage = () => {
     if (isNfcStandProduct) {
       const linkCount = standIconCount;
       details['NFC Product Type'] = 'Custom NFC Business Stand';
+      if ((product?.customization_fields || []).length === 0) {
       details['Step 1 - Stand Choice'] = customization.nfcStandMode;
       if (customization.nfcReadyMadeDesign) {
         details['Ready-Made Design'] = selectedReadyMadeStand?.name || customization.nfcReadyMadeDesign;
@@ -510,6 +511,7 @@ const ProductDetailPage = () => {
       if (customization.nfcDisplayInsertStyle) details['Display Insert Style'] = customization.nfcDisplayInsertStyle;
       if (customization.nfcDesignNotes) details['Design Notes / Special Requests'] = customization.nfcDesignNotes;
       if (customization.nfcAddOns.length) details['Selected NFC Stand Add-Ons'] = customization.nfcAddOns.join(', ');
+      }
       details['NFC Accuracy Confirmation'] = 'NFC will be linked to the exact link(s) provided by customer. Customer must verify each link is correct.';
     } else if (isNfcKeychainProduct) {
       details['NFC Product Type'] = 'Custom NFC Keychain';
@@ -581,6 +583,8 @@ const ProductDetailPage = () => {
     }
 
     if (!isGuidedNfcProduct) return true;
+    // Admin-defined fields replace the guided flow, so its steps are not required.
+    if (hasProductCustomizationFields) return true;
     if (isNfcStandProduct) {
       if (!customization.nfcStandMode) {
         toast.error('Please choose Ready-Made Design or Build Your Own.');
@@ -711,6 +715,7 @@ const ProductDetailPage = () => {
       const optionLabel = getFieldOptionLabel(option);
       return optionLabel !== 'Original Printed Color' && optionLabel !== 'Single Color Request';
     });
+    const showTriColor = field.allow_tri_color !== false && triColorOptions.length > 0;
     const storedGroup = customization.productFieldValues?.[colorGroupFieldId];
     const selectedGroup = storedGroup || (
       value === getFieldOptionValue(originalOption)
@@ -742,8 +747,11 @@ const ProductDetailPage = () => {
           [colorGroupFieldId]: 'single',
           [field.id]: getFieldOptionValue(singleOption)
         })
-      },
-      {
+      }
+    ];
+
+    if (showTriColor) {
+      mainOptions.push({
         id: 'tri_color',
         label: field.tri_color_label || 'Tri Color',
         description: field.tri_color_summary || 'Choose one silky triple-color filament blend.',
@@ -753,14 +761,14 @@ const ProductDetailPage = () => {
           [field.id]: triColorOptions.some((option) => getFieldOptionValue(option) === value) ? value : '',
           [singleColorFieldId]: ''
         })
-      }
-    ];
+      });
+    }
 
     return (
       <div key={field.id} className="block sm:col-span-2">
         <span className="mb-2 block text-sm font-semibold text-gray-700">{label}</span>
         {field.helper && <span className="mb-3 block text-sm text-gray-600">{field.helper}</span>}
-        <div className="grid sm:grid-cols-3 gap-3">
+        <div className={`grid gap-3 ${showTriColor ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
           {mainOptions.map((option) => (
             <button
               key={option.id}
@@ -791,7 +799,7 @@ const ProductDetailPage = () => {
             />
           </div>
         )}
-        {selectedGroup === 'tri_color' && (
+        {showTriColor && selectedGroup === 'tri_color' && (
           <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
             <span className="mb-3 block text-sm font-semibold text-gray-700">{field.tri_color_picker_label || 'Choose Tri Color'}</span>
             <div className="grid sm:grid-cols-2 gap-3">
@@ -951,8 +959,8 @@ const ProductDetailPage = () => {
     return (
       <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm space-y-5">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Customize This Product</h2>
-          <p className="text-gray-600">Complete the product options below before checkout.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{product?.product_page_section_title || 'Customize This Product'}</h2>
+          <p className="text-gray-600">{product?.product_page_section_text || 'Complete the product options below before checkout.'}</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           {fields.map((field) => {
@@ -1051,7 +1059,7 @@ const ProductDetailPage = () => {
               <label key={field.id} className="block">
                 <span className="mb-1 block text-sm font-semibold text-gray-700">{label}</span>
                 <input
-                  type={field.type === 'url' ? 'url' : 'text'}
+                  type={field.type === 'url' ? 'url' : field.type === 'number' ? 'number' : 'text'}
                   value={value}
                   onChange={(event) => updateProductField(field.id, event.target.value)}
                   placeholder={field.placeholder || ''}
@@ -1662,9 +1670,12 @@ const ProductDetailPage = () => {
               />
             )}
 
-            {isNfcStandProduct && renderNfcStandCustomizer()}
-            {isNfcKeychainProduct && renderNfcKeychainCustomizer()}
-            {hasProductCustomizationFields && !isNfcKeychainProduct && renderProductCustomizationFields()}
+            {/* Admin-defined customization fields are the source of truth for every
+                product. The guided NFC flows below are fallbacks used ONLY when a
+                product has no customization_fields configured in the admin editor. */}
+            {isNfcStandProduct && !hasProductCustomizationFields && renderNfcStandCustomizer()}
+            {isNfcKeychainProduct && !hasProductCustomizationFields && renderNfcKeychainCustomizer()}
+            {hasProductCustomizationFields && renderProductCustomizationFields()}
 
             <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
               {fileInput(

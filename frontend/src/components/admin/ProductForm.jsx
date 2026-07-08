@@ -286,6 +286,91 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
     }
   };
 
+  const getCustomizationFields = () => {
+    try {
+      const parsed = customizationFieldsJson ? JSON.parse(customizationFieldsJson) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const writeCustomizationFields = (fields) => {
+    setCustomizationFieldsJson(JSON.stringify(fields, null, 2));
+  };
+
+  const createCustomizationField = (type) => {
+    const fields = getCustomizationFields();
+    const nextNumber = fields.length + 1;
+    const defaultsByType = {
+      text: {
+        id: `text_field_${nextNumber}`,
+        label: 'New Text Field',
+        type: 'text',
+        required: false,
+        placeholder: ''
+      },
+      textarea: {
+        id: `textarea_field_${nextNumber}`,
+        label: 'New Text Area',
+        type: 'textarea',
+        required: false,
+        placeholder: ''
+      },
+      select: {
+        id: `dropdown_field_${nextNumber}`,
+        label: 'New Dropdown',
+        type: 'select',
+        required: false,
+        options: ['Option 1', 'Option 2']
+      },
+      file: {
+        id: `upload_field_${nextNumber}`,
+        label: 'Upload File',
+        type: 'file',
+        required: false,
+        helper: 'Upload an image, logo, or reference file.'
+      },
+      filament_color: {
+        ...FILAMENT_COLOR_FIELD_TEMPLATE,
+        id: `color_field_${nextNumber}`,
+        label: 'Color Option'
+      }
+    };
+    writeCustomizationFields([...fields, defaultsByType[type]]);
+  };
+
+  const updateCustomizationField = (index, key, value) => {
+    const fields = getCustomizationFields();
+    const nextFields = fields.map((field, fieldIndex) => (
+      fieldIndex === index ? { ...field, [key]: value } : field
+    ));
+    writeCustomizationFields(nextFields);
+  };
+
+  const updateCustomizationFieldOptions = (index, value) => {
+    updateCustomizationField(
+      index,
+      'options',
+      value.split('\n').map((option) => option.trim()).filter(Boolean)
+    );
+  };
+
+  const removeCustomizationField = (index) => {
+    writeCustomizationFields(getCustomizationFields().filter((_, fieldIndex) => fieldIndex !== index));
+  };
+
+  const moveCustomizationField = (index, direction) => {
+    const fields = getCustomizationFields();
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= fields.length) return;
+    const nextFields = [...fields];
+    [nextFields[index], nextFields[nextIndex]] = [nextFields[nextIndex], nextFields[index]];
+    writeCustomizationFields(nextFields);
+  };
+
+  const customizationFields = getCustomizationFields();
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -580,13 +665,170 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
             </div>
             <div>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <label className="block text-sm font-medium text-gray-700">Product Customization Fields JSON</label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Product Customization Fields</label>
+                  <p className="text-xs text-gray-500">Add, rename, reorder, and edit the fields customers complete before checkout.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    ['text', 'Add Text'],
+                    ['textarea', 'Add Text Area'],
+                    ['select', 'Add Dropdown'],
+                    ['file', 'Add Upload'],
+                    ['filament_color', 'Add Color']
+                  ].map(([type, label]) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => createCustomizationField(type)}
+                      className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3">
+                {customizationFields.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-blue-200 bg-white p-4 text-sm text-gray-500">
+                    No custom fields yet. Add a field above when this product needs customer details.
+                  </div>
+                ) : customizationFields.map((field, index) => (
+                  <div key={`${field.id || 'field'}-${index}`} className="rounded-xl border border-blue-100 bg-white p-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{field.label || field.id || `Field ${index + 1}`}</p>
+                        <p className="text-xs text-gray-500">{field.type || 'text'} · {field.id || 'no field key'}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => moveCustomizationField(index, -1)} className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50">Up</button>
+                        <button type="button" onClick={() => moveCustomizationField(index, 1)} className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50">Down</button>
+                        <button type="button" onClick={() => removeCustomizationField(index)} className="rounded-full border border-red-200 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Remove</button>
+                      </div>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      <label className="block">
+                        <span className="block text-xs font-semibold text-gray-600 mb-1">Customer Label</span>
+                        <input
+                          value={field.label || ''}
+                          onChange={(e) => updateCustomizationField(index, 'label', e.target.value)}
+                          className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="block text-xs font-semibold text-gray-600 mb-1">Field Key</span>
+                        <input
+                          value={field.id || ''}
+                          onChange={(e) => updateCustomizationField(index, 'id', e.target.value)}
+                          className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="block text-xs font-semibold text-gray-600 mb-1">Field Type</span>
+                        <select
+                          value={field.type || 'text'}
+                          onChange={(e) => updateCustomizationField(index, 'type', e.target.value)}
+                          className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="text">Text</option>
+                          <option value="number">Number</option>
+                          <option value="url">URL</option>
+                          <option value="textarea">Text Area</option>
+                          <option value="select">Dropdown</option>
+                          <option value="file">File Upload</option>
+                          <option value="filament_color">Color Picker</option>
+                        </select>
+                      </label>
+                      <label className="flex items-center gap-2 rounded-lg border border-blue-100 px-3 py-2 text-sm font-semibold text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(field.required)}
+                          onChange={(e) => updateCustomizationField(index, 'required', e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                        Required field
+                      </label>
+                      <label className="block md:col-span-2">
+                        <span className="block text-xs font-semibold text-gray-600 mb-1">Helper Text / Small Note</span>
+                        <input
+                          value={field.helper || ''}
+                          onChange={(e) => updateCustomizationField(index, 'helper', e.target.value)}
+                          placeholder="Example: This color is for the straps and pocket."
+                          className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </label>
+                      {field.type !== 'filament_color' && field.type !== 'file' && (
+                        <label className="block md:col-span-2">
+                          <span className="block text-xs font-semibold text-gray-600 mb-1">Placeholder Text</span>
+                          <input
+                            value={field.placeholder || ''}
+                            onChange={(e) => updateCustomizationField(index, 'placeholder', e.target.value)}
+                            className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </label>
+                      )}
+                      {field.type === 'select' && (
+                        <label className="block md:col-span-2">
+                          <span className="block text-xs font-semibold text-gray-600 mb-1">Dropdown Options - one per line</span>
+                          <textarea
+                            value={(field.options || []).map((option) => typeof option === 'string' ? option : option?.label || option?.value || '').join('\n')}
+                            onChange={(e) => updateCustomizationFieldOptions(index, e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </label>
+                      )}
+                      {field.type === 'filament_color' && (
+                        <>
+                          <label className="block">
+                            <span className="block text-xs font-semibold text-gray-600 mb-1">Original Color Button Text</span>
+                            <input
+                              value={field.original_color_label || ''}
+                              onChange={(e) => updateCustomizationField(index, 'original_color_label', e.target.value)}
+                              placeholder="Original Color as Displayed"
+                              className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </label>
+                          <label className="block">
+                            <span className="block text-xs font-semibold text-gray-600 mb-1">Single Color Button Text</span>
+                            <input
+                              value={field.single_color_label || ''}
+                              onChange={(e) => updateCustomizationField(index, 'single_color_label', e.target.value)}
+                              placeholder="Single Color"
+                              className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </label>
+                          <label className="flex items-center gap-2 rounded-lg border border-blue-100 px-3 py-2 text-sm font-semibold text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={field.allow_tri_color !== false}
+                              onChange={(e) => updateCustomizationField(index, 'allow_tri_color', e.target.checked)}
+                              className="h-4 w-4"
+                            />
+                            Allow tri-color option
+                          </label>
+                          <label className="block">
+                            <span className="block text-xs font-semibold text-gray-600 mb-1">Original Color Message</span>
+                            <input
+                              value={field.original_color_message || ''}
+                              onChange={(e) => updateCustomizationField(index, 'original_color_message', e.target.value)}
+                              className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </label>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex items-center justify-between gap-2">
+                <label className="block text-sm font-medium text-gray-700">Advanced JSON</label>
                 <button
                   type="button"
                   onClick={insertFilamentColorSelector}
-                  className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700"
+                  className="inline-flex items-center rounded-full border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-50"
                 >
-                  Add Filament Color Selector
+                  Insert Full Filament Template
                 </button>
               </div>
               <textarea

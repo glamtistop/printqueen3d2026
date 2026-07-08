@@ -10,15 +10,6 @@ import { Skeleton } from '../components/ui/skeleton';
 import { fetchSiteConfig } from '../lib/siteConfig';
 
 const fallbackHeroImage = '/assets/homepage/printqueen-hero-realistic-products.png';
-const fallbackProjectImages = [
-  '/assets/homepage/printqueen-hero-realistic-products.png',
-  '/assets/homepage/printqueen-hero-products.png',
-  '/assets/homepage/payment-stands.png',
-  '/assets/homepage/nfc-keychain.png',
-  '/assets/homepage/category-keychains.jpg',
-  '/assets/homepage/category-home-decor.jpg',
-  '/assets/homepage/category-custom-3d-prints.jpg',
-];
 
 const legacyHeroImages = new Set([
   '/assets/homepage/custom-3d-prints.png',

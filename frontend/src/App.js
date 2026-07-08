@@ -86,15 +86,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
 
-  // Check for session_id in URL fragment
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes('session_id=')) {
-      const sessionId = hash.split('session_id=')[1].split('&')[0];
-      processSession(sessionId);
-    } else {
-      checkAuth();
-    }
+    checkAuth();
 
     // Load cart from localStorage
     const savedCart = localStorage.getItem('cart');
@@ -102,28 +95,6 @@ function App() {
       setCart(JSON.parse(savedCart));
     }
   }, []);
-
-  const processSession = async (sessionId) => {
-    try {
-      const response = await axios.post(
-        `${API}/auth/session`,
-        {},
-        {
-          headers: {
-            'X-Session-ID': sessionId
-          },
-          withCredentials: true
-        }
-      );
-      setUser(response.data);
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } catch (error) {
-      console.error('Session processing failed:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const checkAuth = async () => {
     try {

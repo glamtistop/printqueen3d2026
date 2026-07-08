@@ -1054,11 +1054,6 @@ async def require_admin(request: Request, authorization: Optional[str] = Header(
 
 # ============ AUTH ROUTES ============
 
-@api_router.post("/auth/session")
-async def process_session(request: Request, x_session_id: str = Header(..., alias="X-Session-ID")):
-    """Legacy social-login callback is no longer available."""
-    raise HTTPException(status_code=410, detail="Social login is no longer configured. Please use email and password login.")
-
 @api_router.get("/auth/me")
 async def get_me(user: User = Depends(require_auth)):
     """Get current user info"""
@@ -1454,8 +1449,33 @@ def nfc_keychain_product_payloads(collection_id: str = KEYCHAINS_CHARMS_COLLECTI
         {"id": "nfc_link", "label": "NFC Link to Program", "type": "url", "required": True, "placeholder": "Paste your social media, payment, website, or custom link"}
     ]
     emergency_keychain_fields = [
-        {"id": "name", "label": "Name for Keychain", "type": "text", "required": True, "placeholder": "Enter the name to add"},
-        filament_color_field("keychain_color", "Keychain Color")
+        {"id": "backpack_name", "label": "Name on Backpack", "type": "text", "required": True, "placeholder": "Enter the name to add"},
+        {
+            "id": "back_pack_color",
+            "label": "Original Color as Displayed or Single Color",
+            "type": "filament_color",
+            "required": True,
+            "helper": "This color is for the backpack.",
+            "options": ["Original Printed Color", "Single Color Request"],
+            "allow_tri_color": False,
+            "single_color_label": "Single Color",
+            "original_color_label": "Original Color as Displayed",
+            "original_color_message": "Your backpack will be printed using the colors shown in the product photo."
+        },
+        {
+            "id": "pocket_and_straps",
+            "label": "Original Color as Displayed or Single Color",
+            "type": "filament_color",
+            "required": True,
+            "helper": "This color is for the straps and pocket.",
+            "options": ["Original Printed Color", "Single Color Request"],
+            "allow_tri_color": False,
+            "single_color_label": "Single Color",
+            "original_color_label": "Original Color as Displayed",
+            "original_color_message": "The pocket and straps will be printed using the colors shown in the product photo."
+        },
+        {"id": "name", "label": "Emergency Contact", "type": "textarea", "required": True, "placeholder": "Enter the emergency contact name and details"},
+        {"id": "phone_number", "label": "Phone Number", "type": "number", "required": True, "placeholder": "Enter phone number"}
     ]
     common = {
         "category": "Keychains & Charms",
@@ -1506,6 +1526,8 @@ def nfc_keychain_product_payloads(collection_id: str = KEYCHAINS_CHARMS_COLLECTI
             "images": ["/assets/products/nfc-keychains/emergency-contact-nfc-keychain.jpg"],
             "image_alt": "Backpack style emergency contact NFC keychain",
             "description": "A custom 3D-printed emergency contact NFC keychain for backpacks, bags, kids, caregivers, or daily carry. This design comes as shown and can be personalized with a name and keychain color.",
+            "product_page_section_title": "Customize Your NFC Backpack",
+            "product_page_section_text": "Add the backpack name, choose the original displayed colors or a single color, and enter the emergency contact details before checkout.",
             "customization_fields": emergency_keychain_fields
         },
         {
@@ -4605,6 +4627,8 @@ async def create_nfc_stand_order(
     try:
         # Read logo file
         logo_contents = await logo.read()
+        if len(logo_contents) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Logo must be 5MB or smaller")
         logo_base64 = base64.b64encode(logo_contents).decode('utf-8')
         
         # Parse NFC links
@@ -4682,6 +4706,8 @@ async def create_nfc_stand_order(
             "message": "Order submitted successfully! You will receive a confirmation email shortly."
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"NFC Stand Order Error: {e}")
         raise HTTPException(status_code=500, detail="Failed to process order")
@@ -5290,6 +5316,43 @@ async def migrate_content_overrides_20260707():
     })
     logging.info("Applied content override migration: content_overrides_20260707")
 
+async def migrate_nfc_backpack_customization_fields_20260708():
+    """One-time Backpack field migration.
+
+    After this runs, the product editor remains the source of truth. Do not
+    repeatedly seed these fields or admin product edits will be overwritten.
+    """
+    migration_id = "nfc_backpack_customization_fields_20260708"
+    if await db.migrations.find_one({"id": migration_id}):
+        return
+
+    backpack_payload = next(
+        (
+            product
+            for product in nfc_keychain_product_payloads()
+            if product.get("id") == "nfc-keychain-emergency-contact"
+        ),
+        None
+    )
+    if backpack_payload:
+        await db.products.update_one(
+            {"id": "nfc-keychain-emergency-contact"},
+            {
+                "$set": {
+                    "customization_fields": backpack_payload.get("customization_fields", []),
+                    "product_page_section_title": backpack_payload.get("product_page_section_title", ""),
+                    "product_page_section_text": backpack_payload.get("product_page_section_text", ""),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+
+    await db.migrations.insert_one({
+        "id": migration_id,
+        "applied_at": datetime.now(timezone.utc).isoformat()
+    })
+    logging.info("Applied one-time NFC Backpack customization migration: %s", migration_id)
+
 async def ensure_indexes():
     """Create indexes for the fields we filter on. Idempotent — Mongo no-ops
     existing indexes, so this is safe to run on every serverless cold start.
@@ -5316,6 +5379,7 @@ async def startup_event():
     await seed_stripe_settings()
     await seed_nfc_builder()
     await migrate_content_overrides_20260707()
+    await migrate_nfc_backpack_customization_fields_20260708()
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

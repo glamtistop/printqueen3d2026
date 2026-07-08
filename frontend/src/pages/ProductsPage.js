@@ -467,7 +467,7 @@ const ProductsPage = () => {
                     </span>
                     <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors" data-testid={`product-name-${product.id}`}>{product.name}</h3>
                     {product.subtitle && <p className="text-sm font-bold text-blue-700">{product.subtitle}</p>}
-                    <p className="text-gray-600 line-clamp-2">{product.description}</p>
+                    <p className="text-gray-600 leading-relaxed">{product.description}</p>
                     {customProduct && (
                       <p className="text-sm text-blue-700 font-medium">
                         Personalize with names, logos, colors, photos, QR codes, NFC links, or custom text.
