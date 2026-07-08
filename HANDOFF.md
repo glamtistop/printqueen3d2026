@@ -80,6 +80,38 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-08 - Codex - Verified Admin Orders Only After Paid Stripe Checkout
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/PLAN-checkout-price-verification.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/PLAN-security-hardening.md`
+
+Files changed:
+
+- `backend/server.py`
+- `HANDOFF.md`
+
+What changed:
+
+- Confirmed checkout charges are created through Stripe using `STRIPE_API_KEY`; funds go to the Stripe account that owns that live secret key.
+- Kept server-side order price verification in place before order/session creation.
+- Changed admin order visibility so unpaid `pending` checkout orders do not show in Admin Orders or Admin Customer totals.
+- Order details in admin now only resolve for paid/verified order statuses.
+- Moved order confirmation email from order creation to confirmed Stripe payment, so customers only receive confirmation after payment is verified.
+- Made payment confirmation idempotent so the Stripe webhook and success-page polling cannot send duplicate confirmation emails for the same paid checkout.
+
+Verification:
+
+- `PYTHONPYCACHEPREFIX=/tmp/python-cache python3 -m py_compile backend/server.py` passed.
+- `git diff --check` passed.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet. Backend must be deployed for this payment/admin behavior to go live.
+
 ### 2026-07-08 - Claude Code - Tighter mobile section spacing + SEO plan (Plan 6)
 
 Nandi's asks: remove large gaps between homepage sections (esp. mobile) so each sits right beneath the previous; and produce a detailed SEO plan for a Fable agent to execute.

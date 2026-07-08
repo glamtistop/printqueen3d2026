@@ -382,6 +382,7 @@ def amount_to_cents(amount: float) -> int:
 
 CHECKOUT_TAX_RATE = 0.0925  # must match the rate in frontend CheckoutPage.js
 MAX_ADDON_SURCHARGE_PER_ITEM = 200.0  # max customization upcharge accepted above DB base price
+ADMIN_VISIBLE_ORDER_STATUSES = ["processing", "fulfilled", "shipped", "picked_up", "completed"]
 
 def to_cents(amount) -> int:
     return int(round(float(amount or 0) * 100))
@@ -461,18 +462,22 @@ async def verify_order_pricing(order_data) -> Optional[str]:
     return None
 
 async def mark_checkout_paid(session_id: str, payment_status: str = "paid"):
+    transaction = await db.payment_transactions.find_one({"session_id": session_id})
+    already_paid = transaction and transaction.get("payment_status") == "paid"
+
     await db.payment_transactions.update_one(
         {"session_id": session_id},
         {"$set": {"payment_status": payment_status}}
     )
 
-    transaction = await db.payment_transactions.find_one({"session_id": session_id})
     order_id = transaction.get("metadata", {}).get("order_id") if transaction else None
     if order_id and payment_status == "paid":
         await db.orders.update_one(
             {"id": order_id},
             {"$set": {"status": "processing"}}
         )
+        if not already_paid:
+            await send_order_confirmation_email_background(order_id)
 
 # ============ SITE EDITOR MODELS ============
 
@@ -2951,7 +2956,6 @@ async def create_order(order_data: OrderCreate, background_tasks: BackgroundTask
     order_dict = order.model_dump()
     order_dict['created_at'] = order_dict['created_at'].isoformat()
     await db.orders.insert_one(order_dict)
-    background_tasks.add_task(send_order_confirmation_email_background, order.id)
     return order
 
 @api_router.get("/orders/{order_id}", response_model=Order)
@@ -3120,8 +3124,11 @@ async def stripe_webhook(request: Request):
 
 @api_router.get("/admin/orders", response_model=List[Order])
 async def get_all_orders(user: User = Depends(require_admin)):
-    """Get all orders (admin only)"""
-    orders = await db.orders.find({}, {"_id": 0}).to_list(1000)
+    """Get paid/verified orders (admin only)"""
+    orders = await db.orders.find(
+        {"status": {"$in": ADMIN_VISIBLE_ORDER_STATUSES}},
+        {"_id": 0}
+    ).to_list(1000)
     for order in orders:
         if isinstance(order.get('created_at'), str):
             order['created_at'] = datetime.fromisoformat(order['created_at'])
@@ -3193,7 +3200,10 @@ async def fulfill_order(order_id: str, fulfillment: OrderFulfillment, background
 @api_router.get("/admin/orders/{order_id}")
 async def get_order_details(order_id: str, user: User = Depends(require_admin)):
     """Get detailed order info (admin only)"""
-    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    order = await db.orders.find_one(
+        {"id": order_id, "status": {"$in": ADMIN_VISIBLE_ORDER_STATUSES}},
+        {"_id": 0}
+    )
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
@@ -3219,8 +3229,9 @@ async def get_all_customers(user: User = Depends(require_admin)):
     """Get all customers with order stats"""
     users = await db.users.find({"is_admin": False}, {"_id": 0}).to_list(1000)
 
-    # One aggregation for all customers' order stats instead of a query per user.
+    # One aggregation for all customers' paid/verified order stats instead of a query per user.
     pipeline = [
+        {"$match": {"status": {"$in": ADMIN_VISIBLE_ORDER_STATUSES}}},
         {"$group": {
             "_id": "$user_id",
             "total_orders": {"$sum": 1},
