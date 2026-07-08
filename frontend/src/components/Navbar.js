@@ -93,10 +93,10 @@ const Navbar = () => {
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center gap-2 flex-1 justify-center px-4">
               {navLinks.filter((link) => link.show_desktop !== false).map((link) => {
-                const linkClass = `whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-colors ${
+                const linkClass = `whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-all ${
                   link.featured
-                    ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                    ? 'bg-white/70 text-gray-950 shadow-sm ring-1 ring-black/5'
+                    : 'text-gray-700 hover:text-gray-950 hover:bg-white/70'
                 }`;
                 return renderNavLink(link, linkClass);
               })}
@@ -109,10 +109,10 @@ const Navbar = () => {
               
               {/* Cart Drawer Trigger */}
               <CartDrawer>
-                <button className="relative group p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <button className="cart-icon-button group">
                   <ShoppingCart className="h-6 w-6 text-gray-700 group-hover:text-blue-600 transition-colors" />
                   {cart.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-white">
+                    <span className="cart-count-badge">
                       {cart.length}
                     </span>
                   )}
@@ -123,7 +123,7 @@ const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center space-x-2 pl-2 pr-4 rounded-full hover:bg-gray-100">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-pink-400 via-cyan-300 to-violet-500 flex items-center justify-center text-white font-bold">
                         {user.name.charAt(0)}
                       </div>
                       <span className="font-medium">{user.name}</span>
@@ -158,10 +158,10 @@ const Navbar = () => {
               </div>
               
               <CartDrawer>
-                <button className="relative p-2">
+                <button className="cart-icon-button">
                   <ShoppingCart className="h-6 w-6 text-gray-700" />
                   {cart.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                    <span className="cart-count-badge">
                       {cart.length}
                     </span>
                   )}
@@ -180,8 +180,8 @@ const Navbar = () => {
                   </SheetHeader>
                   <div className="flex flex-col items-center gap-4 mt-8 text-center">
                     {navLinks.filter((link) => link.show_mobile !== false).map((link) => {
-                      const linkClass = `text-lg font-medium transition-colors ${
-                        link.featured ? 'text-blue-700' : 'text-gray-900 hover:text-blue-600'
+                      const linkClass = `w-full rounded-full px-5 py-3 text-lg font-bold text-white bg-black hover:bg-gray-900 transition-colors ${
+                        link.featured ? 'shadow-sm' : ''
                       }`;
                       return renderNavLink(link, linkClass, () => setMobileMenuOpen(false));
                     })}

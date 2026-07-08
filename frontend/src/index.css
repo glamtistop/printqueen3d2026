@@ -2,14 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 body {
     margin: 0;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f8fafc; /* Slate-50 for a cleaner base */
+    background:
+        radial-gradient(circle at 14% 8%, rgba(255, 92, 122, 0.22), transparent 34%),
+        radial-gradient(circle at 88% 4%, rgba(124, 203, 255, 0.26), transparent 32%),
+        radial-gradient(circle at 50% 14%, rgba(68, 227, 209, 0.18), transparent 35%),
+        linear-gradient(180deg, #ffffff 0%, #fbfcff 46%, #ffffff 100%);
+    color: #0a0a0a;
 }
 
 code {
@@ -24,8 +29,8 @@ code {
         --card-foreground: 222.2 84% 4.9%;
         --popover: 0 0% 100%;
         --popover-foreground: 222.2 84% 4.9%;
-        --primary: 221.2 83.2% 53.3%; /* Bright Blue */
-        --primary-foreground: 210 40% 98%;
+        --primary: 338 100% 65%;
+        --primary-foreground: 0 0% 100%;
         --secondary: 210 40% 96.1%;
         --secondary-foreground: 222.2 47.4% 11.2%;
         --muted: 210 40% 96.1%;
@@ -36,8 +41,8 @@ code {
         --destructive-foreground: 210 40% 98%;
         --border: 214.3 31.8% 91.4%;
         --input: 214.3 31.8% 91.4%;
-        --ring: 221.2 83.2% 53.3%;
-        --radius: 0.75rem; /* More rounded for modern feel */
+        --ring: 174 74% 58%;
+        --radius: 1.5rem;
     }
  
     .dark {
@@ -68,7 +73,7 @@ code {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
   }
 }
 
@@ -85,11 +90,11 @@ html {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
+    background: linear-gradient(180deg, #FF5C7A, #44E3D1, #7A4DFF);
+    border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: linear-gradient(180deg, #FF8A00, #44E3D1, #FF4FBF);
 }
 
 /* Marquee Animation */

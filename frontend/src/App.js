@@ -85,6 +85,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
+  const protectedPaths = ['/admin', '/checkout', '/orders', '/order-success'];
+  const shouldWaitForAuth = protectedPaths.some((path) => window.location.pathname.startsWith(path));
 
   useEffect(() => {
     checkAuth();
@@ -167,12 +169,12 @@ function App() {
     localStorage.removeItem('cart');
   };
 
-  if (loading) {
+  if (loading && shouldWaitForAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-emerald-50 to-blue-50 px-6">
+      <div className="min-h-screen flex items-center justify-center px-6">
         <div className="flex flex-col items-center gap-5 text-center">
-          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-xl ring-1 ring-blue-100">
-            <div className="absolute inset-0 rounded-full border-4 border-emerald-200 border-t-blue-500 animate-spin"></div>
+          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-xl ring-1 ring-white/70">
+            <div className="absolute inset-0 rounded-full border-4 border-pink-200 border-t-cyan-300 animate-spin"></div>
             <img
               src="/printqueen-logo.png"
               alt="Print Queen 3D"
@@ -191,7 +193,7 @@ function App() {
   return (
     <AuthContext.Provider value={{ user, setUser, logout, checkAuth }}>
       <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateCartQuantity, clearCart }}>
-        <div className="App bg-slate-50 min-h-screen font-sans text-slate-900">
+        <div className="App min-h-screen font-sans text-slate-900">
           <BrowserRouter>
             <ScrollToTop />
             <RouteMeta />

@@ -142,7 +142,7 @@ const LandingPage = () => {
   const heroSecondaryText = heroContent.secondary_button_text || 'Shop Collections';
   const heroSecondaryLink = heroContent.secondary_button_link || '#collections';
   const heroOverlayOpacity = heroContent.overlay_opacity ?? 0.58;
-  const heroOverlayColor = heroContent.overlay_color || '#d8ecdd';
+  const heroOverlayColor = heroContent.overlay_color || '#ffffff';
   const heroHeightDesktop = Number(heroContent.hero_height_desktop) || 640;
   const heroHeightMobile = Number(heroContent.hero_height_mobile) || 560;
   const heroImagePosition = heroContent.hero_image_position || 'center right';
@@ -251,7 +251,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen home-landing">
       {shouldShowMarquee && (
         <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600" style={marqueeBackgroundStyle}>
           <div
@@ -274,7 +274,7 @@ const LandingPage = () => {
       <Navbar />
 
       {isSectionEnabled('hero') && (
-      <section className="relative isolate w-full overflow-hidden" style={{ backgroundColor: heroOverlayColor || '#d8ecdd' }}>
+      <section className="hero-blend relative isolate w-full overflow-hidden" style={{ backgroundColor: heroOverlayColor || '#ffffff' }}>
         {hasHeroImage && (
           <div className="absolute inset-0 z-0">
             <picture>
@@ -292,8 +292,8 @@ const LandingPage = () => {
           className="absolute inset-0 z-0"
           style={{
             background: hasHeroImage
-              ? `linear-gradient(90deg, ${heroOverlayColor} 0%, ${heroOverlayColor} 55%, transparent 100%)`
-              : `linear-gradient(135deg, ${heroOverlayColor} 0%, #eef8f2 52%, #ffffff 100%)`,
+              ? `linear-gradient(90deg, ${heroOverlayColor} 0%, rgba(255,255,255,0.82) 46%, rgba(255,255,255,0.22) 100%), radial-gradient(circle at 18% 22%, rgba(255,92,122,0.28), transparent 30%), radial-gradient(circle at 82% 14%, rgba(68,227,209,0.26), transparent 32%), radial-gradient(circle at 62% 82%, rgba(122,77,255,0.18), transparent 34%)`
+              : `radial-gradient(circle at 18% 18%, rgba(255,92,122,0.24), transparent 30%), radial-gradient(circle at 82% 12%, rgba(68,227,209,0.24), transparent 30%), radial-gradient(circle at 58% 84%, rgba(122,77,255,0.18), transparent 34%), linear-gradient(135deg, ${heroOverlayColor} 0%, #ffffff 100%)`,
             opacity: hasHeroImage ? heroOverlayOpacity : 1
           }}
         />
@@ -417,15 +417,15 @@ const LandingPage = () => {
       )}
 
       {isSectionEnabled('why_choose_us') && (
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <section className="why-print-queen-section py-16 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
             <h2 className="section-title text-center mb-10">{['Why Choose Print Queen 3D?'].includes(getSectionContent('why_choose_us', 'headline', '')) ? 'Why Print Queen 3D' : getSectionContent('why_choose_us', 'headline', 'Why Print Queen 3D')}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {whyChooseCards.map(({ Icon, title, text }, index) => (
-                <div key={title || index} className="rounded-xl bg-gradient-to-br from-blue-50 to-green-50 border border-blue-100 p-6 shadow-sm text-center">
-                  <Icon className="h-8 w-8 text-blue-600 mb-4 mx-auto" />
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">{title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{text}</p>
+                <div key={title || index} className="why-print-queen-card rounded-xl bg-gradient-to-br from-blue-50 to-green-50 border border-blue-100 p-6 shadow-sm text-center">
+                  <Icon className="why-print-queen-icon h-8 w-8 text-blue-600 mb-4 mx-auto" />
+                  <h3 className="why-print-queen-card-title text-lg font-bold text-gray-900 mb-3">{title}</h3>
+                  <p className="why-print-queen-card-copy text-sm text-gray-600 leading-relaxed">{text}</p>
                 </div>
               ))}
             </div>
@@ -465,14 +465,14 @@ const LandingPage = () => {
       )}
 
       {isSectionEnabled('design_cta') && (
-        <section className="relative isolate overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
+        <section className="design-idea-cta relative isolate overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
           <div className="absolute inset-0 z-0">
             <img src={ctaBackground} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-700/90 via-emerald-600/80 to-blue-900/75" />
+            <div className="design-idea-cta-overlay absolute inset-0 bg-gradient-to-r from-blue-700/90 via-emerald-600/80 to-blue-900/75" />
           </div>
-          <div className="relative z-10 max-w-4xl mx-auto text-center text-white">
-            <h2 className="text-4xl md:text-5xl font-bold mb-5">{getSectionContent('design_cta', 'headline', 'Have an idea? We’ll bring it to life.')}</h2>
-            <p className="text-lg md:text-xl leading-relaxed opacity-95 max-w-3xl mx-auto">
+          <div className="relative z-10 max-w-4xl mx-auto text-center text-gray-900">
+            <h2 className="design-idea-cta-title text-4xl md:text-5xl font-bold mb-5">{getSectionContent('design_cta', 'headline', 'Have an idea? We’ll bring it to life.')}</h2>
+            <p className="design-idea-cta-copy text-lg md:text-xl leading-relaxed opacity-95 max-w-3xl mx-auto">
               {getSectionContent('design_cta', 'description', 'Start your custom order by sharing your idea, inspiration photos, logo, sketch, or reference details. We’ll review your project and help create something made just for you.')}
             </p>
             {renderRouteLink(
@@ -485,7 +485,7 @@ const LandingPage = () => {
       )}
 
       {isSectionEnabled('about_preview') && (
-        <section className="px-4 sm:px-6 lg:px-8" style={{ paddingTop: `${aboutSectionPadding}px`, paddingBottom: `${aboutSectionPadding}px`, backgroundColor: aboutBackgroundColor }}>
+        <section className="about-preview-section px-4 sm:px-6 lg:px-8" style={{ paddingTop: `${aboutSectionPadding}px`, paddingBottom: `${aboutSectionPadding}px`, backgroundColor: aboutBackgroundColor }}>
           <div className={`max-w-7xl mx-auto grid ${aboutImage ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-10 items-center`}>
             {aboutImage && (
               <div className="overflow-hidden rounded-xl bg-blue-50 border border-blue-100 aspect-[4/3]">
@@ -495,9 +495,9 @@ const LandingPage = () => {
                 </picture>
               </div>
             )}
-            <div className="text-center lg:text-left">
-              <h2 className="section-title mb-5">{getSectionContent('about_preview', 'headline', 'About Print Queen 3D')}</h2>
-              <div className={`${aboutTextSizeClass} text-gray-600 leading-relaxed space-y-4`}>
+            <div className="about-preview-copy-wrap text-center">
+              <h2 className="about-preview-title section-title mb-5">{getSectionContent('about_preview', 'headline', 'About Print Queen 3D')}</h2>
+              <div className={`about-preview-copy ${aboutTextSizeClass} text-gray-600 leading-relaxed space-y-4`}>
                 {getSectionContent('about_preview', 'description', 'Print Queen 3D is a small business built on creativity, precision, and the love of bringing ideas to life. As a small business owner, I take pride in creating custom 3D-printed products that feel personal, polished, and made just for you.\n\nFrom personalized gifts and keepsakes to NFC products, business branding, home décor, lithophanes, keychains, pendants, and one-of-a-kind designs, every piece is professionally 3D printed with care, precision, and expert finishing. Whether you have a finished design, a photo, a logo, or just an idea, I’ll work with you to help turn your vision into something real.').split('\n').filter(Boolean).map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}

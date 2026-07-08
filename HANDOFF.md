@@ -80,6 +80,373 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-08 - Claude Code - Tighter mobile section spacing + SEO plan (Plan 6)
+
+Nandi's asks: remove large gaps between homepage sections (esp. mobile) so each sits right beneath the previous; and produce a detailed SEO plan for a Fable agent to execute.
+
+Files changed:
+
+- `frontend/src/pages/LandingPage.js` — added `home-landing` scoping class to the page root.
+- `frontend/src/App.css` — inside the existing `@media (max-width:768px)` block, tightened homepage section vertical padding to 2.25rem (was py-16/py-20 = 64-80px) via `.home-landing > section:not(.hero-blend)` (and the inline-styled `.about-preview-section`), plus smaller section-title margin and `.mb-10` header trim. Hero excluded (keeps its own internal padding). Desktop unchanged.
+- New (external): `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/PLAN-seo-optimization.md` + README entry (Plan 6).
+
+Verification: mobile (390px) — all 9 homepage sections now 36px top/bottom padding; screenshots confirm collections -> "Why Print Queen 3D" and subsequent sections sit tightly beneath each other with heading glow visible; backend healthy (site-config 200); `CI=false corepack yarn build` passed.
+
+SEO plan summary: 6 phases. Core problem identified = CRA is client-side rendered, so non-JS crawlers/social scrapers see generic homepage meta on every URL. Phases: (1) Search Console + GA4 + Google Business Profile setup, (2) enrich structured data (Breadcrumb/FAQ/per-product og:image), (3) sitemap lastmod + preconnect + canonicals, (4) prerender static per-route HTML (react-snap or build-time static HTML fallback) - biggest win, riskiest, own commit, (5) on-page alt/h1/internal-link polish, (6) Core Web Vitals. Notes off-page (reviews/GBP/backlinks) as Nandi-actions since code alone can't rank #1.
+
+Commit/push/deploy: NOT committed/pushed/deployed.
+
+### 2026-07-08 - Claude Code - Visible heading glow on light sections + smaller mobile headings
+
+Nandi's asks: glow on the five big homepage headings, About photo back, Best Sellers off, smaller mobile wording, fast load.
+
+Files changed:
+
+- `frontend/src/App.css`
+- `HANDOFF.md`
+
+What changed:
+
+- The shared heading glow (h1/h2/.section-title/.hero-title/footer h3) was white-dominant and invisible on white sections; strengthened the teal/purple/pink halo (white 0.85 / teal 0.42 / purple 0.30 / pink 0.16) so the soft neon glow reads on light backgrounds. Unified `.design-idea-cta-title` to the exact same values so all large headings match.
+- Mobile (max-width 768px) heading sizes reduced: hero-title clamp(3.1rem,15vw,5.2rem) -> clamp(2.4rem,11vw,4rem); section-title clamp(3rem,15vw,5rem) -> clamp(2.1rem,10vw,3.5rem).
+
+Findings (no code change needed):
+
+- About Print Queen photo: intact locally — in DOM, loaded (Cloudinary URL HTTP 200), visible above the About heading. The "missing photo" is on the LIVE site, which runs an older deploy; deploying current code resolves it.
+- Best Sellers: `featured` section is already disabled in the DB and does not render locally.
+- Fast load: Codex's public-page paint change verified — homepage renders immediately with no auth spinner; "Failed to fetch" console entries were from loads during backend cold start only (no new errors on a fresh load).
+
+Verification: mobile (375px) screenshots — hero and section headings fit and show the glow; all five requested headings confirmed sharing identical text-shadow; buttons remain solid black with white wording and glow; About photo + no Best Sellers + no spinner verified on fresh load; `CI=false corepack yarn build` passed.
+
+Commit/push/deploy: NOT committed/pushed/deployed.
+
+### 2026-07-08 03:05 PDT - Codex - Shared Headline Glow and Black Buttons
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `frontend/src/components/Navbar.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Applied the same black text with soft teal/purple/white glow treatment from the "Have an idea? We'll bring it to life." headline to large public page headings.
+- Changed shared buttons, desktop nav pills, mobile menu links, Sign In, cart icon button, and cart count badge back to black backgrounds with white wording/icons.
+- Preserved the current layout, content, products, cart, checkout, admin behavior, and existing glow/background system.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 02:52 PDT - Codex - Dark Text and Faster Public Page Paint
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `frontend/src/App.js`
+- `frontend/src/components/PageTransition.js`
+- `frontend/src/pages/LandingPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Changed the public-facing white text treatments to dark/black text by lightening the matching glow surfaces: CTA section, Why Print Queen cards, hero badge, buttons, cart badge, and footer.
+- Kept the aurora glow direction while making the page feel more consistent and readable on both mobile and desktop.
+- Public storefront pages now render immediately instead of waiting on the auth check; protected pages such as admin, checkout, orders, and order success still wait for auth before rendering.
+- Removed the initial page fade-in delay so pages appear right away on load.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 02:38 PDT - Codex - Solid Why Card Title Bubbles
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `HANDOFF.md`
+
+What changed:
+
+- Refined the four "Why Print Queen 3D" cards so their title bubbles are now solid dark professional pills instead of gradient capsule outlines.
+- Darkened the card surfaces slightly, improved title and body readability, and kept the teal/purple/gold glow effect in sync with the full-page visual style.
+- Preserved the existing layout, content, homepage sections, products, cart, checkout, and admin functionality.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 02:18 PDT - Codex - Homepage Glow and Section Polish
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `frontend/src/pages/LandingPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Restyled the "Have an idea? We'll bring it to life." CTA so the background photo is barely visible again under a darker premium glow overlay, with glowing headline/copy treatment.
+- Made the homepage About preview title smaller and centered with a cleaner, more professional centered paragraph width.
+- Darkened the "Why Print Queen 3D" four-card section and added decorative gradient header capsules around each card title.
+- Slightly darkened general gray/slate wording across the page for better readability against the glow background.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 02:02 PDT - Codex - Unified Page Glow Background
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `HANDOFF.md`
+
+What changed:
+
+- Made the page feel like one continuous premium aurora/glow background from header through footer instead of separate white section bands.
+- Added full-page layered teal, purple, gold, coral, and white glow layers behind the app.
+- Made page-level section backgrounds transparent where safe so the same gradient system flows through the homepage and other page shells.
+- Softened hero/page fade behavior so sections blend together without hard cutoff lines.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 01:55 PDT - Codex - Stronger Premium Glow
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `HANDOFF.md`
+
+What changed:
+
+- Increased the visibility and spread of the ambient glow system while keeping the existing layout and functionality unchanged.
+- Strengthened background, section, button, card, and product image glow effects using the same premium teal, purple, gold, coral, and white palette.
+- Increased mobile glow visibility without changing spacing, sizing, or causing horizontal layout changes.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 01:43 PDT - Codex - Premium Ambient Glow Polish
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `HANDOFF.md`
+
+What changed:
+
+- Added refined ambient glow effects around the existing aurora visual system using layered radial gradients in Electric Teal, Royal Purple, Warm Gold, Soft Coral, and low-opacity white.
+- Added extremely slow floating background and section glow movement using GPU-friendly transforms with reduced-motion support.
+- Enhanced button depth with soft colored outer glow while keeping existing button size, placement, and solid professional fill.
+- Added subtler premium card/product edge lighting, glass reflection feel, and smoother section-to-section background blending.
+- Kept layout, spacing, typography sizing, positioning, content, product pages, navigation, forms, and functionality unchanged.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 01:34 PDT - Codex - Professional Cart Count Badge
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `frontend/src/components/Navbar.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Separated the cart count badge from the shared button styling so it no longer inherits oversized button/bubble styles.
+- Added a dedicated cart icon button and compact solid black count badge for cleaner desktop and mobile alignment.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 01:29 PDT - Codex - Softer Hero Scale and Blend
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `frontend/src/pages/LandingPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Reduced the homepage hero headline scale so "Create Something Uniquely Yours" feels more balanced and professional on desktop and mobile.
+- Added a soft white bottom fade to the hero section so the background/header image blends into the page instead of ending abruptly.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 01:24 PDT - Codex - Solid Professional Button Bubbles
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `HANDOFF.md`
+
+What changed:
+
+- Changed CTA/button bubbles from animated aurora gradient fills back to a clean solid black professional style.
+- Kept the premium rounded pill shape, larger sizing, and subtle elevated hover state.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 01:18 PDT - Codex - Larger Matching Aurora Bubbles
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/App.css`
+- `HANDOFF.md`
+
+What changed:
+
+- Updated the secondary hero button, including "Shop Collections", to match the same aurora gradient bubble styling as the other primary CTA bubbles.
+- Increased shared bubble/button sizing for hero CTAs and rounded product/nav bubble elements.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
+### 2026-07-08 01:04 PDT - Codex - Premium Aurora Visual Redesign
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+
+Files changed:
+
+- `frontend/src/index.css`
+- `frontend/src/App.css`
+- `frontend/src/App.js`
+- `frontend/src/components/Navbar.js`
+- `frontend/src/components/ui/button.jsx`
+- `frontend/src/pages/LandingPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Updated the frontend visual design system to a premium modern creative aesthetic using the requested soft aurora gradient palette: coral, orange, yellow, aqua, sky blue, violet, and magenta.
+- Replaced the older Playfair/Montserrat styling with Bebas Neue for major headlines and Inter for body/UI text.
+- Added blurred organic aurora glows, glassmorphism cards, premium shadows, rounded 20-28px surfaces, modern pill buttons, animated gradient button states, improved form focus states, upgraded scrollbar styling, and a darker premium footer treatment.
+- Updated app loading visuals, hero overlay defaults, header/nav styling, and base button styling so the new design language applies across homepage, shop, product pages, cart/checkout shell, account/admin buttons, footer, and shared cards.
+- Preserved all existing products, collections, cart, checkout, account, admin/editor functionality, and content sources.
+
+Verification:
+
+- `CI=false corepack yarn build` passed; production build compiled successfully.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet.
+
 ### 2026-07-08 - Claude Code - Admin fields now the only customization UI (fields precedence)
 
 Nandi's request: a product's admin-defined fields (e.g., keychain = two colors + icon + NFC link) must be exactly what customers see, editable per product from the admin editor. Complements Codex's visual field editor entry below — Codex built the admin editing side; this makes the storefront obey it.
