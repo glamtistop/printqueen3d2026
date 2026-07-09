@@ -80,6 +80,56 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-08 - Codex - Google SEO Technical Optimization Pass
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/PLAN-seo-optimization.md`
+
+Files changed:
+
+- `backend/server.py`
+- `frontend/public/index.html`
+- `frontend/public/robots.txt`
+- `frontend/src/App.js`
+- `frontend/src/lib/seo.js`
+- `frontend/src/pages/LandingPage.js`
+- `frontend/src/pages/ProductDetailPage.js`
+- `frontend/src/pages/ProductsPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Enhanced runtime SEO meta so pages can set `og:image`, `twitter:image`, and richer social preview tags.
+- Enhanced Product JSON-LD with SKU, category, all available product images, item condition, and existing offer data. No fake ratings were added.
+- Added BreadcrumbList JSON-LD for product pages and collection views.
+- Added FAQPage JSON-LD on the homepage when the editable FAQ section is enabled and has Q&A content.
+- Added cleanup so product, breadcrumb, and FAQ schema do not linger when customers navigate between pages inside the app.
+- Upgraded `/api/sitemap.xml` with `lastmod`, `changefreq`, and `priority` for static pages, products, and collections.
+- Added Cloudinary/backend preconnect and DNS prefetch hints in `index.html`.
+- Expanded the default LocalBusiness schema with a safe OfferCatalog for the main service categories. No business hours were added because exact hours were not confirmed.
+- Tightened `robots.txt` to keep session/token URLs out of search indexes.
+
+Verification:
+
+- `PYTHONPYCACHEPREFIX=/tmp/python-cache python3 -m py_compile backend/server.py` passed.
+- `CI=false corepack yarn build` passed.
+- `git diff --check` passed.
+
+Nandi follow-up after deploy:
+
+- Add/verify `https://www.printqueen3d.com` in Google Search Console.
+- Submit `https://www.printqueen3d.com/sitemap.xml`.
+- Create/import Bing Webmaster Tools after Google Search Console is active.
+- Create or claim the Google Business Profile for Print Queen 3D, add service area, photos, categories, website, and start collecting Google reviews.
+- Run Google's Rich Results Test on the homepage and a product page after deployment.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet. Deploy both backend and frontend for all SEO changes to go live.
+
 ### 2026-07-08 - Codex - Backend Cold-Start Optimization
 
 Read before editing:

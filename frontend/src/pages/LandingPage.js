@@ -8,6 +8,7 @@ import SiteFooter from '../components/SiteFooter';
 import MockProductVisual from '../components/MockProductVisual';
 import { Skeleton } from '../components/ui/skeleton';
 import { fetchSiteConfig } from '../lib/siteConfig';
+import { removeFaqJsonLd, setFaqJsonLd } from '../lib/seo';
 
 const fallbackHeroImage = '/assets/homepage/printqueen-hero-realistic-products.png';
 
@@ -230,6 +231,15 @@ const LandingPage = () => {
     : trustCards.map(([Icon, title, text]) => ({ Icon, title, text }));
   const howItWorksSteps = (getSection('how_it_works')?.content?.steps || []).filter((step) => step?.title);
   const faqItems = (getSection('faq')?.content?.faq_items || []).filter((item) => item?.question);
+
+  useEffect(() => {
+    if (isSectionEnabled('faq') && faqItems.length > 0) {
+      setFaqJsonLd(faqItems);
+    } else {
+      removeFaqJsonLd();
+    }
+    return () => removeFaqJsonLd();
+  }, [siteConfig]);
 
   const submitReview = async (event) => {
     event.preventDefault();

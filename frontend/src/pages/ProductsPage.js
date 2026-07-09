@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import SiteFooter from '../components/SiteFooter';
 import { Skeleton } from '../components/ui/skeleton';
-import { ROUTE_META, setPageMeta } from '../lib/seo';
+import { ROUTE_META, removeBreadcrumbJsonLd, setBreadcrumbJsonLd, setPageMeta } from '../lib/seo';
 import { fetchSiteConfig } from '../lib/siteConfig';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -183,10 +183,17 @@ const ProductsPage = () => {
       setPageMeta({
         title: `${cleanName} – Custom 3D Printed | Print Queen 3D`,
         description: (selectedCollectionData.description || '').slice(0, 155).trim() || ROUTE_META['/shop'].description,
-        path: '/shop'
+        path: `/shop?collection=${encodeURIComponent(selectedCollectionData.id)}`,
+        image: getCollectionImage(selectedCollectionData)
       });
+      setBreadcrumbJsonLd([
+        { name: 'Home', url: '/' },
+        { name: 'Shop', url: '/shop' },
+        { name: selectedCollectionData.name, url: `/shop?collection=${encodeURIComponent(selectedCollectionData.id)}` }
+      ]);
     } else {
       setPageMeta({ ...ROUTE_META['/shop'], path: '/shop' });
+      removeBreadcrumbJsonLd();
     }
   }, [selectedCollectionData]);
 

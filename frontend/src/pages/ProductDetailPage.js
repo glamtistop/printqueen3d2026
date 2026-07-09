@@ -10,7 +10,7 @@ import BuildYourStand from '../components/BuildYourStand';
 import Navbar from '../components/Navbar';
 import { Skeleton } from '../components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { setPageMeta, setProductJsonLd } from '../lib/seo';
+import { setBreadcrumbJsonLd, setPageMeta, setProductJsonLd } from '../lib/seo';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -184,9 +184,16 @@ const ProductDetailPage = () => {
       setPageMeta({
         title: `${productData.name} | Print Queen 3D`,
         description: (productData.description || '').slice(0, 155).trim(),
-        path: `/products/${productData.id}`
+        path: `/products/${productData.id}`,
+        image: productData.images?.[0]
       });
       setProductJsonLd(productData);
+      setBreadcrumbJsonLd([
+        { name: 'Home', url: '/' },
+        { name: 'Shop', url: '/shop' },
+        productData.category ? { name: productData.category, url: `/shop?category=${encodeURIComponent(productData.category)}` } : null,
+        { name: productData.name, url: `/products/${productData.id}` }
+      ].filter(Boolean));
 
       // Show color picker if product has color options
       setShowColorPicker(Boolean(productData.available_colors && productData.available_colors.length > 0));

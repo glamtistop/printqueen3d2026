@@ -1,6 +1,13 @@
 const SITE_URL = 'https://www.printqueen3d.com';
 const DEFAULT_TITLE = 'Custom 3D Printing & Personalized Gifts | Print Queen 3D';
 const DEFAULT_DESCRIPTION = 'Custom 3D printed gifts, NFC products, home décor & keepsakes made to order in Los Angeles. Add names, photos, colors & logos. Ships across the U.S.';
+const DEFAULT_IMAGE = `${SITE_URL}/assets/homepage/printqueen-hero-realistic-products.png`;
+
+const toAbsoluteUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  return `${SITE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+};
 
 const upsertMeta = (attr, key, content) => {
   let tag = document.head.querySelector(`meta[${attr}="${key}"]`);
@@ -22,30 +29,53 @@ const upsertCanonical = (url) => {
   link.setAttribute('href', url);
 };
 
-export const setPageMeta = ({ title, description, path } = {}) => {
+export const setPageMeta = ({ title, description, path, image } = {}) => {
   const fullTitle = title || DEFAULT_TITLE;
   const metaDescription = description || DEFAULT_DESCRIPTION;
   const canonicalUrl = `${SITE_URL}${path ?? window.location.pathname}`;
+  const shareImage = toAbsoluteUrl(image) || DEFAULT_IMAGE;
 
   document.title = fullTitle;
   upsertMeta('name', 'description', metaDescription);
   upsertMeta('property', 'og:title', fullTitle);
   upsertMeta('property', 'og:description', metaDescription);
   upsertMeta('property', 'og:url', canonicalUrl);
+  upsertMeta('property', 'og:image', shareImage);
+  upsertMeta('name', 'twitter:title', fullTitle);
+  upsertMeta('name', 'twitter:description', metaDescription);
+  upsertMeta('name', 'twitter:image', shareImage);
   upsertCanonical(canonicalUrl);
+};
+
+const upsertJsonLd = (id, data) => {
+  let script = document.getElementById(id);
+  if (!script) {
+    script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = id;
+    document.head.appendChild(script);
+  }
+  script.textContent = JSON.stringify(data);
+};
+
+const removeJsonLd = (id) => {
+  document.getElementById(id)?.remove();
 };
 
 export const setProductJsonLd = (product) => {
   removeProductJsonLd();
   if (!product) return;
-  const image = product.images?.[0] || '';
-  const absoluteImage = image.startsWith('http') ? image : `${SITE_URL}${image}`;
+  const images = (product.images || [])
+    .map(toAbsoluteUrl)
+    .filter(Boolean);
   const data = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
+    sku: product.id,
+    category: product.category || undefined,
     description: (product.description || '').slice(0, 300),
-    image: absoluteImage ? [absoluteImage] : undefined,
+    image: images.length > 0 ? images : undefined,
     brand: { '@type': 'Brand', name: 'Print Queen 3D' },
     offers: {
       '@type': 'Offer',
@@ -53,18 +83,70 @@ export const setProductJsonLd = (product) => {
       priceCurrency: 'USD',
       price: Number(product.price || 0).toFixed(2),
       availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
       seller: { '@type': 'Organization', name: 'Print Queen 3D' }
     }
   };
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.id = 'product-jsonld';
-  script.textContent = JSON.stringify(data);
-  document.head.appendChild(script);
+  upsertJsonLd('product-jsonld', data);
 };
 
 export const removeProductJsonLd = () => {
-  document.getElementById('product-jsonld')?.remove();
+  removeJsonLd('product-jsonld');
+};
+
+export const setBreadcrumbJsonLd = (items = []) => {
+  const itemListElement = items
+    .filter((item) => item?.name && item?.url)
+    .map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: toAbsoluteUrl(item.url)
+    }));
+
+  if (itemListElement.length < 2) {
+    removeBreadcrumbJsonLd();
+    return;
+  }
+
+  upsertJsonLd('breadcrumb-jsonld', {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement
+  });
+};
+
+export const removeBreadcrumbJsonLd = () => {
+  removeJsonLd('breadcrumb-jsonld');
+};
+
+export const setFaqJsonLd = (faqItems = []) => {
+  const mainEntity = faqItems
+    .filter((item) => item?.question && item?.answer)
+    .slice(0, 10)
+    .map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer
+      }
+    }));
+
+  if (mainEntity.length === 0) {
+    removeFaqJsonLd();
+    return;
+  }
+
+  upsertJsonLd('faq-jsonld', {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity
+  });
+};
+
+export const removeFaqJsonLd = () => {
+  removeJsonLd('faq-jsonld');
 };
 
 // Titles and descriptions for every static route.

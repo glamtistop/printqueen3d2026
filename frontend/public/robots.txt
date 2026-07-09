@@ -6,5 +6,8 @@ Disallow: /cart
 Disallow: /orders
 Disallow: /login
 Disallow: /order-success
+Disallow: /*session_id=
+Disallow: /*?*session*
+Disallow: /*?*token*
 
 Sitemap: https://www.printqueen3d.com/sitemap.xml

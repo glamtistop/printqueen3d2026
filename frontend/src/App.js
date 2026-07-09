@@ -25,7 +25,7 @@ import PageTransition from './components/PageTransition';
 import ScrollToTop from './components/ScrollToTop';
 import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
 import { Toaster } from './components/ui/sonner';
-import { ROUTE_META, setPageMeta, removeProductJsonLd } from './lib/seo';
+import { ROUTE_META, setPageMeta, removeProductJsonLd, removeBreadcrumbJsonLd, removeFaqJsonLd } from './lib/seo';
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -49,6 +49,12 @@ const RouteMeta = () => {
     }
     if (!location.pathname.startsWith('/products/')) {
       removeProductJsonLd();
+    }
+    if (location.pathname !== '/' && location.pathname !== '/shop' && location.pathname !== '/products') {
+      removeFaqJsonLd();
+    }
+    if (!location.pathname.startsWith('/products/') && location.pathname !== '/shop' && location.pathname !== '/products') {
+      removeBreadcrumbJsonLd();
     }
   }, [location.pathname]);
 

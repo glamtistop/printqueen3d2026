@@ -7,6 +7,7 @@ import os
 import logging
 import json
 import asyncio
+from html import escape
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict
@@ -5239,24 +5240,64 @@ async def run_startup_tasks_from_admin(user: User = Depends(require_admin)):
 async def sitemap():
     """Dynamic sitemap listing static pages, published products, and collections"""
     base = "https://www.printqueen3d.com"
+    today = datetime.now(timezone.utc).date().isoformat()
+
+    def sitemap_date(document):
+        value = document.get("updated_at") or document.get("created_at")
+        if isinstance(value, datetime):
+            return value.date().isoformat()
+        if isinstance(value, str) and value:
+            try:
+                return datetime.fromisoformat(value.replace("Z", "+00:00")).date().isoformat()
+            except ValueError:
+                return value[:10]
+        return today
+
+    def sitemap_url(loc, lastmod=None, changefreq="weekly", priority="0.7"):
+        return (
+            "<url>"
+            f"<loc>{escape(loc, quote=True)}</loc>"
+            f"<lastmod>{escape(lastmod or today, quote=True)}</lastmod>"
+            f"<changefreq>{escape(changefreq, quote=True)}</changefreq>"
+            f"<priority>{escape(priority, quote=True)}</priority>"
+            "</url>"
+        )
+
     static_paths = [
         "/", "/shop", "/design-your-own", "/personalize", "/about", "/contact",
         "/corporate-bulk-orders", "/materials", "/refund-policy", "/product-care",
         "/privacy-policy", "/terms-of-service", "/shipping-policy"
     ]
-    urls = [f"{base}{path}" for path in static_paths]
+    xml_urls = [
+        sitemap_url(
+            f"{base}{path}",
+            today,
+            "daily" if path in ("/", "/shop") else "monthly",
+            "1.0" if path == "/" else "0.8" if path in ("/shop", "/design-your-own") else "0.6"
+        )
+        for path in static_paths
+    ]
 
-    products = await db.products.find({"published": True}, {"_id": 0, "id": 1}).to_list(1000)
-    urls += [f"{base}/products/{product['id']}" for product in products]
+    products = await db.products.find(
+        {"published": True},
+        {"_id": 0, "id": 1, "updated_at": 1, "created_at": 1}
+    ).to_list(1000)
+    xml_urls += [
+        sitemap_url(f"{base}/products/{product['id']}", sitemap_date(product), "weekly", "0.8")
+        for product in products
+    ]
 
-    collections = await db.product_collections.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
-    urls += [
-        f"{base}/shop?collection={collection['id']}"
+    collections = await db.product_collections.find(
+        {},
+        {"_id": 0, "id": 1, "name": 1, "updated_at": 1, "created_at": 1}
+    ).to_list(1000)
+    xml_urls += [
+        sitemap_url(f"{base}/shop?collection={collection['id']}", sitemap_date(collection), "weekly", "0.8")
         for collection in collections
         if "design your own" not in (collection.get("name") or "").lower()
     ]
 
-    xml_items = "".join(f"<url><loc>{url.replace('&', '&amp;')}</loc></url>" for url in urls)
+    xml_items = "".join(xml_urls)
     xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{xml_items}</urlset>'
     return Response(content=xml, media_type="application/xml")
 
