@@ -345,6 +345,26 @@ const ProductDetailPage = () => {
     Number(field?.price_adjustments?.[optionValue] || 0)
   );
 
+  // ---- Tri-Color Filament Add-On (+$5) ----
+  const TRI_COLOR_ADDON_DEFAULT_PRICE = 5;
+  const TRI_COLOR_COMPANION_COLORS = [
+    { name: 'White', hex: '#FFFFFF' },
+    { name: 'Black', hex: '#111111' },
+    { name: 'Gold', hex: '#D4AF37' },
+    { name: 'Silver', hex: '#C0C0C0' }
+  ];
+  const TRI_COLOR_EXPLANATION = 'Tri-color filament is a specialty 3D printing filament that blends three colors into one material. As the item is printed, the colors shift depending on the angle, lighting, and shape of the design. This creates a unique multi-color effect without needing paint. Every tri-color print may look slightly different, making each piece one of a kind.';
+  const TRI_COLOR_SECONDARY_NOTE = 'Because tri-color filament already includes three blended colors, only black, white, gold, or silver can be selected as the second color to keep the final print clean, readable, and professional.';
+
+  const filamentColorFields = (product?.customization_fields || []).filter((field) => field.type === 'filament_color');
+  const isTriColorSelectedOnField = (field) => (
+    customization.productFieldValues?.[`${field.id}_color_group`] === 'tri_color'
+  );
+  const triColorSelectedField = filamentColorFields.find(isTriColorSelectedOnField) || null;
+  const triColorAddOnPrice = triColorSelectedField
+    ? Number(triColorSelectedField.tri_color_addon_price ?? TRI_COLOR_ADDON_DEFAULT_PRICE)
+    : 0;
+
   const getProductFieldOptionPrice = (field, optionValue) => (
     Number(product?.price || 0) + getProductFieldAdjustment(field, optionValue)
   );
@@ -473,6 +493,9 @@ const ProductDetailPage = () => {
         }
       }
     });
+    if (triColorSelectedField) {
+      details['Tri-Color Filament Add-On'] = `Yes (+$${triColorAddOnPrice.toFixed(2)})`;
+    }
     if (selectedColor) details['Product Color'] = selectedColor;
     if (customization.productColor) details['Requested Color'] = customization.productColor;
     if (customization.keychainColor) details['Primary Keychain Color'] = customization.keychainColor;
@@ -566,7 +589,8 @@ const ProductDetailPage = () => {
     + (customization.resinOverlay ? 5 : 0)
     + (customization.nfcKeychainResinFinish ? 5 : 0)
     + standAddOnTotal
-    + productFieldAddOnTotal;
+    + productFieldAddOnTotal
+    + triColorAddOnPrice;
   const adjustedProduct = product && addOnTotal > 0
     ? { ...product, price: product.price + addOnTotal }
     : product;
@@ -587,6 +611,22 @@ const ProductDetailPage = () => {
     if (missingSingleColorRequest) {
       toast.error(`Please enter the single color request for ${missingSingleColorRequest.label || 'your filament color'}.`);
       return false;
+    }
+    if (triColorSelectedField) {
+      const missingTriChoice = !customization.productFieldValues?.[triColorSelectedField.id];
+      if (missingTriChoice) {
+        toast.error('Please choose your tri-color filament blend.');
+        return false;
+      }
+      const allowedCompanions = TRI_COLOR_COMPANION_COLORS.map((color) => color.name);
+      const invalidCompanion = filamentColorFields.find((field) => (
+        field.id !== triColorSelectedField.id &&
+        !allowedCompanions.includes(customization.productFieldValues?.[`${field.id}_single_color`] || '')
+      ));
+      if (invalidCompanion) {
+        toast.error(`With the Tri-Color Filament Add-On, ${invalidCompanion.label || 'the second color'} must be White, Black, Gold, or Silver.`);
+        return false;
+      }
     }
 
     if (!isGuidedNfcProduct) return true;
@@ -665,12 +705,21 @@ const ProductDetailPage = () => {
       type="button"
       onClick={onClick}
       className={`rounded-xl border-2 p-4 text-left transition-all ${
-        selected ? 'border-blue-500 bg-blue-50 shadow-sm' : 'border-gray-200 bg-white hover:border-blue-200'
+        selected ? 'border-slate-950 bg-gradient-to-br from-cyan-50 via-white to-pink-50 shadow-lg ring-4 ring-cyan-200/70 scale-[1.01]' : 'border-gray-200 bg-white hover:border-blue-200'
       }`}
     >
       <span className="block font-bold text-gray-900">{label}</span>
       {description && <span className="mt-1 block text-sm text-gray-600">{description}</span>}
     </button>
+  );
+
+  const selectedColorCardClass = 'border-slate-950 bg-gradient-to-br from-cyan-50 via-white to-pink-50 shadow-lg ring-4 ring-cyan-200/70 scale-[1.01]';
+  const unselectedColorCardClass = 'border-gray-200 bg-white hover:border-blue-200 hover:shadow-md';
+  const selectedSwatchClass = 'ring-4 ring-slate-900/20 border-slate-900 shadow-lg';
+  const selectedPill = (
+    <span className="rounded-full bg-slate-950 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-white shadow-sm">
+      Selected
+    </span>
   );
 
   const textInput = (label, field, placeholder = '') => (
@@ -722,7 +771,11 @@ const ProductDetailPage = () => {
       const optionLabel = getFieldOptionLabel(option);
       return optionLabel !== 'Original Printed Color' && optionLabel !== 'Single Color Request';
     });
-    const showTriColor = field.allow_tri_color !== false && triColorOptions.length > 0;
+    // Tri-color is offered on this field only when the admin has it enabled
+    // (allow_tri_color) AND no OTHER color field already selected tri-color.
+    const triSelectedElsewhere = Boolean(triColorSelectedField && triColorSelectedField.id !== field.id);
+    const showTriColor = field.allow_tri_color !== false && triColorOptions.length > 0 && !triSelectedElsewhere;
+    const fieldAddonPrice = Number(field.tri_color_addon_price ?? TRI_COLOR_ADDON_DEFAULT_PRICE);
     const storedGroup = customization.productFieldValues?.[colorGroupFieldId];
     const selectedGroup = storedGroup || (
       value === getFieldOptionValue(originalOption)
@@ -760,8 +813,9 @@ const ProductDetailPage = () => {
     if (showTriColor) {
       mainOptions.push({
         id: 'tri_color',
-        label: field.tri_color_label || 'Tri Color',
-        description: field.tri_color_summary || 'Choose one silky triple-color filament blend.',
+        label: field.tri_color_label || 'Tri-Color Filament Add-On',
+        badge: `+$${fieldAddonPrice.toFixed(2)}`,
+        description: field.tri_color_summary || 'Upgrade to a specialty three-color blend filament.',
         swatchStyle: { background: 'linear-gradient(135deg, #ec4899, #f59e0b, #22c55e, #3b82f6, #7c3aed)' },
         onSelect: () => updateProductFields({
           [colorGroupFieldId]: 'tri_color',
@@ -771,25 +825,76 @@ const ProductDetailPage = () => {
       });
     }
 
+    // When tri-color is chosen on another field, this field becomes the
+    // companion color: only White, Black, Gold, or Silver are allowed.
+    if (triSelectedElsewhere) {
+      const companionValue = customization.productFieldValues?.[singleColorFieldId] || '';
+      return (
+        <div key={field.id} className="block sm:col-span-2">
+          <span className="mb-2 block text-sm font-semibold text-gray-700">{label}</span>
+          <p className="mb-3 rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+            {field.tri_color_secondary_note || TRI_COLOR_SECONDARY_NOTE}
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {TRI_COLOR_COMPANION_COLORS.map((color) => {
+              const isSelected = companionValue === color.name;
+              return (
+                <button
+                  key={color.name}
+                  type="button"
+                  onClick={() => updateProductFields({
+                    [colorGroupFieldId]: 'single',
+                    [field.id]: 'Single Color Request',
+                    [singleColorFieldId]: color.name
+                  })}
+                  className={`rounded-xl border-2 p-4 text-center transition-all ${
+                    isSelected ? selectedColorCardClass : unselectedColorCardClass
+                  }`}
+                >
+                  <span
+                    className={`mx-auto mb-2 block h-10 w-10 rounded-full border border-gray-200 ${isSelected ? selectedSwatchClass : ''}`}
+                    style={{ background: color.hex }}
+                  />
+                  <span className="block text-sm font-bold text-gray-900">{color.name}</span>
+                  {isSelected && <span className="mt-2 block">{selectedPill}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div key={field.id} className="block sm:col-span-2">
         <span className="mb-2 block text-sm font-semibold text-gray-700">{label}</span>
         {field.helper && <span className="mb-3 block text-sm text-gray-600">{field.helper}</span>}
         <div className={`grid gap-3 ${showTriColor ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
-          {mainOptions.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={option.onSelect}
-              className={`rounded-xl border-2 bg-white p-4 text-left transition-all ${
-                selectedGroup === option.id ? 'border-blue-500 shadow-sm ring-2 ring-blue-100' : 'border-gray-200 hover:border-blue-200'
-              }`}
-            >
-              <span className="mb-3 block h-10 w-10 rounded-full border border-gray-200" style={option.swatchStyle} />
-              <span className="block text-base font-bold text-gray-900">{option.label}</span>
-              <span className="mt-1 block text-xs text-gray-600">{option.description}</span>
-            </button>
-          ))}
+          {mainOptions.map((option) => {
+            const isSelected = selectedGroup === option.id;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={option.onSelect}
+                className={`rounded-xl border-2 p-4 text-left transition-all ${
+                  isSelected ? selectedColorCardClass : unselectedColorCardClass
+                }`}
+              >
+                <span className="mb-3 flex items-start justify-between gap-2">
+                  <span className={`block h-10 w-10 rounded-full border border-gray-200 ${isSelected ? selectedSwatchClass : ''}`} style={option.swatchStyle} />
+                  <span className="flex flex-col items-end gap-2">
+                    {option.badge && (
+                      <span className="rounded-full bg-gray-900 px-2.5 py-1 text-xs font-bold text-white shadow-sm">{option.badge}</span>
+                    )}
+                    {isSelected && selectedPill}
+                  </span>
+                </span>
+                <span className="block text-base font-bold text-gray-900">{option.label}</span>
+                <span className="mt-1 block text-xs text-gray-600">{option.description}</span>
+              </button>
+            );
+          })}
         </div>
         {selectedGroup === 'original' && (
           <p className="mt-3 rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
@@ -808,6 +913,9 @@ const ProductDetailPage = () => {
         )}
         {showTriColor && selectedGroup === 'tri_color' && (
           <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+            <p className="mb-3 rounded-lg border border-purple-100 bg-purple-50/70 px-4 py-3 text-sm leading-relaxed text-purple-900">
+              {field.tri_color_explanation || TRI_COLOR_EXPLANATION}
+            </p>
             <span className="mb-3 block text-sm font-semibold text-gray-700">{field.tri_color_picker_label || 'Choose Tri Color'}</span>
             <div className="grid sm:grid-cols-2 gap-3">
               {triColorOptions.map((option) => {
@@ -817,17 +925,19 @@ const ProductDetailPage = () => {
                   ? { backgroundImage: `url(${option.swatch_image})` }
                   : option?.swatch_style || FILAMENT_SWATCH_STYLES[optionLabel] || { background: option?.swatch_color || '#e5e7eb' };
 
+                const isSelected = value === optionValue;
                 return (
                   <button
                     key={optionValue}
                     type="button"
                     onClick={() => updateProductField(field.id, optionValue)}
-                    className={`flex items-center gap-3 rounded-xl border-2 bg-white p-3 text-left transition-all ${
-                      value === optionValue ? 'border-blue-500 shadow-sm ring-2 ring-blue-100' : 'border-gray-200 hover:border-blue-200'
+                    className={`flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                      isSelected ? selectedColorCardClass : unselectedColorCardClass
                     }`}
                   >
-                    <span className="h-10 w-10 shrink-0 rounded-full border border-gray-200 bg-cover bg-center" style={swatchStyle} />
-                    <span className="text-sm font-semibold text-gray-800">{optionLabel}</span>
+                    <span className={`h-10 w-10 shrink-0 rounded-full border border-gray-200 bg-cover bg-center ${isSelected ? selectedSwatchClass : ''}`} style={swatchStyle} />
+                    <span className="min-w-0 flex-1 text-sm font-semibold text-gray-800">{optionLabel}</span>
+                    {isSelected && selectedPill}
                   </button>
                 );
               })}
@@ -893,20 +1003,26 @@ const ProductDetailPage = () => {
       <div className="block sm:col-span-2">
         <span className="mb-2 block text-sm font-semibold text-gray-700">{label}{required ? ' *' : ''}</span>
         <div className="grid sm:grid-cols-3 gap-3">
-          {mainOptions.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={option.onSelect}
-              className={`rounded-xl border-2 bg-white p-4 text-left transition-all ${
-                selectedGroup === option.id ? 'border-blue-500 shadow-sm ring-2 ring-blue-100' : 'border-gray-200 hover:border-blue-200'
-              }`}
-            >
-              <span className="mb-3 block h-10 w-10 rounded-full border border-gray-200" style={option.swatchStyle} />
-              <span className="block text-base font-bold text-gray-900">{option.label}</span>
-              <span className="mt-1 block text-xs text-gray-600">{option.description}</span>
-            </button>
-          ))}
+          {mainOptions.map((option) => {
+            const isSelected = selectedGroup === option.id;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={option.onSelect}
+                className={`rounded-xl border-2 p-4 text-left transition-all ${
+                  isSelected ? selectedColorCardClass : unselectedColorCardClass
+                }`}
+              >
+                <span className="mb-3 flex items-start justify-between gap-2">
+                  <span className={`block h-10 w-10 rounded-full border border-gray-200 ${isSelected ? selectedSwatchClass : ''}`} style={option.swatchStyle} />
+                  {isSelected && selectedPill}
+                </span>
+                <span className="block text-base font-bold text-gray-900">{option.label}</span>
+                <span className="mt-1 block text-xs text-gray-600">{option.description}</span>
+              </button>
+            );
+          })}
         </div>
         {selectedGroup === 'original' && (
           <p className="mt-3 rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
@@ -938,17 +1054,19 @@ const ProductDetailPage = () => {
                 .filter((option) => !['Original Printed Color', 'Single Color Request'].includes(option))
                 .map((option) => {
                   const optionValue = `Tri Color Filament - ${option}`;
+                  const isSelected = value === optionValue;
                   return (
                     <button
                       key={option}
                       type="button"
                       onClick={() => updateCustomization(valueField, optionValue)}
-                      className={`flex items-center gap-3 rounded-xl border-2 bg-white p-3 text-left transition-all ${
-                        value === optionValue ? 'border-blue-500 shadow-sm ring-2 ring-blue-100' : 'border-gray-200 hover:border-blue-200'
+                      className={`flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                        isSelected ? selectedColorCardClass : unselectedColorCardClass
                       }`}
                     >
-                      <span className="h-10 w-10 shrink-0 rounded-full border border-gray-200" style={FILAMENT_SWATCH_STYLES[option]} />
-                      <span className="text-sm font-semibold text-gray-800">{option}</span>
+                      <span className={`h-10 w-10 shrink-0 rounded-full border border-gray-200 ${isSelected ? selectedSwatchClass : ''}`} style={FILAMENT_SWATCH_STYLES[option]} />
+                      <span className="min-w-0 flex-1 text-sm font-semibold text-gray-800">{option}</span>
+                      {isSelected && selectedPill}
                     </button>
                   );
                 })}

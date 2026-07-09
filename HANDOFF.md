@@ -80,6 +80,30 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-09 - Codex - Selected Color Option Visibility
+
+Nandi's request: when a customer chooses a color, especially tri-color filament, the selected block should visibly change so customers know what they picked.
+
+Files changed:
+
+- `frontend/src/pages/ProductDetailPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Added a shared selected-state style for product customization option cards.
+- Selected color, original color, single color, tri-color add-on, tri-color blend, and restricted companion color blocks now show a stronger border, soft gradient background, ring highlight, swatch emphasis, and a "Selected" pill.
+- Preserved Claude's tri-color add-on logic, +$5 pricing, companion color restriction, validation, cart/order details, and layout.
+
+Verification:
+
+- `git diff --check` passed.
+- `CI=false corepack yarn build` passed.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet. Needs a FRONTEND deploy for the customer-facing selected-state styling to go live.
+
 ### 2026-07-09 - Claude Code - Tri-Color Filament Add-On (+$5) with restricted second colors
 
 Nandi's spec: tri-color filament becomes a paid +$5 upgrade (not a regular color choice), with customer explanation; when selected, the second color is limited to White/Black/Gold/Silver with an explanatory note; lithophanes get no color option (always white); opt-in per product; no layout redesign.
