@@ -77,7 +77,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
           </div>
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-emerald-500 text-white text-sm font-medium shadow-md hover:shadow-lg transition-all"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-100 to-emerald-100 text-slate-950 text-sm font-semibold shadow-md hover:shadow-lg ring-1 ring-cyan-200 transition-all"
           >
             <Store className="h-4 w-4" />
             <span>Store</span>
@@ -132,12 +132,12 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
                         onClick={() => handleNavClick(item.id)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                           isActive
-                            ? 'bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-md'
-                            : 'text-slate-600 hover:bg-slate-100'
+                            ? 'bg-gradient-to-r from-cyan-100 to-emerald-100 text-slate-950 shadow-md ring-1 ring-cyan-200'
+                            : 'text-slate-950 hover:bg-slate-100'
                         }`}
                       >
-                        <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                        <span className="font-medium">{item.label}</span>
+                        <Icon className={`h-5 w-5 ${isActive ? 'text-slate-950' : 'text-slate-800'}`} />
+                        <span className="font-semibold text-slate-950">{item.label}</span>
                       </button>
                     );
                   })}
@@ -202,13 +202,13 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-md'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'bg-gradient-to-r from-cyan-100 to-emerald-100 text-slate-950 shadow-md ring-1 ring-cyan-200'
+                    : 'text-slate-950 hover:bg-slate-100'
                 }`}
                 title={!sidebarOpen ? item.label : ''}
               >
-                <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                <span className={`font-medium whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+                <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-slate-950' : 'text-slate-800 group-hover:text-slate-950'}`} />
+                <span className={`font-semibold text-slate-950 whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
                   {item.label}
                 </span>
               </button>
@@ -220,7 +220,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
         <div className="p-3 border-t border-slate-200">
           <button
             onClick={() => navigate('/')}
-            className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-emerald-500 text-white font-medium shadow-md hover:shadow-lg transition-all ${
+            className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-100 to-emerald-100 text-slate-950 font-semibold shadow-md hover:shadow-lg ring-1 ring-cyan-200 transition-all ${
               !sidebarOpen && 'px-0'
             }`}
           >

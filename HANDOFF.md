@@ -80,6 +80,30 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-09 - Codex - Admin Sidebar Text Contrast
+
+Nandi's request: make the wording in the admin/editor left section black and visible so it is easier to read.
+
+Files changed:
+
+- `frontend/src/components/admin/AdminLayout.jsx`
+- `HANDOFF.md`
+
+What changed:
+
+- Updated the admin left navigation on desktop and mobile so sidebar labels and icons use dark/black text.
+- Changed the active admin navigation background from a darker blue/green gradient with white text to a lighter cyan/emerald highlight with black text.
+- Updated the admin "Store/View Store" button to the same readable light highlight with black text.
+- Public storefront design, products, checkout, cart, and admin functionality were not changed.
+
+Verification:
+
+- `CI=false corepack yarn build` passed.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet. Needs a FRONTEND deploy for the admin visibility update to go live.
+
 ### 2026-07-09 - Codex - Selected Color Option Visibility
 
 Nandi's request: when a customer chooses a color, especially tri-color filament, the selected block should visibly change so customers know what they picked.
