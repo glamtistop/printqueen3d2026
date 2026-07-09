@@ -110,6 +110,12 @@ def is_gifts_keepsakes_celebrations_collection(collection):
 stripe_api_key = os.environ.get('STRIPE_API_KEY')
 stripe_webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
+def env_flag(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -5213,6 +5219,19 @@ async def get_export_info(user: User = Depends(require_admin)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.post("/admin/maintenance/startup-tasks")
+async def run_startup_tasks_from_admin(user: User = Depends(require_admin)):
+    """Run one-time maintenance tasks manually instead of on every cold start."""
+    started_at = datetime.now(timezone.utc)
+    await run_startup_maintenance_tasks()
+    completed_at = datetime.now(timezone.utc)
+    return {
+        "status": "completed",
+        "started_at": started_at.isoformat(),
+        "completed_at": completed_at.isoformat(),
+        "duration_seconds": round((completed_at - started_at).total_seconds(), 3)
+    }
+
 
 # ============ SITEMAP ============
 
@@ -5366,7 +5385,7 @@ async def migrate_nfc_backpack_customization_fields_20260708():
 
 async def ensure_indexes():
     """Create indexes for the fields we filter on. Idempotent — Mongo no-ops
-    existing indexes, so this is safe to run on every serverless cold start.
+    existing indexes, so this is safe to run from explicit maintenance.
     Plain (non-unique) indexes only, so duplicate data can never crash startup.
     """
     await db.users.create_index("email")
@@ -5381,16 +5400,29 @@ async def ensure_indexes():
     await db.product_collections.create_index("id")
     await db.pickup_locations.create_index("id")
 
+_startup_maintenance_lock = asyncio.Lock()
+
+async def run_startup_maintenance_tasks():
+    """Run setup work explicitly instead of blocking every serverless wake-up."""
+    async with _startup_maintenance_lock:
+        await ensure_indexes()
+        await seed_admin_user()
+        await seed_email_settings()
+        await seed_stripe_settings()
+        await seed_nfc_builder()
+        await migrate_content_overrides_20260707()
+        await migrate_nfc_backpack_customization_fields_20260708()
+
 @app.on_event("startup")
 async def startup_event():
-    """Run startup tasks"""
-    await ensure_indexes()
-    await seed_admin_user()
-    await seed_email_settings()
-    await seed_stripe_settings()
-    await seed_nfc_builder()
-    await migrate_content_overrides_20260707()
-    await migrate_nfc_backpack_customization_fields_20260708()
+    """Keep serverless cold starts fast for customer traffic."""
+    if env_flag("RUN_STARTUP_MAINTENANCE_ON_BOOT", False):
+        await run_startup_maintenance_tasks()
+    else:
+        logging.info(
+            "Skipping startup maintenance on boot; run /api/admin/maintenance/startup-tasks "
+            "or set RUN_STARTUP_MAINTENANCE_ON_BOOT=true for one deploy if needed."
+        )
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

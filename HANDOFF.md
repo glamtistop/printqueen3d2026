@@ -80,6 +80,34 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-08 - Codex - Backend Cold-Start Optimization
+
+Read before editing:
+
+- `HANDOFF.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/README.md`
+- `/Users/nandinelson/Documents/Codex/printqueen3d-agent-plans/PLAN-performance-caching-indexes.md`
+
+Files changed:
+
+- `backend/server.py`
+- `HANDOFF.md`
+
+What changed:
+
+- Removed the heavy database setup path from normal backend serverless startup, so customer traffic no longer waits on indexes, seeders, Stripe/email settings seeding, NFC builder seeding, or one-time migrations every time Vercel wakes the backend.
+- Added `RUN_STARTUP_MAINTENANCE_ON_BOOT=true` as an explicit environment flag for rare deploys where startup maintenance should run on boot.
+- Added an admin-only maintenance endpoint: `POST /api/admin/maintenance/startup-tasks`, which runs the same setup tasks manually when needed.
+- Preserved existing product, checkout, cart, admin, content, and styling behavior.
+
+Verification:
+
+- `PYTHONPYCACHEPREFIX=/tmp/python-cache python3 -m py_compile backend/server.py` passed.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet. Backend must be deployed for the cold-start improvement to reach customers.
+
 ### 2026-07-08 - Claude Code - Route code-splitting to cut homepage load delay
 
 Nandi's report: still a delay when the website loads, even for customers.
