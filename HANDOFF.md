@@ -80,6 +80,56 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-08 - Claude Code - Route code-splitting to cut homepage load delay
+
+Nandi's report: still a delay when the website loads, even for customers.
+
+Diagnosis (measured, not guessed):
+
+- Live static assets are fast (HTML TTFB 0.23s; JS bundle downloads in ~0.37s). Warm API calls ~0.3s.
+- Root cause of the consistent per-customer delay: the main JS bundle was ~340 kB gzipped (~1.3 MB uncompressed) because `App.js` statically imported EVERY page — the entire admin dashboard (SiteEditor/OrderManager/ProductForm, ~8k lines), ProductDetailPage (1948 lines), CheckoutPage (1146), and all marketing pages — so every homepage visitor downloaded and parsed code they never use. On mobile that parse cost is seconds.
+
+Fix:
+
+- `frontend/src/App.js` only. Converted all route components to `React.lazy` code-split imports (LandingPage stays eager as the common entry). Marketing named exports wrapped via `.then(m => ({ default: m.X }))`. Wrapped `<Routes>` in `<Suspense fallback={<div className="min-h-screen" aria-hidden />}>` (invisible, no jarring spinner). No other files changed; no behavior/visual change.
+
+Result:
+
+- Main bundle 340 kB -> 221.73 kB gzip (-117.85 kB, ~-35%). Admin/checkout/product/marketing now separate chunks loaded only when those routes are visited.
+- Verified: homepage renders (hero + 11 collection cards) downloading ZERO lazy chunks; product page, /design-your-own (named-export lazy), and /login each load their own chunk on demand and work (add-to-cart, custom fields, form, login form all present). Production build succeeds with proper chunk splitting. No new console errors (the 16 "Failed to fetch" are stale from an earlier backend cold-start; count unchanged by navigation; backend now 200).
+
+Separate remaining factor (NOT fixed here): backend serverless COLD START. `startup_event` runs seeds + `ensure_indexes` + content migration on every cold boot (DB round-trips to Atlas), adding latency to the first request after the function idles. Options for a later pass: gate the seeds/migration behind a flag so they don't run every cold start, or add a lightweight keep-warm ping. Recommend as a follow-up; the bundle split is the bigger, consistent win.
+
+Commit/push/deploy: NOT committed/pushed/deployed. Needs a FRONTEND deploy to reach customers (Nandi's push).
+
+### 2026-07-08 - Claude Code - FIXED live checkout: invalid STRIPE_API_KEY in Vercel env
+
+Nandi's report: checkout says "You will be redirected to Stripe" but never redirects (live site, tested as customer; 6 failed attempts on the $0.99 test product).
+
+Root cause (proven, not guessed):
+
+- Reproduced her EXACT order ($0.99 test product, pickup, total $1.08) against the LOCAL backend: order + Stripe session created fine (checkout.stripe.com URL in 1.2s). Local code and local `.env` key are good.
+- Same flow against LIVE `www.printqueen3d.com/api`: order created (HTTP 200) but `/api/checkout/session` returned HTTP 500.
+- `vercel logs` on the live backend while triggering the failure showed: `Stripe API response ... response_code=401` — Stripe REJECTED the deployed key. The Vercel `STRIPE_API_KEY` env var was 43 days old and no longer valid (key was rolled at some point; only local `.env` got the new one). Every live checkout since that key died failed silently at the redirect step.
+
+Fix applied (env only — ZERO code changes):
+
+- Replaced Vercel production env `STRIPE_API_KEY` with the working `sk_live_...` key from local `backend/.env` (piped, never displayed).
+- `vercel redeploy` of the SAME backend build Nandi deployed ~1h earlier (deployment nz0gp4qk7 -> 6ndplbc4t), so no new code shipped — only the corrected env took effect.
+
+Verification:
+
+- LIVE end-to-end: order HTTP 200 -> `/api/checkout/session` HTTP 200 in 1.1s with a real `https://checkout.stripe.com/c/pay/cs_live_...` URL.
+- All debug orders/transactions deleted from the DB after each test. Nandi's own 6 failed `pending` orders for the test product remain (hidden from admin by Codex's pending-order filter).
+
+Follow-ups for Nandi:
+
+- In the Stripe dashboard, confirm which secret keys exist and delete any dead/rolled ones; when a key is ever rolled again, update BOTH `backend/.env` (local) and the Vercel backend env, then redeploy the backend.
+- STRIPE_WEBHOOK_SECRET in Vercel is 34 days old — worth confirming it still matches the webhook endpoint's signing secret in Stripe (payment confirmation currently also works via success-page polling, so this is not urgent).
+- Retry a real checkout on printqueen3d.com to confirm the customer experience end-to-end.
+
+Commit/push/deploy: no repo changes from this fix (env + redeploy of existing build only). Working tree was already committed by Nandi/Codex (51ce206).
+
 ### 2026-07-08 - Codex - Verified Admin Orders Only After Paid Stripe Checkout
 
 Read before editing:

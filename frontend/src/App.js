@@ -1,17 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { AnimatePresence } from 'framer-motion';
+// The landing page loads eagerly (it is the most common entry point). Every other
+// route is code-split so customers do not download the admin dashboard, checkout,
+// product, and marketing bundles just to view the homepage.
 import LandingPage from './pages/LandingPage';
-import ProductsPage from './pages/ProductsPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrderSuccessPage from './pages/OrderSuccessPage';
-import OrdersPage from './pages/OrdersPage';
-import AdminDashboard from './pages/AdminDashboardNew';
-import LoginPage from './pages/LoginPage';
-import { AboutPage, ContactPage, CorporateBulkOrdersPage, DesignYourOwnPage, MaterialsPage, PersonalizePage, PolicyPage } from './pages/MarketingPages';
+const ProductsPage = lazy(() => import('./pages/ProductsPage'));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboardNew'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const AboutPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.AboutPage })));
+const ContactPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.ContactPage })));
+const CorporateBulkOrdersPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.CorporateBulkOrdersPage })));
+const DesignYourOwnPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.DesignYourOwnPage })));
+const MaterialsPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.MaterialsPage })));
+const PersonalizePage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.PersonalizePage })));
+const PolicyPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.PolicyPage })));
 import PageTransition from './components/PageTransition';
 import ScrollToTop from './components/ScrollToTop';
 import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
@@ -51,8 +60,9 @@ const AnimatedRoutes = ({ user }) => {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+    <Suspense fallback={<div className="min-h-screen" aria-hidden="true" />}>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
         <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
         <Route path="/personalize" element={<PageTransition><PersonalizePage /></PageTransition>} />
@@ -76,8 +86,9 @@ const AnimatedRoutes = ({ user }) => {
         <Route path="/order-success" element={user ? <PageTransition><OrderSuccessPage /></PageTransition> : <Navigate to="/" />} />
         <Route path="/orders" element={user ? <PageTransition><OrdersPage /></PageTransition> : <Navigate to="/" />} />
         <Route path="/admin" element={user?.is_admin ? <PageTransition><AdminDashboard /></PageTransition> : <Navigate to="/login" />} />
-      </Routes>
-    </AnimatePresence>
+        </Routes>
+      </AnimatePresence>
+    </Suspense>
   );
 };
 
