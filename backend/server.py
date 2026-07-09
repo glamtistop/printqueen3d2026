@@ -2392,7 +2392,7 @@ async def ensure_nfc_business_stands_seeded():
     _nfc_seed_completed = True
 
 @api_router.get("/products", response_model=List[Product])
-async def get_products(category: Optional[str] = None, collection: Optional[str] = None, published: Optional[bool] = None, search: Optional[str] = None):
+async def get_products(category: Optional[str] = None, collection: Optional[str] = None, published: Optional[bool] = None, search: Optional[str] = None, limit: Optional[int] = None):
     """Get all products with optional filters"""
     await ensure_nfc_business_stands_seeded()
     query = {}
@@ -2429,7 +2429,8 @@ async def get_products(category: Optional[str] = None, collection: Optional[str]
     if published is not None:
         query["published"] = published
     
-    products = await db.products.find(query, {"_id": 0}).to_list(1000)
+    requested_limit = min(max(limit or 1000, 1), 1000)
+    products = await db.products.find(query, {"_id": 0}).to_list(requested_limit if not search else 1000)
     if collection:
         allowed_product_ids = set(collection_product_ids)
         allowed_collection_ids = set(collection_match_ids)
@@ -2442,7 +2443,8 @@ async def get_products(category: Optional[str] = None, collection: Optional[str]
     if search:
         search_lower = search.lower()
         products = [p for p in products if search_lower in p.get('name', '').lower() or search_lower in p.get('description', '').lower()]
-    
+        if limit:
+            products = products[:requested_limit]
     for product in products:
         if isinstance(product.get('created_at'), str):
             product['created_at'] = datetime.fromisoformat(product['created_at'])

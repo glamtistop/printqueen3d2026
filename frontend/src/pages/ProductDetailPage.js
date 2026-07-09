@@ -218,7 +218,7 @@ const ProductDetailPage = () => {
 
       if (collectionIds.length > 0) {
         const collectionResponses = await Promise.all(
-          collectionIds.map((collectionId) => axios.get(`${API}/products?collection=${encodeURIComponent(collectionId)}`))
+          collectionIds.map((collectionId) => axios.get(`${API}/products?collection=${encodeURIComponent(collectionId)}&published=true&limit=12`))
         );
         relatedPool = collectionResponses.flatMap((response) => response.data || []);
       }
@@ -1520,6 +1520,8 @@ const ProductDetailPage = () => {
                 <img
                   src={mainImage}
                   alt={displayProductName}
+                  decoding="async"
+                  fetchPriority="high"
                   className="w-full h-full object-cover"
                   data-testid="product-main-image"
                 />
@@ -1547,6 +1549,8 @@ const ProductDetailPage = () => {
                         <img
                           src={relatedProduct.images && relatedProduct.images.length > 0 ? relatedProduct.images[0] : 'https://via.placeholder.com/400'}
                           alt={relatedProduct.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         {relatedProduct.badge && relatedProduct.sale_badge_enabled !== false && (

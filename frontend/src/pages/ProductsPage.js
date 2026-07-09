@@ -258,7 +258,7 @@ const ProductsPage = () => {
             <div className="grid md:grid-cols-[0.8fr_1.2fr] gap-6 items-center">
               {getCollectionImage(selectedCollectionData) && (
                 <div className="aspect-[4/3] overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-green-50">
-                  <img src={getCollectionImage(selectedCollectionData)} alt={selectedCollectionData.image_alt || selectedCollectionName} className="h-full w-full object-cover" />
+                  <img src={getCollectionImage(selectedCollectionData)} alt={selectedCollectionData.image_alt || selectedCollectionName} decoding="async" fetchPriority="high" className="h-full w-full object-cover" />
                 </div>
               )}
               <div className="text-center md:text-left">
@@ -462,6 +462,8 @@ const ProductsPage = () => {
                     <img
                       src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/400'}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       data-testid={`product-image-${product.id}`}
                     />

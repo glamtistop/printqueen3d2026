@@ -271,7 +271,7 @@ const LandingPage = () => {
             {[...Array(3)].flatMap(() => marqueeMessages).map((message, index) => (
               <span key={`${message}-${index}`} className="inline-flex items-center" style={{ gap: `${marqueeGap}px` }}>
                 {marqueeShowImages && marqueeImages[index % marqueeImages.length] && (
-                  <img src={marqueeImages[index % marqueeImages.length]} alt="" className="h-10 w-10 rounded-full object-cover border border-white/40" />
+                  <img src={marqueeImages[index % marqueeImages.length]} alt="" loading="lazy" decoding="async" className="h-10 w-10 rounded-full object-cover border border-white/40" />
                 )}
                 <span>{message}</span>
                 <span className="opacity-70">•</span>
@@ -292,6 +292,8 @@ const LandingPage = () => {
               <img
                 src={desktopHeroImage || mobileHeroImage}
                 alt="Custom 3D creations by Print Queen 3D"
+                decoding="async"
+                fetchPriority="high"
                 className="h-full w-full object-cover md:object-contain md:object-right"
                 style={{ objectPosition: heroImagePosition }}
               />
@@ -477,7 +479,7 @@ const LandingPage = () => {
       {isSectionEnabled('design_cta') && (
         <section className="design-idea-cta relative isolate overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
           <div className="absolute inset-0 z-0">
-            <img src={ctaBackground} alt="" className="h-full w-full object-cover" />
+            <img src={ctaBackground} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
             <div className="design-idea-cta-overlay absolute inset-0 bg-gradient-to-r from-blue-700/90 via-emerald-600/80 to-blue-900/75" />
           </div>
           <div className="relative z-10 max-w-4xl mx-auto text-center text-gray-900">
@@ -501,7 +503,7 @@ const LandingPage = () => {
               <div className="overflow-hidden rounded-xl bg-blue-50 border border-blue-100 aspect-[4/3]">
                 <picture>
                   {aboutMobileImage && <source media="(max-width: 767px)" srcSet={aboutMobileImage} />}
-                  <img src={aboutImage} alt={aboutImageAlt} className="h-full w-full object-cover" style={{ objectPosition: aboutImagePosition }} />
+                  <img src={aboutImage} alt={aboutImageAlt} loading="lazy" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: aboutImagePosition }} />
                 </picture>
               </div>
             )}

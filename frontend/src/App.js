@@ -125,7 +125,6 @@ function App() {
       });
       setUser(response.data);
     } catch (error) {
-      console.log('Not authenticated:', error.response?.status);
       // Not authenticated - this is fine
     } finally {
       setLoading(false);

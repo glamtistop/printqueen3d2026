@@ -80,6 +80,40 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-09 - Codex - Safe Performance Optimization Pass
+
+Nandi's request: optimize the website for faster loading, cleaner code, and smoother performance without changing the visual design, layout, colors, fonts, spacing, product data, cart, checkout, or customization fields.
+
+Files changed:
+
+- `backend/server.py`
+- `frontend/src/App.js`
+- `frontend/src/pages/LandingPage.js`
+- `frontend/src/pages/ProductDetailPage.js`
+- `frontend/src/pages/ProductsPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Added an optional `limit` query parameter to `GET /api/products`, capped between 1 and 1000, so frontend views can request only the number of products they need.
+- Updated product-detail related-products fetches to request published same-collection products with `limit=12`, then render the existing max 6. This reduces unnecessary product data pulled for the related-products section.
+- Added browser image loading hints without changing layout/classes:
+  - `fetchPriority="high"` and `decoding="async"` on primary above-the-fold hero/product/collection images.
+  - `loading="lazy"` and `decoding="async"` on below-the-fold marquee, CTA, about, product grid, and related product images that were missing them.
+- Removed the normal unauthenticated `console.log` from `App.js` so public visitors do not create console noise during expected auth checks.
+- No visual classes, spacing, colors, buttons, product data, checkout, cart, or customization behavior were changed.
+
+Verification:
+
+- `PYTHONPYCACHEPREFIX=/tmp/python-cache python3 -m py_compile backend/server.py` passed.
+- `CI=false corepack yarn build` passed.
+- `git diff --check` passed.
+- Searched for remaining `console.log` calls; none remain in `frontend/src`.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet. Needs BACKEND deploy for the product API limit and FRONTEND deploy for the image-loading and related-products request improvements.
+
 ### 2026-07-09 - Codex - Same-Collection Related Products on Product Pages
 
 Nandi's request: add a "More from this collection" section on every product detail page showing only other products from the same collection, clickable directly to each product page, with 4-6 max and no unrelated products.
