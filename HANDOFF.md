@@ -80,6 +80,32 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-09 - Claude Code - Clean reload reliability (Safari/bfcache/stale-cache) + black admin sidebar text
+
+Nandi's asks: (a) site must reload cleanly and never show an old frozen/broken page after customers close Safari, force quit, or return later; (b) all wording in the admin left sidebar black and readable. Complements Codex's same-day performance pass (image hints, product limit) — no overlap; verified coexisting.
+
+Files changed:
+
+- `frontend/src/index.js` — (1) unregisters ANY service worker left from older deployments and deletes its CacheStorage entries (stale SW is the classic "old broken page forever" cause, worst for iOS home-screen users since manifest is display:standalone); (2) `pageshow` listener: when Safari restores the page from the back/forward cache (`event.persisted`), reload once so customers always see the live current page.
+- `frontend/src/App.js` — (1) `lazyWithReload` wrapper around all code-split routes: if a chunk 404s because a deploy changed hashes while a customer held an old tab, reload once (sessionStorage-guarded against loops; guard cleared on successful boot); (2) cart localStorage parse wrapped in try/catch with bad-data removal so a corrupted cart can never blank the whole site.
+- `frontend/vercel.json` — cache headers: `/static/*` immutable 1y (hashed filenames), `/assets/*` 1 day + stale-while-revalidate, everything else (the SPA HTML) `no-cache` so browsers always revalidate and fetch the newest index.html/bundles after each deploy.
+- `frontend/src/components/admin/AdminLayout.jsx` — remaining light-gray sidebar text darkened to slate-950/900 (header "Admin"/"Print Queen 3D", chevron, mobile drawer header/X, user name + "Administrator"). Nav items were already darkened by a parallel Codex session.
+
+Verification (local, prod DB; desktop + 375px mobile):
+
+- bfcache fix proven end-to-end: dispatched a real persisted `pageshow` -> page genuinely reloaded -> healthy hero after.
+- Corrupted cart (`{broken json!!`) -> page boots fine, bad value removed from localStorage.
+- Service workers: 0 registered, 0 CacheStorage entries after boot.
+- Back/forward: home -> shop -> product -> back -> back all render correctly.
+- Mobile nav sheet opens/closes, links intact, no horizontal overflow.
+- Admin sidebar: computed colors rgb(2,6,23)/rgb(16,18,23) on every text element; zero light text remaining.
+- ZERO console errors the whole session. `CI=false corepack yarn build` passed.
+- Duplicate-file check: no duplicate basenames in frontend/src (heavy dedup was Plan 5).
+
+Notes on the rest of the optimization prompt (already done earlier, not repeated): code-splitting (-118 kB main bundle), image compression (31->10 MB), lazy-loading, site-config request dedup, DB indexes, backend cold-start reduction (Codex), image dimension/priority hints (Codex same day).
+
+Commit/push/deploy: NOT committed/pushed/deployed. Needs a FRONTEND deploy (vercel.json headers + JS changes ship together).
+
 ### 2026-07-09 - Codex - Safe Performance Optimization Pass
 
 Nandi's request: optimize the website for faster loading, cleaner code, and smoother performance without changing the visual design, layout, colors, fonts, spacing, product data, cart, checkout, or customization fields.

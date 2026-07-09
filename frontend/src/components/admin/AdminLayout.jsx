@@ -72,7 +72,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
             </button>
             <div className="flex items-center gap-2">
               <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-8 w-auto" />
-              <span className="font-bold text-slate-800">Admin</span>
+              <span className="font-bold text-slate-950">Admin</span>
             </div>
           </div>
           <button
@@ -109,15 +109,15 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
                   <div className="flex items-center gap-3">
                     <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-10 w-auto" />
                     <div>
-                      <h2 className="font-bold text-slate-800">Admin Panel</h2>
-                      <p className="text-xs text-slate-500">Print Queen 3D</p>
+                      <h2 className="font-bold text-slate-950">Admin Panel</h2>
+                      <p className="text-xs font-medium text-slate-900">Print Queen 3D</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
                   >
-                    <X className="h-5 w-5 text-slate-500" />
+                    <X className="h-5 w-5 text-slate-900" />
                   </button>
                 </div>
 
@@ -150,8 +150,8 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
                       {user?.name?.charAt(0).toUpperCase() || 'A'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-800 truncate">{user?.name}</p>
-                      <p className="text-xs text-slate-500">Administrator</p>
+                      <p className="font-semibold text-slate-950 truncate">{user?.name}</p>
+                      <p className="text-xs font-medium text-slate-900">Administrator</p>
                     </div>
                   </div>
                   <button
@@ -179,15 +179,15 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
           <div className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0'}`}>
             <img src="/printqueen-logo.png" alt="Print Queen 3D" className="h-10 w-auto" />
             <div className="whitespace-nowrap">
-              <h2 className="font-bold text-slate-800">Admin</h2>
-              <p className="text-xs text-slate-500">Print Queen 3D</p>
+              <h2 className="font-bold text-slate-950">Admin</h2>
+              <p className="text-xs font-medium text-slate-900">Print Queen 3D</p>
             </div>
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
           >
-            <ChevronLeft className={`h-5 w-5 text-slate-500 transition-transform duration-300 ${!sidebarOpen && 'rotate-180'}`} />
+            <ChevronLeft className={`h-5 w-5 text-slate-900 transition-transform duration-300 ${!sidebarOpen && 'rotate-180'}`} />
           </button>
         </div>
 
@@ -238,8 +238,8 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
               {user?.name?.charAt(0).toUpperCase() || 'A'}
             </div>
             <div className={`flex-1 min-w-0 transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
-              <p className="font-medium text-slate-800 truncate">{user?.name}</p>
-              <p className="text-xs text-slate-500">Administrator</p>
+              <p className="font-semibold text-slate-950 truncate">{user?.name}</p>
+              <p className="text-xs font-medium text-slate-900">Administrator</p>
             </div>
           </div>
           <button

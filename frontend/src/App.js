@@ -6,21 +6,37 @@ import { AnimatePresence } from 'framer-motion';
 // route is code-split so customers do not download the admin dashboard, checkout,
 // product, and marketing bundles just to view the homepage.
 import LandingPage from './pages/LandingPage';
-const ProductsPage = lazy(() => import('./pages/ProductsPage'));
-const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
-const CartPage = lazy(() => import('./pages/CartPage'));
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
-const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage'));
-const OrdersPage = lazy(() => import('./pages/OrdersPage'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboardNew'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const AboutPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.AboutPage })));
-const ContactPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.ContactPage })));
-const CorporateBulkOrdersPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.CorporateBulkOrdersPage })));
-const DesignYourOwnPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.DesignYourOwnPage })));
-const MaterialsPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.MaterialsPage })));
-const PersonalizePage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.PersonalizePage })));
-const PolicyPage = lazy(() => import('./pages/MarketingPages').then((m) => ({ default: m.PolicyPage })));
+
+// If a customer keeps an old tab open across a deploy, the code-split chunk
+// filenames change and the old chunk 404s — leaving a stuck blank page. Retry
+// once with a clean reload (guarded so it can never loop).
+const lazyWithReload = (importer) => lazy(() =>
+  importer().catch((error) => {
+    const alreadyReloaded = sessionStorage.getItem('pq-chunk-reloaded');
+    if (!alreadyReloaded) {
+      sessionStorage.setItem('pq-chunk-reloaded', '1');
+      window.location.reload();
+      return new Promise(() => {});
+    }
+    throw error;
+  })
+);
+
+const ProductsPage = lazyWithReload(() => import('./pages/ProductsPage'));
+const ProductDetailPage = lazyWithReload(() => import('./pages/ProductDetailPage'));
+const CartPage = lazyWithReload(() => import('./pages/CartPage'));
+const CheckoutPage = lazyWithReload(() => import('./pages/CheckoutPage'));
+const OrderSuccessPage = lazyWithReload(() => import('./pages/OrderSuccessPage'));
+const OrdersPage = lazyWithReload(() => import('./pages/OrdersPage'));
+const AdminDashboard = lazyWithReload(() => import('./pages/AdminDashboardNew'));
+const LoginPage = lazyWithReload(() => import('./pages/LoginPage'));
+const AboutPage = lazyWithReload(() => import('./pages/MarketingPages').then((m) => ({ default: m.AboutPage })));
+const ContactPage = lazyWithReload(() => import('./pages/MarketingPages').then((m) => ({ default: m.ContactPage })));
+const CorporateBulkOrdersPage = lazyWithReload(() => import('./pages/MarketingPages').then((m) => ({ default: m.CorporateBulkOrdersPage })));
+const DesignYourOwnPage = lazyWithReload(() => import('./pages/MarketingPages').then((m) => ({ default: m.DesignYourOwnPage })));
+const MaterialsPage = lazyWithReload(() => import('./pages/MarketingPages').then((m) => ({ default: m.MaterialsPage })));
+const PersonalizePage = lazyWithReload(() => import('./pages/MarketingPages').then((m) => ({ default: m.PersonalizePage })));
+const PolicyPage = lazyWithReload(() => import('./pages/MarketingPages').then((m) => ({ default: m.PolicyPage })));
 import PageTransition from './components/PageTransition';
 import ScrollToTop from './components/ScrollToTop';
 import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
@@ -108,11 +124,22 @@ function App() {
   useEffect(() => {
     checkAuth();
 
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+    // Load cart from localStorage. A corrupted saved cart must never be able
+    // to blank the whole site, so parse defensively and discard bad data.
+    try {
+      const savedCart = localStorage.getItem('cart');
+      const parsed = savedCart ? JSON.parse(savedCart) : null;
+      if (Array.isArray(parsed)) {
+        setCart(parsed);
+      } else if (savedCart) {
+        localStorage.removeItem('cart');
+      }
+    } catch (error) {
+      localStorage.removeItem('cart');
     }
+
+    // Clear the chunk-reload guard once the app has booted successfully.
+    sessionStorage.removeItem('pq-chunk-reloaded');
   }, []);
 
   const checkAuth = async () => {
