@@ -80,6 +80,35 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-09 - Claude Code - Tri-Color Filament Add-On (+$5) with restricted second colors
+
+Nandi's spec: tri-color filament becomes a paid +$5 upgrade (not a regular color choice), with customer explanation; when selected, the second color is limited to White/Black/Gold/Silver with an explanatory note; lithophanes get no color option (always white); opt-in per product; no layout redesign.
+
+Files changed:
+
+- `frontend/src/pages/ProductDetailPage.js` (only file)
+
+What changed (builds on the existing admin-editable `filament_color` field system):
+
+- The "Tri Color" group inside filament color fields is now presented as "Tri-Color Filament Add-On" with a black "+$5.00" badge; selecting it adds $5 once per product (`triColorAddOnPrice` -> `addOnTotal` -> cart price). Admin can override the price per field via `tri_color_addon_price`, override the copy via `tri_color_explanation` / `tri_color_secondary_note`, and disable entirely per field via the existing `allow_tri_color: false` (Nandi's manual opt-out, req 10).
+- Customer explanation paragraph (her exact copy) renders inside the tri-color blend picker panel.
+- When tri-color is selected on one color field, every OTHER filament color field switches to a restricted companion picker: exactly four swatches (White #FFFFFF, Black #111111, Gold #D4AF37, Silver #C0C0C0) plus the amber note ("...only black, white, gold, or silver can be selected as the second color..."). The tri option is hidden on companion fields (no double tri). Deselecting tri restores the normal full selector.
+- Validation: tri selected requires a blend choice; companion fields must hold one of the four allowed names, else a clear toast blocks add-to-cart.
+- Order details now include "Tri-Color Filament Add-On: Yes (+$5.00)" plus the blend and companion color names.
+
+Data change (live DB):
+
+- `home-decor-lithophane-nightlight`: removed its `requested_color` filament field (photo upload + notes remain) per "lithophanes are always white". Removed field JSON preserved in this entry's session; re-add via Admin -> Products -> Customization Fields (Add Color) if ever wanted back.
+
+Verification (local, live DB; desktop + 375px mobile):
+
+- Keychain (2 color fields): both show the +$5.00 add-on card; selecting tri on Primary shows the explanation, 11 blend swatches, converts Secondary to the 4-swatch companion picker with the note, and hides tri there. Deselecting tri restores the full Secondary selector.
+- Full add-to-cart: blend "Silky Triple-Color Rainbow" + companion "Gold" -> cart price = base $14.99 + $5 = $19.99; order details carry the add-on line, blend, and Gold. Success toast fired; test cart cleared.
+- Mobile screenshot: amber note + 2x4->2x2 swatch grid clean and consistent with site style. No new console errors. `CI=false corepack yarn build` passed.
+- Checkout compatibility: server price verification accepts the +$5 (floor + cap logic).
+
+Commit/push/deploy: NOT committed/pushed/deployed. Needs a FRONTEND deploy (Nandi).
+
 ### 2026-07-08 - Codex - Google SEO Technical Optimization Pass
 
 Read before editing:
