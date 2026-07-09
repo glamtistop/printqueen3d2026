@@ -80,6 +80,36 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-09 - Codex - Same-Collection Related Products on Product Pages
+
+Nandi's request: add a "More from this collection" section on every product detail page showing only other products from the same collection, clickable directly to each product page, with 4-6 max and no unrelated products.
+
+Files changed:
+
+- `frontend/src/pages/ProductDetailPage.js`
+- `HANDOFF.md`
+
+What changed:
+
+- Product detail pages now show `More from this collection` in the left-side product media column.
+- The related list pulls dynamically from the current product's `collection_ids`.
+- Removed the category fallback so products from broad categories are not mixed into the related list.
+- Excludes the product currently being viewed.
+- Limits related products to 6 max.
+- Each related product card links directly to `/products/{productId}` and includes image, name, compare-at price when available, and price.
+- The section uses existing `product-card` styling and stacks cleanly as two columns on mobile, one column on desktop under the main product image.
+- Removed the older bottom `You May Also Like` related-products section to avoid duplication and crowding.
+- Clears stale related products while switching between product pages.
+
+Verification:
+
+- `CI=false corepack yarn build` passed.
+- `git diff --check` passed.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet. Needs a FRONTEND deploy for the related-products update to go live.
+
 ### 2026-07-09 - Codex - Custom Pendant and Chain Product
 
 Nandi's request: add a new "Custom Pendant and Chain" product to the Gifts, Keepsakes & Celebrations collection using the uploaded pendant image, with regular/large pricing, required pendant text, required colors, and a +$5 glitter/resin add-on.

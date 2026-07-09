@@ -122,10 +122,12 @@ const ProductDetailPage = () => {
 
   const fetchProduct = async () => {
     try {
+      setLoading(true);
       setSelectedImage(0);
       setQuantity(1);
       setSelectedVariant({});
       setSelectedColor('');
+      setRelatedProducts([]);
       setCustomization({
         productColor: '',
         keychainColor: '',
@@ -221,17 +223,13 @@ const ProductDetailPage = () => {
         relatedPool = collectionResponses.flatMap((response) => response.data || []);
       }
 
-      if (relatedPool.length === 0 && productData.category) {
-        const response = await axios.get(`${API}/products?category=${encodeURIComponent(productData.category)}`);
-        relatedPool = response.data || [];
-      }
-
       const filtered = relatedPool
         .filter((p, index, products) => p.id !== currentProductId && p.published && products.findIndex((item) => item.id === p.id) === index)
-        .slice(0, 12);
+        .slice(0, 6);
       setRelatedProducts(filtered);
     } catch (error) {
       console.error('Error fetching related products:', error);
+      setRelatedProducts([]);
     }
   };
 
@@ -300,39 +298,7 @@ const ProductDetailPage = () => {
     : getNfcStandIconCount(customization.nfcBase);
   const productImages = product?.images || [];
   const mainImage = productImages[selectedImage] || productImages[0];
-  const sameCategoryGalleryItems = (() => {
-    const seenImages = new Set(mainImage ? [mainImage] : []);
-    const items = [];
-
-    relatedProducts.forEach((relatedProduct) => {
-      const image = relatedProduct.images?.[0];
-      if (!image || seenImages.has(image)) return;
-      seenImages.add(image);
-      items.push({
-        id: `related-product-${relatedProduct.id}`,
-        type: 'reference',
-        image,
-        productId: relatedProduct.id,
-        title: relatedProduct.name,
-        subtitle: relatedProduct.subtitle || relatedProduct.category
-      });
-    });
-
-    productImages.forEach((image, index) => {
-      if (items.length >= 6 || !image || seenImages.has(image)) return;
-      seenImages.add(image);
-      items.push({
-        id: `product-image-${index}`,
-        type: 'image',
-        image,
-        imageIndex: index,
-        title: displayProductName,
-        subtitle: `Photo ${index + 1}`
-      });
-    });
-
-    return items.slice(0, 6);
-  })();
+  const sameCollectionProducts = relatedProducts.slice(0, 6);
   const hasBusinessCardHolderBase = (customization.nfcBase || '').toLowerCase().includes('business card holder');
   const displayInsertApplies = ['Square', 'Circle'].includes(customization.nfcBackShape) || hasBusinessCardHolderBase;
 
@@ -1561,52 +1527,50 @@ const ProductDetailPage = () => {
                 <Package className="h-32 w-32 text-gray-300" />
               )}
             </div>
-            {sameCategoryGalleryItems.length > 0 && (
-              <div className="hidden md:block space-y-4">
+            {sameCollectionProducts.length > 0 && (
+              <div className="space-y-4">
                 <div className="text-center md:text-left">
-                  <h2 className="text-xl font-bold text-gray-900">More From This Collection</h2>
+                  <h2 className="text-xl font-bold text-gray-900">More from this collection</h2>
                   <p className="text-sm text-gray-600">
-                    Browse more product photos from this collection while you customize.
+                    Browse other products from this same collection.
                   </p>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
-                  {sameCategoryGalleryItems.map((item, index) => {
-                    const galleryCard = (
-                      <div
-                        className={`glass-card rounded-2xl overflow-hidden h-96 bg-gradient-to-br from-blue-50 to-green-50 ${
-                          item.type === 'image' && selectedImage === item.imageIndex ? 'ring-4 ring-blue-500' : ''
-                        }`}
-                      >
-                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+                  {sameCollectionProducts.map((relatedProduct, index) => (
+                    <Link
+                      key={relatedProduct.id}
+                      to={`/products/${relatedProduct.id}`}
+                      className="group product-card rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
+                      data-testid={`same-collection-product-${index}`}
+                    >
+                      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
+                        <img
+                          src={relatedProduct.images && relatedProduct.images.length > 0 ? relatedProduct.images[0] : 'https://via.placeholder.com/400'}
+                          alt={relatedProduct.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        {relatedProduct.badge && relatedProduct.sale_badge_enabled !== false && (
+                          <div
+                            className="absolute top-2 right-2 text-white px-2 py-1 rounded-full text-xs font-semibold"
+                            style={{ backgroundColor: relatedProduct.badge_color || '#dc2626' }}
+                          >
+                            {relatedProduct.badge}
+                          </div>
+                        )}
                       </div>
-                    );
-
-                    return item.type === 'reference' ? (
-                      <div
-                        key={item.id}
-                        className="group block text-left"
-                        data-testid={`same-category-product-${index}`}
-                      >
-                        {galleryCard}
-                        <div className="mt-3 text-center md:text-left">
-                          <p className="font-semibold text-gray-900">
-                            {item.title}
+                      <div className="p-3">
+                        <h3 className="font-semibold text-gray-900 text-sm md:text-base line-clamp-2">{relatedProduct.name}</h3>
+                        {Number(relatedProduct.compare_at_price) > Number(relatedProduct.price || 0) && (
+                          <p className="mt-1 text-xs font-semibold text-gray-400 line-through">
+                            {formatPrice(relatedProduct.compare_at_price, relatedProduct.compare_at_price_prefix)}
                           </p>
-                          {item.subtitle && <p className="text-sm text-gray-600">{item.subtitle}</p>}
-                        </div>
+                        )}
+                        <p className="mt-1 text-sm md:text-lg font-bold text-green-600">
+                          {formatPrice(relatedProduct.price, relatedProduct.price_prefix)}
+                        </p>
                       </div>
-                    ) : (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setSelectedImage(item.imageIndex)}
-                        className="block w-full text-left"
-                        data-testid={`product-gallery-image-${index}`}
-                      >
-                        {galleryCard}
-                      </button>
-                    );
-                  })}
+                    </Link>
+                  ))}
                 </div>
               </div>
             )}
@@ -2063,52 +2027,6 @@ const ProductDetailPage = () => {
           </div>
         )}
 
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mt-16 pt-8 border-t border-gray-200"
-          >
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">You May Also Like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
-                <Link
-                  key={relatedProduct.id}
-                  to={`/products/${relatedProduct.id}`}
-                  className="group product-card rounded-xl overflow-hidden hover:scale-105 transition-all duration-300"
-                >
-                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-green-50">
-                    <img
-                      src={relatedProduct.images && relatedProduct.images.length > 0 ? relatedProduct.images[0] : 'https://via.placeholder.com/400'}
-                      alt={relatedProduct.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    {relatedProduct.badge && relatedProduct.sale_badge_enabled !== false && (
-                      <div
-                        className="absolute top-2 right-2 text-white px-2 py-1 rounded-full text-xs font-semibold"
-                        style={{ backgroundColor: relatedProduct.badge_color || '#dc2626' }}
-                      >
-                        {relatedProduct.badge}
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{relatedProduct.name}</h3>
-                    {Number(relatedProduct.compare_at_price) > Number(relatedProduct.price || 0) && (
-                      <p className="text-sm font-semibold text-gray-400 line-through">
-                        {formatPrice(relatedProduct.compare_at_price, relatedProduct.compare_at_price_prefix)}
-                      </p>
-                    )}
-                    <p className="text-lg font-bold text-green-600">{formatPrice(relatedProduct.price, relatedProduct.price_prefix)}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </motion.div>
-        )}
       </div>
     </div>
   );
