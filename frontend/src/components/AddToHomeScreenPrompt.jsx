@@ -1,10 +1,33 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Share, Smartphone } from 'lucide-react';
 
 const AddToHomeScreenPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const promptRef = useRef(null);
+
+  // Publish this prompt's visibility + measured height to <body> so the floating
+  // Support widget button can lift itself above the prompt (no overlap on mobile).
+  useEffect(() => {
+    const body = document.body;
+    if (!showPrompt) {
+      body.classList.remove('pq-a2hs-visible');
+      body.style.removeProperty('--pq-a2hs-height');
+      return;
+    }
+    const measure = () => {
+      const height = promptRef.current?.offsetHeight || 0;
+      body.style.setProperty('--pq-a2hs-height', `${height}px`);
+      body.classList.add('pq-a2hs-visible');
+    };
+    const raf = requestAnimationFrame(measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      body.classList.remove('pq-a2hs-visible');
+      body.style.removeProperty('--pq-a2hs-height');
+    };
+  }, [showPrompt]);
 
   // Detect device type on mount (static - won't change)
   const deviceInfo = useMemo(() => {
@@ -70,6 +93,7 @@ const AddToHomeScreenPrompt = () => {
     <AnimatePresence>
       {showPrompt && (
         <motion.div
+          ref={promptRef}
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}

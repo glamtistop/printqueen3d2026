@@ -990,3 +990,219 @@ nav a[class*='rounded-full']:hover {
     align-items: center;
   }
 }
+
+/* =========================================================================
+   Support widget — floating "Support" button + branded Instant Answers popup.
+   Uses the site's aurora/glow palette (teal #2de2e6 / purple #7b5cff /
+   pink #ff4fbf / gold #ffc857) on a deep premium panel with pearl-white text.
+   ========================================================================= */
+.pq-support-root {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.pq-support-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.15rem;
+  border: none;
+  border-radius: 9999px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(45, 226, 230, 0.55), transparent 60%),
+    radial-gradient(circle at 82% 80%, rgba(255, 79, 191, 0.5), transparent 62%),
+    linear-gradient(135deg, #1b1436 0%, #241a4d 55%, #14243f 100%);
+  box-shadow:
+    0 10px 30px -8px rgba(123, 92, 255, 0.55),
+    0 6px 18px -8px rgba(45, 226, 230, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, margin-bottom 0.2s ease;
+}
+/* When the Add-to-Home-Screen prompt is showing, lift the Support button above
+   it so the two never overlap on mobile. Only the collapsed button moves; the
+   open panel (fixed) is unaffected and covers the prompt via its higher z-index. */
+body.pq-a2hs-visible .pq-support-btn {
+  margin-bottom: calc(var(--pq-a2hs-height, 0px) + 0.75rem);
+}
+
+.pq-support-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 38px -8px rgba(123, 92, 255, 0.7),
+    0 8px 22px -8px rgba(45, 226, 230, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+.pq-support-btn svg { width: 1.15rem; height: 1.15rem; }
+
+.pq-support-panel {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  width: 360px;
+  max-width: calc(100vw - 2rem);
+  max-height: min(78vh, 560px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 22px;
+  color: #f4f2ff;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(45, 226, 230, 0.22), transparent 42%),
+    radial-gradient(circle at 88% 6%, rgba(123, 92, 255, 0.26), transparent 46%),
+    radial-gradient(circle at 50% 108%, rgba(255, 79, 191, 0.2), transparent 46%),
+    linear-gradient(160deg, #161033 0%, #1d1642 52%, #121d38 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 26px 70px -18px rgba(20, 12, 50, 0.85),
+    0 0 0 1px rgba(45, 226, 230, 0.12),
+    0 0 60px -20px rgba(123, 92, 255, 0.6);
+  transform-origin: bottom right;
+  animation: pq-support-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes pq-support-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pq-support-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.15rem 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.pq-support-brand { display: flex; align-items: center; gap: 0.6rem; }
+.pq-support-brand img { width: 34px; height: 34px; object-fit: contain; }
+.pq-support-title { font-size: 1.02rem; font-weight: 800; line-height: 1.15; letter-spacing: 0.01em; }
+.pq-support-subtitle { font-size: 0.8rem; color: #b9b2e6; margin-top: 1px; }
+.pq-support-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 9999px;
+  color: #d9d4ff;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.pq-support-close:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+.pq-support-tab {
+  margin: 0.85rem 1.15rem 0.4rem;
+  padding: 0.5rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0c0a1e;
+  background: linear-gradient(120deg, #2de2e6 0%, #7b5cff 60%, #ff4fbf 100%);
+  box-shadow: 0 6px 16px -6px rgba(45, 226, 230, 0.6);
+}
+
+.pq-support-body {
+  padding: 0.4rem 1.15rem 1.15rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.pq-support-hint { font-size: 0.82rem; color: #b0a9dd; margin: 0.2rem 0 0.7rem; }
+
+.pq-support-qbtn {
+  width: 100%;
+  text-align: left;
+  padding: 0.72rem 0.85rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  color: #f1eeff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.pq-support-qbtn:hover {
+  transform: translateX(2px);
+  border-color: rgba(45, 226, 230, 0.55);
+  background: rgba(123, 92, 255, 0.16);
+}
+.pq-support-qbtn svg { flex-shrink: 0; width: 1rem; height: 1rem; color: #8fe9ec; }
+
+.pq-support-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #8fe9ec;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pq-support-back:hover { color: #c6fbfc; }
+.pq-support-back svg { width: 1rem; height: 1rem; }
+
+.pq-support-answer-q { font-size: 0.98rem; font-weight: 800; line-height: 1.3; margin-bottom: 0.55rem; }
+.pq-support-answer-a { font-size: 0.9rem; line-height: 1.55; color: #ddd8f5; white-space: pre-line; }
+
+.pq-support-signup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 1.1rem;
+  padding: 0.72rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  color: #0c0a1e;
+  background: linear-gradient(120deg, #2de2e6 0%, #7b5cff 58%, #ff4fbf 100%);
+  box-shadow: 0 10px 26px -10px rgba(123, 92, 255, 0.7);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pq-support-signup:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px -10px rgba(255, 79, 191, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pq-support-panel { animation: none; }
+  .pq-support-btn:hover,
+  .pq-support-qbtn:hover,
+  .pq-support-signup:hover { transform: none; }
+}
+
+@media (max-width: 480px) {
+  .pq-support-panel {
+    right: 0.5rem;
+    left: 0.5rem;
+    bottom: 0.5rem;
+    width: auto;
+    max-width: none;
+    max-height: 80vh;
+  }
+  .pq-support-root { right: 0.75rem; bottom: 0.75rem; }
+}

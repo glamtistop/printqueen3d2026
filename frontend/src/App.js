@@ -40,6 +40,7 @@ const PolicyPage = lazyWithReload(() => import('./pages/MarketingPages').then((m
 import PageTransition from './components/PageTransition';
 import ScrollToTop from './components/ScrollToTop';
 import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
+import SupportWidget from './components/SupportWidget';
 import { Toaster } from './components/ui/sonner';
 import { ROUTE_META, setPageMeta, removeProductJsonLd, removeBreadcrumbJsonLd, removeFaqJsonLd } from './lib/seo';
 import './App.css';
@@ -241,6 +242,7 @@ function App() {
             <ScrollToTop />
             <RouteMeta />
             <AnimatedRoutes user={user} />
+            <SupportWidget />
           </BrowserRouter>
           <Toaster position="top-right" theme="light" />
           <AddToHomeScreenPrompt />

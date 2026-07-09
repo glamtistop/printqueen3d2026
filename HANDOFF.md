@@ -80,6 +80,30 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-09 - Claude Code - Customer Support widget with Instant Answers FAQ
+
+Nandi's ask: a small floating "Support" button (bottom-right) that opens a branded chat-style popup with an "Instant Answers" FAQ; clickable questions open full answers in the same popup with a "Back to Instant Answers" option and a "Sign up for updates" button; must match the site's aurora/glow style; editable from admin if possible; lightweight; mobile-safe; no design changes to anything existing.
+
+Files changed:
+
+- `backend/server.py` — added a new `support_faq` section to `DEFAULT_SECTIONS` (id `support_faq`, name "Support Widget (Instant Answers)", order 99) seeded with the 8 requested Q&As plus `headline`/`subheadline`/`signup_text`/`signup_link`. It is injected by the existing `merge_default_sections`, so it flows into `/api/site-config` (read by the widget) and the admin Site Editor. It is NOT rendered on the homepage because `LandingPage` only renders known section ids — so no visual change to the storefront.
+- `frontend/src/components/SupportWidget.js` (new) — the whole widget. Floating "Support" button → popup with header "Print Queen 3D" / "Chat with us", an "Instant Answers" tab pill, question buttons, answer view with "Back to Instant Answers", and a "Sign up for updates" button. Reads `support_faq` from `fetchSiteConfig()` ONLY when first opened (zero added weight to initial page load) and falls back to a built-in copy of the 8 Q&As so it works before the backend deploy. Signup link uses SPA `<Link>` for internal paths (defaults to `/contact`) / plain `<a>` for external.
+- `frontend/src/App.css` — appended a scoped `.pq-support-*` block (deep premium panel, teal/purple/pink glow, pearl-white text, rounded corners, soft glow shadow, open animation, reduced-motion + ≤480px mobile rules). No existing rules touched.
+- `frontend/src/App.js` — imported and mounted `<SupportWidget />` INSIDE `<BrowserRouter>` (required so its `<Link>` has router context) after `AnimatedRoutes`.
+
+Admin editability: because the section carries a `faq_items` field, the existing Site Editor auto-renders its add / edit / remove / reorder FAQ editor for it (labeled "Support Widget (Instant Answers)") once the backend is deployed — no admin-code changes needed. Answers update the widget after a page refresh (site-config module cache resets on reload).
+
+Verification (local, prod DB; browser preview, desktop + narrow mobile):
+
+- Support button renders on the page; opening shows the correct header/subtitle/tab and all 8 questions.
+- Clicking a question opens the full answer (multiline NFC-keychain answer preserved via `white-space: pre-line`); "Back to Instant Answers" returns to the list (8 questions, answer removed, scroll reset).
+- "Sign up for updates" navigated to `/contact` via SPA (no reload) and closed the popup back to the Support button.
+- ZERO console errors (the initial `<Link>`-outside-Router crash was fixed by mounting inside BrowserRouter).
+- Widget panel fits the viewport (panel right edge < window width); the only horizontal overflow on the page is the pre-existing announcement marquee, not the widget. Mobile ≤480px rule pins the panel to both side margins.
+- `PYTHONPYCACHEPREFIX=/tmp/python-cache python3 -m py_compile backend/server.py` passed. `CI=false corepack yarn build` passed. `git diff --check` passed. No test data written to the live DB.
+
+Commit/push/deploy: NOT committed/pushed/deployed. Widget works immediately after a FRONTEND deploy (built-in FAQ fallback). Deploy the BACKEND too to make the FAQ editable from the admin Site Editor and to drive the widget from `support_faq`.
+
 ### 2026-07-09 - Claude Code - Clean reload reliability (Safari/bfcache/stale-cache) + black admin sidebar text
 
 Nandi's asks: (a) site must reload cleanly and never show an old frozen/broken page after customers close Safari, force quit, or return later; (b) all wording in the admin left sidebar black and readable. Complements Codex's same-day performance pass (image hints, product limit) — no overlap; verified coexisting.

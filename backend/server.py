@@ -3505,6 +3505,32 @@ DEFAULT_SECTIONS = [
         }
     },
     {
+        # Powers the floating "Support" widget's Instant Answers list. It is NOT
+        # rendered on the homepage (LandingPage only renders known section ids),
+        # but living in homepage_sections makes it fully editable from the admin
+        # Site Editor (add / edit / remove / reorder questions) like any other FAQ.
+        "id": "support_faq",
+        "name": "Support Widget (Instant Answers)",
+        "enabled": True,
+        "order": 99,
+        "content": {
+            "headline": "Instant Answers",
+            "subheadline": "Chat with us",
+            "signup_text": "Sign up for updates",
+            "signup_link": "/contact",
+            "faq_items": [
+                {"question": "How do custom 3D prints work?", "answer": "Choose the product you want, add your customization details, select your colors and options, then place your order. If extra details are needed, we will contact you before printing."},
+                {"question": "How long does my order take?", "answer": "Turnaround time depends on the item, size, quantity, and customization details. Most custom items are made after the order is placed, so please allow time for design, printing, and finishing."},
+                {"question": "Can I request a custom design?", "answer": "Yes. You can request a custom design by adding your idea, name, colors, size, and any reference details. We will review the request and let you know if anything else is needed."},
+                {"question": "How does an NFC tap-to-pay stand work?", "answer": "NFC tap-to-pay stands can be programmed with your payment link, website, social media, menu, booking page, or other link. Customers tap their compatible phone near the stand and the link opens automatically."},
+                {"question": "How NFC keychain works?", "answer": "An NFC keychain has a small NFC chip inside. We program it with your link, such as your website, social media, payment link, contact card, or phone number. We program it, and you just need to tap your phone near the keychain for your link to pop up.\nIt works with iOS (top of the phone) and Android (usually middle back of the phone)."},
+                {"question": "Track my order?", "answer": "Once your order is placed, you will receive order updates through the contact information provided at checkout. If tracking is available for your order, the tracking information will be sent once your package ships."},
+                {"question": "Can I reprogram/change the link?", "answer": "Yes, of course you can! With every one of our NFC products, we provide information on how to reprogram your tag if anything changes. If the NFC chip was locked for security, it may not be editable."},
+                {"question": "Do you offer bulk orders?", "answer": "Yes. Bulk orders are available for events, businesses, gifts, party favors, and custom product runs. Please include the quantity, deadline, and design details when requesting a bulk order."}
+            ]
+        }
+    },
+    {
         "id": "design_cta",
         "name": "Design Your Own CTA",
         "enabled": True,
