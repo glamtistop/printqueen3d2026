@@ -480,7 +480,10 @@ const ProductDetailPage = () => {
       if (value) {
         details[field.label || field.id] = value;
         if (field.price_adjustments && Object.prototype.hasOwnProperty.call(field.price_adjustments, value)) {
-          details[`${field.label || field.id} Price`] = formatPrice(getProductFieldOptionPrice(field, value));
+          const adjustment = getProductFieldAdjustment(field, value);
+          details[`${field.label || field.id} Price`] = field.type === 'checkbox'
+            ? `+${formatPrice(adjustment)}`
+            : formatPrice(getProductFieldOptionPrice(field, value));
         }
       }
       if (field.type === 'filament_color' && value === 'Single Color Request') {
@@ -1176,6 +1179,28 @@ const ProductDetailPage = () => {
                       Uploaded: {customization.productFieldValues?.[`${field.id}_file_name`] || 'View file'}
                     </a>
                   )}
+                </label>
+              );
+            }
+
+            if (field.type === 'checkbox') {
+              const adjustment = getProductFieldAdjustment(field, true);
+              return (
+                <label key={field.id} className="block sm:col-span-2 rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+                  <span className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(value)}
+                      onChange={(event) => updateProductField(field.id, event.target.checked)}
+                      className="mt-1 h-5 w-5 rounded border-blue-200 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>
+                      <span className="block text-sm font-bold text-gray-900">
+                        {label}{adjustment > 0 ? ` (+$${adjustment.toFixed(2)})` : ''}
+                      </span>
+                      {field.helper && <span className="mt-1 block text-sm text-gray-600">{field.helper}</span>}
+                    </span>
+                  </span>
                 </label>
               );
             }

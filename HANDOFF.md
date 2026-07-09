@@ -80,6 +80,48 @@ Frontend and backend are connected on the live domain.
 
 ## Change Log
 
+### 2026-07-09 - Codex - Custom Pendant and Chain Product
+
+Nandi's request: add a new "Custom Pendant and Chain" product to the Gifts, Keepsakes & Celebrations collection using the uploaded pendant image, with regular/large pricing, required pendant text, required colors, and a +$5 glitter/resin add-on.
+
+Files changed:
+
+- `backend/server.py`
+- `frontend/src/pages/ProductDetailPage.js`
+- `frontend/src/components/admin/ProductForm.jsx`
+- `frontend/public/assets/products/gifts-keepsakes-celebrations/custom-pendant-and-chain.jpg`
+- `HANDOFF.md`
+
+What changed:
+
+- Added a seeded/admin-editable product: `gifts-custom-pendant-and-chain`.
+- Product details:
+  - Name: Custom Pendant and Chain
+  - Collection/category: Gifts, Keepsakes & Celebrations
+  - Base price: $25.99
+  - Large size price: $40.00 through a +$14.01 field adjustment
+  - Product image uses Nandi's uploaded pendant photo copied into the Gifts product assets folder.
+- Added customer fields:
+  - Name or word you would like on the pendant
+  - Pendant Size: Regular / Large
+  - Main Color
+  - Chain Color
+  - Add glitter and resin finish (+$5.00)
+- Reused existing filament color fields for Main Color and Chain Color so color selection stays consistent with the rest of the site.
+- Added admin-defined `checkbox` customization field support on the product page so add-on checkboxes can add price and save to cart/order details.
+- Added `Checkbox` as a field type in the admin product editor, including an editable add-on price field.
+- The existing optional inspiration/reference image upload block still appears on product pages, so customers can attach an idea/logo/reference if needed.
+
+Verification:
+
+- `PYTHONPYCACHEPREFIX=/tmp/python-cache python3 -m py_compile backend/server.py` passed.
+- `CI=false corepack yarn build` passed.
+- `git diff --check` passed.
+
+Commit/push/deploy:
+
+- Not committed, pushed, or deployed yet. Needs BACKEND deploy for the product seed and FRONTEND deploy for the product image, checkbox rendering, and admin editor field type.
+
 ### 2026-07-09 - Codex - Admin Sidebar Text Contrast
 
 Nandi's request: make the wording in the admin/editor left section black and visible so it is easier to read.

@@ -735,6 +735,7 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
                           <option value="url">URL</option>
                           <option value="textarea">Text Area</option>
                           <option value="select">Dropdown</option>
+                          <option value="checkbox">Checkbox</option>
                           <option value="file">File Upload</option>
                           <option value="filament_color">Color Picker</option>
                         </select>
@@ -757,7 +758,7 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
                           className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </label>
-                      {field.type !== 'filament_color' && field.type !== 'file' && (
+                      {field.type !== 'filament_color' && field.type !== 'file' && field.type !== 'checkbox' && (
                         <label className="block md:col-span-2">
                           <span className="block text-xs font-semibold text-gray-600 mb-1">Placeholder Text</span>
                           <input
@@ -765,6 +766,20 @@ export const ProductForm = ({ product, onSuccess, onCancel }) => {
                             onChange={(e) => updateCustomizationField(index, 'placeholder', e.target.value)}
                             className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
+                        </label>
+                      )}
+                      {field.type === 'checkbox' && (
+                        <label className="block md:col-span-2">
+                          <span className="block text-xs font-semibold text-gray-600 mb-1">Add-On Price</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={field.price_adjustments?.['true'] ?? ''}
+                            onChange={(e) => updateCustomizationField(index, 'price_adjustments', { ...(field.price_adjustments || {}), true: Number(e.target.value || 0) })}
+                            placeholder="Example: 5.00"
+                            className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">Adds this amount when the customer checks this option.</p>
                         </label>
                       )}
                       {field.type === 'select' && (

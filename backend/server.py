@@ -1922,6 +1922,39 @@ def gifts_keepsakes_celebrations_product_payloads(collection_id: str = GIFTS_KEE
                 filament_color_field("base_color", "Base Color"),
                 filament_color_field("script_color", "Script Color")
             ]
+        },
+        {
+            "id": "gifts-custom-pendant-and-chain",
+            "name": "Custom Pendant and Chain",
+            "price": 25.99,
+            "images": ["/assets/products/gifts-keepsakes-celebrations/custom-pendant-and-chain.jpg"],
+            "image_alt": "Custom glitter name pendant and chain",
+            "description": "Create a personalized custom pendant and chain with the name or word of your choice. This bold statement piece is 3D printed and can be customized with your preferred colors. Perfect for birthdays, concerts, events, gifts, party favors, photoshoots, and custom fashion accessories.",
+            "product_page_section_title": "Customize Your Pendant",
+            "product_page_section_text": "Choose your pendant size, name or word, colors, and optional glitter/resin finish before checkout.",
+            "product_page_note": "Each pendant is custom made. Final look may vary slightly depending on the name length, font shape, colors selected, and finish chosen.",
+            "customization_fields": [
+                {"id": "pendant_text", "label": "Name or word you would like on the pendant", "type": "text", "required": True, "placeholder": "Example: Cardie"},
+                {
+                    "id": "pendant_size",
+                    "label": "Pendant Size",
+                    "type": "select",
+                    "required": True,
+                    "options": ["Regular", "Large"],
+                    "price_adjustments": {"Regular": 0, "Large": 14.01},
+                    "helper": "Regular starts at $25.99. Large starts at $40.00."
+                },
+                filament_color_field("main_color", "Main Color"),
+                filament_color_field("chain_color", "Chain Color"),
+                {
+                    "id": "glitter_resin_add_on",
+                    "label": "Add glitter and resin finish",
+                    "type": "checkbox",
+                    "required": False,
+                    "price_adjustments": {"true": 5},
+                    "helper": "Glitter and resin adds a shiny, sparkly sealed finish to make the pendant stand out."
+                }
+            ]
         }
     ]
     return [{**common, **product} for product in products]
